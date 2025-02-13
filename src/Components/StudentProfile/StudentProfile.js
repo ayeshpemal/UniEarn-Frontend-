@@ -47,8 +47,8 @@ const Profile = () => {
                 style={{ backgroundImage: `url(${bgImage})` }}
             >
                 <div className="relative z-10">
-                    <h1 className="text-4xl md:text-6xl font-bold">
-                        Welcome, <span className="text-blue-400">{profile.fullName}</span>
+                    <h1 className="text-4xl md:text-7xl font-bold">
+                        Welcome,<br/> <span className="text-blue-400">{profile.fullName}</span>
                     </h1>
                 </div>
             </header>
@@ -56,19 +56,20 @@ const Profile = () => {
             {/* Profile Card */}
             <div className="max-w-5xl mx-auto bg-white rounded-lg shadow-md -mt-20 p-6 relative z-10">
                 <div className="flex items-center justify-between relative">
-                    {/* Profile Image (Brought to Front) */}
-                    <div className="relative z-20">
+                    {/* Profile Image and Name Section */}
+                    <div className="flex items-center space-x-4 relative z-20">
+                        {/* Profile Image */}
                         <img src={userProfile} alt="Profile"
                              className="w-32 h-32 rounded-full border-4 border-white shadow-lg" />
+
+                        {/* User Details (Full Name & Mobile No) */}
+                        <div>
+                            <h2 className="text-2xl font-bold">{profile.fullName}</h2>
+                            <p className="text-gray-500 text-lg">{profile.mobileNo}</p>
+                        </div>
                     </div>
 
-                    {/* User Details */}
-                    <div className="ml-6">
-                        <h2 className="text-xl font-bold">{profile.fullName}</h2>
-                        <p className="text-gray-500">{profile.mobileNo}</p>
-                    </div>
-
-                    {/* Buttons - Edit / Save */}
+                    {/* Edit / Save Button */}
                     <button
                         onClick={handleEditToggle}
                         className={`px-6 py-2 rounded-lg font-medium transition z-20 ${
@@ -130,6 +131,7 @@ const Profile = () => {
                     />
                 </div>
             </div>
+
             {/* Company Feedback Section */}
             <section className="max-w-6xl mx-auto p-6 relative z-10">
                 <h2 className="text-2xl font-bold mb-4">Company Feedback</h2>

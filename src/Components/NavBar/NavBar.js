@@ -1,27 +1,79 @@
-import React from "react";
-import {NavLink} from "react-router-dom";
-import { GraduationCap} from "lucide-react";
+import React, { useState } from "react";
+import { NavLink } from "react-router-dom";
+import { GraduationCap, Menu, X, Home, Building, User, Phone, LogOut } from "lucide-react";
 
-const NavBar = () =>{
-    return(
-        <div>
+const NavBar = () => {
+    const [menuOpen, setMenuOpen] = useState(false);
 
-            <nav className="bg-black text-white p-4 flex justify-between items-center">
+    return (
+        <nav className="bg-black text-white p-4 fixed top-0 left-0 w-full z-50">
+            <div className="container mx-auto flex justify-between items-center">
+
+                {/* Logo Section */}
                 <div className="flex items-center space-x-2">
-                    <GraduationCap size={24} className="text-white" />
+                    <GraduationCap size={28} className="text-white" />
                     <span className="text-xl font-bold">Uni Earn</span>
                 </div>
-                <div className="flex space-x-8 text-xl">
-                    <NavLink to="/home" className="hover:underline cursor-pointer">Home</NavLink>
-                    <NavLink to="/company" className="hover:underline cursor-pointer">Company</NavLink>
-                    <NavLink to="/activities" className="hover:underline cursor-pointer">Activities</NavLink>
-                    <NavLink to="/profile" className="hover:underline cursor-pointer">Profile</NavLink>
-                    <NavLink to="#" className="hover:underline cursor-pointer">Contact</NavLink>
-                    <NavLink to="#" className="hover:underline cursor-pointer text-red-400">Logout</NavLink>
-                </div>
-            </nav>
-        </div>
-    )
-}
 
-export default NavBar;
+                {/* Desktop Menu */}
+                <div className="hidden md:flex space-x-8 text-lg">
+                    <NavLink to="/home" className="hover:underline flex items-center gap-1">
+                        <Home size={20} /> Home
+                    </NavLink>
+                    <NavLink to="/company" className="hover:underline flex items-center gap-1">
+                        <Building size={20} /> Company
+                    </NavLink>
+                    <NavLink to="/activities" className="hover:underline flex items-center gap-1">
+                        📅 Activities
+                    </NavLink>
+                    <NavLink to="/profile" className="hover:underline flex items-center gap-1">
+                        <User size={20} /> Profile
+                    </NavLink>
+                    <NavLink to="/contact" className="hover:underline flex items-center gap-1">
+                        <Phone size={20} /> Contact
+                    </NavLink>
+                    <NavLink to="/logout" className="hover:underline flex items-center gap-1 text-red-400">
+                        <LogOut size={20} /> Logout
+                    </NavLink>
+                </div>
+
+                {/* Mobile Menu Icon */}
+                <button className="md:hidden block text-white" onClick={() => setMenuOpen(!menuOpen)}>
+                    {menuOpen ? <X size={28} /> : <Menu size={28} />}
+                </button>
+            </div>
+
+            {/* Mobile Slide-in Menu */}
+            <div className={`fixed top-0 right-0 w-2/3 sm:w-1/2 h-full bg-black text-white transform transition-transform duration-300 ${menuOpen ? "translate-x-0" : "translate-x-full"} shadow-lg`}>
+                {/* Close Button */}
+                <button className="absolute top-4 right-4 text-white" onClick={() => setMenuOpen(false)}>
+                    <X size={28} />
+                </button>
+
+                {/* Menu List */}
+                <div className="flex flex-col items-center justify-center h-full space-y-6 text-lg">
+                    <NavLink to="/home" className="hover:underline flex items-center gap-2" onClick={() => setMenuOpen(false)}>
+                        <Home size={24} /> Home
+                    </NavLink>
+                    <NavLink to="/company" className="hover:underline flex items-center gap-2" onClick={() => setMenuOpen(false)}>
+                        <Building size={24} /> Company
+                    </NavLink>
+                    <NavLink to="/activities" className="hover:underline flex items-center gap-2" onClick={() => setMenuOpen(false)}>
+                        📅 Activities
+                    </NavLink>
+                    <NavLink to="/profile" className="hover:underline flex items-center gap-2" onClick={() => setMenuOpen(false)}>
+                        <User size={24} /> Profile
+                    </NavLink>
+                    <NavLink to="/contact" className="hover:underline flex items-center gap-2" onClick={() => setMenuOpen(false)}>
+                        <Phone size={24} /> Contact
+                    </NavLink>
+                    <NavLink to="/logout" className="hover:underline flex items-center gap-2 text-red-400" onClick={() => setMenuOpen(false)}>
+                        <LogOut size={24} /> Logout
+                    </NavLink>
+                </div>
+            </div>
+        </nav>
+    );
+};
+
+export default NavBar; // <-- Ensure this is present at the end
