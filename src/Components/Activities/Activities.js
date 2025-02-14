@@ -19,16 +19,18 @@ const Activities = () => {
     return (
         <div className="bg-gray-100 min-h-screen">
             {/* Hero Section */}
-            <header
-                className="relative flex flex-col justify-center items-start text-white h-[70vh] bg-cover bg-center px-10 md:px-20"
-                style={{ backgroundImage: `url(${bgImage})` }}
+            <div
+                className="relative h-[400px] bg-cover bg-center"
+                style={{ backgroundImage: 'url("https://images.unsplash.com/photo-1559136555-9303baea8ebd?auto=format&fit=crop&q=80")' }}
             >
-                <div className="relative z-10">
-                    <h1 className="text-4xl md:text-6xl font-bold text-white">
-                        My, <span className="text-blue-400">Activities</span>
-                    </h1>
+                <div className="absolute inset-0 bg-black bg-opacity-50">
+                    <div className="max-w-7xl mx-auto h-full flex flex-col justify-center px-6">
+                        <h1 className="text-4xl md:text-6xl font-bold text-white">
+                            My,<br/> <span className="text-blue-400">Activities</span>
+                        </h1>
+                    </div>
                 </div>
-            </header>
+            </div>
 
             {/* Activities List - Placed Directly Under Hero Section */}
             <div className="max-w-6xl mx-auto bg-white rounded-lg shadow-md p-6 mt-6">

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { NavLink } from "react-router-dom";
-import { GraduationCap, Menu, X, Home, Building, User, Phone, LogOut } from "lucide-react";
+import {GraduationCap, Menu, X, Home, ListTodo, Building2, User, Phone, LogOut, MessageCircle} from "lucide-react";
 
 const NavBar = () => {
     const [menuOpen, setMenuOpen] = useState(false);
@@ -16,15 +16,15 @@ const NavBar = () => {
                 </div>
 
                 {/* Desktop Menu */}
-                <div className="hidden md:flex space-x-8 text-lg">
+                <div className="hidden md:flex space-x-6 text-lg">
                     <NavLink to="/home" className="hover:underline flex items-center gap-1">
                         <Home size={20} /> Home
                     </NavLink>
                     <NavLink to="/company" className="hover:underline flex items-center gap-1">
-                        <Building size={20} /> Company
+                        <Building2 size={18} /> Company
                     </NavLink>
                     <NavLink to="/activities" className="hover:underline flex items-center gap-1">
-                        📅 Activities
+                        <ListTodo size={18} /> Activities
                     </NavLink>
                     <NavLink to="/profile" className="hover:underline flex items-center gap-1">
                         <User size={20} /> Profile
@@ -56,10 +56,10 @@ const NavBar = () => {
                         <Home size={24} /> Home
                     </NavLink>
                     <NavLink to="/company" className="hover:underline flex items-center gap-2" onClick={() => setMenuOpen(false)}>
-                        <Building size={24} /> Company
+                        <Building2 size={18} /> Company
                     </NavLink>
                     <NavLink to="/activities" className="hover:underline flex items-center gap-2" onClick={() => setMenuOpen(false)}>
-                        📅 Activities
+                        <ListTodo size={18} /> Activities
                     </NavLink>
                     <NavLink to="/profile" className="hover:underline flex items-center gap-2" onClick={() => setMenuOpen(false)}>
                         <User size={24} /> Profile
@@ -71,6 +71,8 @@ const NavBar = () => {
                         <LogOut size={24} /> Logout
                     </NavLink>
                 </div>
+                {/* Floating Chat Button */}
+
             </div>
         </nav>
     );

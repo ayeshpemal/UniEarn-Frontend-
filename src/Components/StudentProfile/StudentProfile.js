@@ -1,170 +1,172 @@
 import React, { useState } from "react";
+import { Edit2, ChevronDown, Star } from "lucide-react";
+import { ChatBubbleOvalLeftEllipsisIcon } from "@heroicons/react/24/solid";
 import bgImage from "./bg.png"; // Background Image
 import userProfile from "./profile.png"; // Profile Picture
-import { ChatBubbleOvalLeftEllipsisIcon } from "@heroicons/react/24/solid"; // HeroIcons for chat bubble
-
-const feedbacks = [
-    { id: 1, name: "Floyd Miles", feedback: "Great experience with this company!", rating: 4, image: "/Rating.png" },
-    { id: 2, name: "Ronald Richards", feedback: "Awesome work culture and support!", rating: 5, image: "/Rating.png" },
-    { id: 3, name: "Savannah Nguyen", feedback: "Highly recommend this workplace!", rating: 4, image: "/Rating.png" },
-];
 
 const Profile = () => {
     const [isEditing, setIsEditing] = useState(false);
+    const [error, setError] = useState(""); // Store password error message
     const [messageCount, setMessageCount] = useState(2); // Simulated unread messages
 
     // User Profile State
     const [profile, setProfile] = useState({
-        bio: "",
         fullName: "Aathif Mohamed",
+        mail: "aathifmhd2000@gmail.com",
         university: "University of Ruhuna",
         gender: "Male",
         mobileNo: "0779981298",
         emergencyMobileNo: "0779981298",
         address: "No 53/B Akurana, Kandy",
-        password: "********",
-        confirmPassword: "********",
+        password: "",
+        confirmPassword: "",
+        bio: "",
     });
 
     // Handle input change
     const handleChange = (e) => {
-        setProfile({
-            ...profile,
-            [e.target.name]: e.target.value,
-        });
+        setProfile({ ...profile, [e.target.name]: e.target.value });
+    };
+
+    // Handle gender change
+    const handleGenderChange = (e) => {
+        setProfile({ ...profile, gender: e.target.value });
+    };
+
+    // Validate passwords
+    const validatePasswords = () => {
+        if (profile.password && profile.confirmPassword && profile.password !== profile.confirmPassword) {
+            setError("Passwords do not match");
+            return false;
+        } else {
+            setError("");
+            return true;
+        }
     };
 
     // Toggle edit mode
     const handleEditToggle = () => {
+        if (isEditing) {
+            if (!validatePasswords()) return; // Prevent saving if passwords don't match
+        }
         setIsEditing(!isEditing);
     };
 
     return (
-        <div className="bg-gray-100 min-h-screen relative">
+        <div className="min-h-screen bg-white">
             {/* Hero Section */}
-            <header
-                className="relative flex flex-col justify-center items-start text-white h-[70vh] bg-cover bg-center px-10 md:px-20"
+            <div
+                className="relative h-[400px] bg-cover bg-center"
                 style={{ backgroundImage: `url(${bgImage})` }}
             >
-                <div className="relative z-10">
-                    <h1 className="text-4xl md:text-7xl font-bold">
-                        Welcome,<br/> <span className="text-blue-400">{profile.fullName}</span>
+                <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center px-6">
+                    <h1 className="text-7xl font-bold text-white">
+                        Welcome,<br />
+                        <span className="text-[#6B7AFF]">{profile.fullName}</span>
                     </h1>
-                </div>
-            </header>
-
-            {/* Profile Card */}
-            <div className="max-w-5xl mx-auto bg-white rounded-lg shadow-md -mt-20 p-6 relative z-10">
-                <div className="flex items-center justify-between relative">
-                    {/* Profile Image and Name Section */}
-                    <div className="flex items-center space-x-4 relative z-20">
-                        {/* Profile Image */}
-                        <img src={userProfile} alt="Profile"
-                             className="w-32 h-32 rounded-full border-4 border-white shadow-lg" />
-
-                        {/* User Details (Full Name & Mobile No) */}
-                        <div>
-                            <h2 className="text-2xl font-bold">{profile.fullName}</h2>
-                            <p className="text-gray-500 text-lg">{profile.mobileNo}</p>
-                        </div>
-                    </div>
-
-                    {/* Edit / Save Button */}
-                    <button
-                        onClick={handleEditToggle}
-                        className={`px-6 py-2 rounded-lg font-medium transition z-20 ${
-                            isEditing ? "bg-green-500 hover:bg-green-600" : "bg-blue-500 hover:bg-blue-600"
-                        } text-white`}>
-                        {isEditing ? "Save" : "Edit"}
-                    </button>
-                </div>
-
-                {/* Editable Form */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6 relative z-10">
-                    <textarea
-                        name="bio"
-                        className="border p-3 rounded w-full h-24"
-                        placeholder="Bio"
-                        value={profile.bio}
-                        onChange={handleChange}
-                        disabled={!isEditing}
-                    ></textarea>
-
-                    <input
-                        type="text"
-                        name="fullName"
-                        className="border p-3 rounded w-full"
-                        placeholder="Full Name"
-                        value={profile.fullName}
-                        onChange={handleChange}
-                        disabled={!isEditing}
-                    />
-
-                    <input
-                        type="text"
-                        name="university"
-                        className="border p-3 rounded w-full"
-                        placeholder="University"
-                        value={profile.university}
-                        onChange={handleChange}
-                        disabled={!isEditing}
-                    />
-
-                    <input
-                        type="text"
-                        name="gender"
-                        className="border p-3 rounded w-full"
-                        placeholder="Gender"
-                        value={profile.gender}
-                        onChange={handleChange}
-                        disabled={!isEditing}
-                    />
-
-                    <input
-                        type="text"
-                        name="mobileNo"
-                        className="border p-3 rounded w-full"
-                        placeholder="Mobile No"
-                        value={profile.mobileNo}
-                        onChange={handleChange}
-                        disabled={!isEditing}
-                    />
                 </div>
             </div>
 
-            {/* Company Feedback Section */}
-            <section className="max-w-6xl mx-auto p-6 relative z-10">
-                <h2 className="text-2xl font-bold mb-4">Company Feedback</h2>
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    {feedbacks.map((feedback) => (
-                        <div key={feedback.id} className="bg-white shadow-md rounded-lg p-4 flex flex-col">
-                            <div className="flex items-center">
-                                <img src={feedback.image} alt={feedback.name} className="w-12 h-12 rounded-full" />
-                                <div className="ml-3">
-                                    <h3 className="text-md font-semibold">{feedback.name}</h3>
-                                    <div className="text-yellow-400">
-                                        {"⭐".repeat(feedback.rating)}
-                                    </div>
-                                </div>
-                            </div>
-                            <p className="text-gray-600 text-sm mt-2">{feedback.feedback}</p>
+            {/* Profile Section */}
+            <div className="max-w-7xl mx-auto px-6 py-12">
+                <div className="bg-white rounded-3xl shadow-lg p-8 mb-12">
+                    {/* Profile Header */}
+                    <div className="flex items-center space-x-6 mb-8">
+                        <img src={userProfile} alt="Profile" className="w-32 h-32 rounded-full border-4 border-white shadow-lg" />
+                        <div>
+                            <h2 className="text-2xl font-bold">{profile.fullName}</h2>
+                            <p className="text-gray-600">{profile.mail}</p>
                         </div>
-                    ))}
-                </div>
-            </section>
+                        <button
+                            onClick={handleEditToggle}
+                            className={`px-6 py-2 rounded-lg font-medium flex items-center space-x-2 transition-colors ${
+                                isEditing ? "bg-green-500 hover:bg-green-600" : "bg-blue-500 hover:bg-blue-600"
+                            } text-white`}
+                        >
+                            <Edit2 size={18} />
+                            <span>{isEditing ? "Save" : "Edit"}</span>
+                        </button>
+                    </div>
 
-            {/* Floating Message Button - Bottom Right */}
+                    {/* Profile Form */}
+                    <div className="grid grid-cols-2 gap-6">
+                        <div className="col-span-2">
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Bio</label>
+                            <textarea
+                                className="w-full p-3 border rounded-lg bg-gray-50"
+                                rows={4}
+                                disabled={!isEditing}
+                                name="bio"
+                                value={profile.bio}
+                                onChange={handleChange}
+                                placeholder="Write something about yourself..."
+                            />
+                        </div>
+
+                        <ProfileField label="Full Name" name="fullName" value={profile.fullName} disabled={!isEditing} onChange={handleChange} />
+                        <ProfileField label="University" value={profile.university} disabled={true} />
+
+                        {/* Gender Dropdown */}
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Gender</label>
+                            <div className="relative">
+                                <select
+                                    name="gender"
+                                    value={profile.gender}
+                                    onChange={handleGenderChange}
+                                    disabled={!isEditing}
+                                    className="w-full p-3 border rounded-lg bg-gray-50 appearance-none"
+                                >
+                                    <option value="Male">Male</option>
+                                    <option value="Female">Female</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                                <ChevronDown size={18} className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                            </div>
+                        </div>
+
+                        <ProfileField label="Mobile No" name="mobileNo" value={profile.mobileNo} disabled={!isEditing} onChange={handleChange} />
+                        <ProfileField label="Emergency Mobile No" name="emergencyMobileNo" value={profile.emergencyMobileNo} disabled={!isEditing} onChange={handleChange} />
+                        <ProfileField label="Address" name="address" value={profile.address} disabled={!isEditing} onChange={handleChange} />
+
+                        {/* Password Fields with Validation */}
+                        <ProfileField label="Password" name="password" type="password" value={profile.password} disabled={!isEditing} onChange={handleChange} />
+                        <ProfileField label="Confirm Password" name="confirmPassword" type="password" value={profile.confirmPassword} disabled={!isEditing} onChange={handleChange} />
+
+                        {/* Error Message for Password Mismatch */}
+                        {error && (
+                            <div className="col-span-2 text-red-500 text-sm">{error}</div>
+                        )}
+                    </div>
+                </div>
+            </div>
+
+            {/* Floating Message Button */}
             <button className="fixed bottom-6 right-6 bg-green-500 text-white p-4 rounded-full shadow-lg flex items-center justify-center hover:bg-green-600 transition">
                 <ChatBubbleOvalLeftEllipsisIcon className="w-8 h-8" />
-
-                {/* Notification Badge */}
                 {messageCount > 0 && (
                     <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs w-6 h-6 rounded-full flex items-center justify-center">
                         {messageCount}
                     </span>
                 )}
             </button>
+        </div>
+    );
+};
+
+// Profile Field Component
+const ProfileField = ({ label, name, value, type = "text", disabled, onChange }) => {
+    return (
+        <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">{label}</label>
+            <input
+                type={type}
+                name={name}
+                value={value}
+                disabled={disabled}
+                onChange={onChange}
+                className="w-full p-3 border rounded-lg bg-gray-50"
+            />
         </div>
     );
 };
