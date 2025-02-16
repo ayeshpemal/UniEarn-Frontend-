@@ -2,11 +2,12 @@ import React, { useState } from "react";
 import { NavLink } from "react-router-dom";
 import {GraduationCap, Menu, X, Home, ListTodo, Building2, User, Phone, LogOut, MessageCircle} from "lucide-react";
 
+
 const NavBar = () => {
     const [menuOpen, setMenuOpen] = useState(false);
 
     return (
-        <nav className="bg-black text-white p-4 fixed top-0 left-0 w-full z-50">
+        <nav className=" bg-gray-950/60 text-white p-4 fixed top-0 left-0 w-full z-50 ">
             <div className="container mx-auto flex justify-between items-center">
 
                 {/* Logo Section */}

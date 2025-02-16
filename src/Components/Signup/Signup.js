@@ -1,12 +1,35 @@
-import React from "react";
+import React, {useState} from "react";
 import "./Signup.css";
+import {useNavigate} from "react-router-dom";
 
 const Signup = () => {
-    return (
-        <div className="relative w-full h-screen bg-cover bg-center signup-container" >
-            {/* Overlay */}
-            <div className="absolute inset-0 bg-black bg-opacity-50"></div>
 
+    const navigate = useNavigate();
+    const [showPinPopup, setShowPinPopup] = useState(false);
+    const [pin, setPin] = useState(["", "", "", "", "", ""]);
+    const onNavigateToSignIn = () => {
+        navigate("/sign-in");
+    }
+    const handlePinChange = (index, value) => {
+        if (value.length > 1) return; // Only allow single digit input
+        const newPin = [...pin];
+        newPin[index] = value;
+        setPin(newPin);
+    };
+
+    // Handle Next Button (Open PIN Popup)
+    const handleNextClick = () => {
+        setShowPinPopup(true);
+    };
+
+    // Handle Create Account Button
+    const handleCreateAccount = () => {
+        alert("Account Created Successfully!");
+        navigate("/home"); // Redirect to Home Page after success
+    };
+
+    return (
+        <div className="relative w-full h-screen bg-cover bg-center signin-container" >
             {/* Header */}
             <header className="absolute top-10 left-10 z-10 text-white">
                 <h1 className="text-4xl font-bold">SIGN UP TO YOUR</h1>
@@ -141,15 +164,56 @@ const Signup = () => {
                     {/* Submit Button */}
                     <div className="mt-6 text-center">
 
-                        <button className="bg-gradient-to-r signin-button text-white py-3 px-6 rounded-lg font-bold hover:opacity-90">
-                            Create Account
-                        </button>
+                        <div className="mt-6 text-center">
+                            <button
+                                className="bg-gradient-to-r from-purple-500 to-blue-500 text-white py-3 px-6 rounded-lg font-bold hover:opacity-90"
+                                onClick={handleNextClick}
+                            >
+                                Next
+                            </button>
+                        </div>
                         <p className="signin-link">
-                            Don’t have an account? <a href="/signin" className="text-blue-400 font-bold">Sign In</a>
-                        ...</p>
+                            Don’t have an account? <a onClick={onNavigateToSignIn} className="text-blue-400 font-bold">Sign In</a>
+                        </p>
                     </div>
                 </div>
+                {showPinPopup && (
+                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+                        <div className="bg-purple-950 rounded-2xl p-6 shadow-lg w-auto">
+                            <h2 className="text-lg font-bold text-white mb-4">PIN</h2>
+                            <p className="text-gray-200 mb-4">Enter 6-digit verification code sent to your phone number</p>
+
+                            {/* PIN Input Boxes */}
+                            <div className="flex justify-center space-x-2">
+                                {pin.map((digit, index) => (
+                                    <input
+                                        key={index}
+                                        type="text"
+                                        value={digit}
+                                        maxLength="1"
+                                        className="w-12 h-12 text-xl text-center border rounded-lg"
+                                        onChange={(e) => handlePinChange(index, e.target.value)}
+                                    />
+                                ))}
+                            </div>
+
+                            {/* Create Account Button */}
+                            <div className="mt-6 text-center">
+                                <button
+                                    className="bg-gradient-to-r from-purple-500 to-blue-500 text-white py-3 px-6 rounded-lg font-bold hover:opacity-90 w-full"
+                                    onClick={handleCreateAccount}
+                                >
+                                    Create Account
+                                </button>
+                            </div>
+
+                            {/* Resend Code */}
+                            <p className="text-red-500 text-sm text-center mt-3 cursor-pointer hover:underline">Resend Code</p>
+                        </div>
+                    </div>
+                )}
             </div>
+
         </div>
     );
 };

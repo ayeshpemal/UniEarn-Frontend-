@@ -1,7 +1,16 @@
 import React from "react";
-import bgImage from "./bg.png"; // Import the background image
+import bgImage from "./bg.png";
+import {useNavigate} from "react-router-dom"; // Import the background image
 
 const Hero = () => {
+    const navigate=useNavigate();
+    const onNavigateToSignin=() =>{
+        navigate("/sign-in")
+    }
+    const onNavigateToSignup = () => {
+      navigate("/sign-up")
+    }
+
     return (
         <div
             className="h-screen w-screen bg-cover bg-center bg-no-repeat relative"
@@ -19,10 +28,10 @@ const Hero = () => {
 
                 {/* Buttons */}
                 <div className="flex mt-8 space-x-4">
-                    <button className="px-6 py-3 bg-gradient-to-r from-purple-500 to-indigo-500 text-white rounded-lg font-semibold hover:opacity-90">
+                    <button className="px-6 py-3 bg-gradient-to-r from-purple-500 to-indigo-500 text-white rounded-lg font-semibold hover:opacity-90" onClick={onNavigateToSignin}>
                         Sign In
                     </button>
-                    <button className="px-6 py-3 bg-gradient-to-r from-indigo-500 to-blue-500 text-white rounded-lg font-semibold hover:opacity-90">
+                    <button className="px-6 py-3 bg-gradient-to-r from-indigo-500 to-blue-500 text-white rounded-lg font-semibold hover:opacity-90" onClick={onNavigateToSignup}>
                         Sign Up
                     </button>
                 </div>
