@@ -1,115 +1,107 @@
-import React, {useState} from "react";
-import bgImage from "./bg.png";
-import "./Home.css";
-import {Link, NavLink, useNavigate} from "react-router-dom";
-import { ChatBubbleOvalLeftEllipsisIcon } from "@heroicons/react/24/solid"; // HeroIcons for chat bubble
+import React from 'react';
+import { Search, Star, ChevronDown } from 'lucide-react';
+import {useNavigate} from "react-router-dom";
 
 
 const jobs = [
     {
         id: 1,
         company: "K&D Garment",
-        description:
-            "නොවැම්බර් 16 සිට දෙසැම්බර් 7තෙක් vote activation sampling and selling වැඩසටහන සඳහා sales ප්‍රවර්ධන ක්‍රියාවලිය 2ක් පැවැත්වේ. (9.00am to 6.00pm)",
-        rating: 5,
+        description: "නොවැම්බර් 16 සහ 17 දින පැවත්වෙන චන්දය ව්‍යාපාරය සඳහා vote activation sampling and selling...",
         reviews: "5,291 reviews",
-        salary: "Rs.3500.00",
-        logo: "/job-logo.png", // Replace with actual logo URL
+        price: "Rs. 3500.00",
+        time: "(9.00am to 6.00pm)",
+        location: "116-පිළියන්දල",
+        logo: "/job-logo.png",
+    },
+
+    {
+        id: 2,
+        company: "K&D Garment",
+        description: "නොවැම්බර් 16 සහ 17 දින පැවත්වෙන චන්දය ව්‍යාපාරය සඳහා vote activation sampling and selling...",
+        reviews: "5,291 reviews",
+        price: "Rs. 3500.00",
+        time: "(9.00am to 6.00pm)",
+        location: "116-පිළියන්දල",
+        logo: "/job-logo.png",
     },
 ];
 
-const JobListings = () => {
-
+export function Home() {
     const navigate = useNavigate();
-
     const onNavigateToJobDetails = () =>{
         navigate("/job-details");
     }
-    const [messageCount, setMessageCount] = useState(2); // Simulated unread messages
 
     return (
         <div className="bg-gray-100 min-h-screen">
             {/* Hero Section */}
             <header
-                className="relative flex flex-col justify-center items-center text-white text-align"
-                style={{
-                    backgroundImage: `url(${bgImage})`,
-                    backgroundSize: "cover",
-                    backgroundPosition: "center",
-                    width: "auto",
-                    height: "600px",
-                    flexShrink: "0",
-                }}
+                className="relative flex flex-col justify-center items-center text-white text-align h-[70vh] bg-cover bg-center px-6"
+                style={{ backgroundImage: 'url("https://images.unsplash.com/photo-1559136555-9303baea8ebd?auto=format&fit=crop&q=80")' }}
             >
+                <div className="absolute inset-0 bg-black bg-opacity-50" />
+                <div className="relative z-10 text-center">
+                    <h1 className="text-4xl md:text-6xl font-bold text-white">
+                        Find Your Perfect <br />
+                        <span className="text-blue-400">Part-Time</span> Job
+                    </h1>
 
-
-            <h1 className="text-2xl md:text-7xl font-bold text-center">
-                    Find Your Perfect <br />
-                    <span className="text-blue-500">Part-Time Job</span>
-                </h1>
-
-                {/* Search Box */}
-                <div className="flex bg-white rounded-full p-2 mt-6 w-full max-w-md">
-                    <input
-                        type="text"
-                        placeholder="Job, Category, Keyword, Company"
-                        className="flex-grow p-2 outline-none text-black"
-                    />
-                    <button className="search-container text-white px-6 py-2 rounded-full">
-                        Search
-                    </button>
+                    {/* Search Bar */}
+                    <div className="mt-6 flex items-center bg-white rounded-full shadow-md w-full max-w-xl px-4 py-2">
+                        <Search size={20} className="text-gray-500" />
+                        <input
+                            type="text"
+                            placeholder="Job, Category, Keyword, Company"
+                            className="w-full px-4 py-2 focus:outline-none text-gray-700"
+                        />
+                        <button className="bg-blue-600 text-white px-6 py-2 rounded-full">
+                            Search
+                        </button>
+                    </div>
                 </div>
             </header>
 
             {/* Job Listings */}
-            <section className="max-w-4xl mx-auto p-6">
+            <div className="max-w-6xl mx-auto bg-white rounded-lg shadow-md p-6 mt-6">
                 <h2 className="text-2xl font-bold mb-4">Explore All Jobs</h2>
 
                 {jobs.map((job) => (
-                    <div key={job.id} className="bg-white p-4 rounded-xl shadow-md flex items-center mb-4">
-                        {/* Job Logo */}
-
-
-                        {/* Job Details */}
-                        <div className="flex-grow">
-                            <h3 className="text-lg font-bold">{job.company}</h3>
-                            <p className="text-gray-600 text-sm">{job.description}</p>
-
-                            {/* Rating and Salary */}
-                            <div className="flex items-center mt-2 text-yellow-400">
-                                {"⭐".repeat(Math.floor(job.rating))} <span className="text-gray-500 text-sm ml-2">{job.reviews}</span>
+                    <div
+                        key={job.id}
+                        className="flex items-center p-4 rounded-lg mb-4 shadow-md"
+                    >
+                        <div className="flex-1">
+                            <h3 className="text-lg font-semibold">{job.company}</h3>
+                            <p className="text-gray-600">{job.description}</p>
+                            <p className="text-sm text-gray-500">{job.time}</p>
+                            <p className="text-sm text-gray-500">{job.location}</p>
+                            <div className="flex items-center mt-2">
+                                {[1, 2, 3, 4, 5].map((_, index) => (
+                                    <Star
+                                        key={index}
+                                        size={16}
+                                        className={index < 4 ? "text-yellow-400" : "text-gray-400"}
+                                        fill="currentColor"
+                                    />
+                                ))}
+                                <span className="ml-2 text-gray-500">{job.reviews}</span>
                             </div>
-
-                            <p className="text-green-600 font-bold mt-1">{job.salary}</p>
+                            <p className="text-green-600 font-bold text-lg">{job.price}</p>
                             <button className="mt-2 bg-green-500 text-white px-4 py-2 rounded-lg font-medium hover:bg-green-600"
-                            onClick={onNavigateToJobDetails}>
+                                    onClick={onNavigateToJobDetails}>
                                 View Job
                             </button>
                         </div>
+                        <div className="flex flex-col items-center">
+                            <img src={job.logo} alt="Company Logo" className="w-20 h-20 rounded-full" />
 
-
-                        {/* View Job Button */}
-
-                        <div className="w-20 h-20 flex-shrink-0 mr-4">
-                            <img src={job.logo} alt="Company Logo" className="rounded-full w-full h-full" />
                         </div>
 
                     </div>
                 ))}
-            </section>
-            {/* Floating Message Button - Bottom Right */}
-            <button className="fixed bottom-6 right-6 bg-green-500 text-white p-4 rounded-full shadow-lg flex items-center justify-center hover:bg-green-600 transition">
-                <ChatBubbleOvalLeftEllipsisIcon className="w-8 h-8" />
-
-                {/* Notification Badge */}
-                {messageCount > 0 && (
-                    <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs w-6 h-6 rounded-full flex items-center justify-center">
-                        {messageCount}
-                    </span>
-                )}
-            </button>
+            </div>
         </div>
     );
-};
-
-export default JobListings;
+}
+export default Home;

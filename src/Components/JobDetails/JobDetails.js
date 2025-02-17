@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import bgImage from "./bg.png";
+import {Search} from "lucide-react";
 
 const jobs = [
     {
@@ -19,7 +20,7 @@ const jobs = [
     },
 ];
 
-const Home = () => {
+const JobDetails = () => {
     const [searchLocation, setSearchLocation] = useState("");
 
     const handleSearch = (e) => {
@@ -32,31 +33,28 @@ const Home = () => {
 
             {/* Hero Section */}
             <header
-                className="relative flex flex-col justify-center items-center text-white text-align"
-                style={{
-                    backgroundImage: `url(${bgImage})`,
-                    backgroundSize: "cover",
-                    backgroundPosition: "center",
-                    width: "auto",
-                    height: "600px",
-                    flexShrink: "0",
-                }}
+                className="relative flex flex-col justify-center items-center text-white text-align h-[70vh] bg-cover bg-center px-6"
+                style={{ backgroundImage: 'url("https://images.unsplash.com/photo-1559136555-9303baea8ebd?auto=format&fit=crop&q=80")' }}
             >
-                <h1 className="text-2xl md:text-7xl font-bold text-center">
-                    Find Your Perfect <br />
-                    <span className="text-blue-500">Part-Time Job</span>
-                </h1>
+                <div className="absolute inset-0 bg-black bg-opacity-50" />
+                <div className="relative z-10 text-center">
+                    <h1 className="text-4xl md:text-6xl font-bold text-white">
+                        Find Your Perfect <br />
+                        <span className="text-blue-400">Part-Time</span> Job
+                    </h1>
 
-                {/* Search Bar */}
-                <div className="flex bg-white rounded-full p-2 mt-6 w-full max-w-md">
-                    <input
-                        type="text"
-                        placeholder="Job, Category, Keyword, Company"
-                        className="flex-grow p-2 outline-none text-black"
-                    />
-                    <button className="search-container text-white px-6 py-2 rounded-full">
-                        Search
-                    </button>
+                    {/* Search Bar */}
+                    <div className="mt-6 flex items-center bg-white rounded-full shadow-md w-full max-w-xl px-4 py-2">
+                        <Search size={20} className="text-gray-500" />
+                        <input
+                            type="text"
+                            placeholder="Job, Category, Keyword, Company"
+                            className="w-full px-4 py-2 focus:outline-none text-gray-700"
+                        />
+                        <button className="bg-blue-600 text-white px-6 py-2 rounded-full">
+                            Search
+                        </button>
+                    </div>
                 </div>
             </header>
 
@@ -113,4 +111,4 @@ const Home = () => {
     );
 };
 
-export default Home;
+export default JobDetails;

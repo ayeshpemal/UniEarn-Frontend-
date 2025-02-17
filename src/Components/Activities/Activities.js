@@ -1,7 +1,8 @@
 import React, {useState} from "react";
 import bgImage from "./bg.png"; // Background Image
-import companyLogo from "./job-logo.png"; // Company Logo
-import { ChatBubbleOvalLeftEllipsisIcon } from "@heroicons/react/24/solid"; // HeroIcons for chat bubble
+import companyLogo from "./job-logo.png";
+import {ChatBubbleOvalLeftEllipsisIcon} from "@heroicons/react/24/solid"; // Company Logo
+
 
 const activities = [
     {
@@ -11,27 +12,36 @@ const activities = [
         location: "Piliyandala",
         date: "2024 . 11 . 16",
         logo: companyLogo,
+    },{
+        id: 2,
+        company: "K&D Garment",
+        description: "Vote activation sampling and selling",
+        location: "Piliyandala",
+        date: "2024 . 11 . 16",
+        logo: companyLogo,
     },
 ];
 
 const Activities = () => {
-    const [messageCount, setMessageCount] = useState(2); // Simulated unread messages
+
     return (
         <div className="bg-gray-100 min-h-screen">
             {/* Hero Section */}
-            <header
-                className="relative flex flex-col justify-center items-start text-white h-[70vh] bg-cover bg-center px-10 md:px-20"
-                style={{ backgroundImage: `url(${bgImage})` }}
+            <div
+                className="relative h-[70vh] bg-cover bg-center"
+                style={{ backgroundImage: 'url("https://images.unsplash.com/photo-1559136555-9303baea8ebd?auto=format&fit=crop&q=80")' }}
             >
-                <div className="relative z-10">
-                    <h1 className="text-4xl md:text-6xl font-bold text-white">
-                        My, <span className="text-blue-400">Activities</span>
-                    </h1>
+                <div className="absolute inset-0 bg-black bg-opacity-50">
+                    <div className="max-w-7xl mx-auto h-full flex flex-col justify-center px-6">
+                        <h1 className="text-4xl md:text-6xl font-bold text-white">
+                            My,<br/> <span className="text-blue-400">Activities</span>
+                        </h1>
+                    </div>
                 </div>
-            </header>
+            </div>
 
             {/* Activities List - Placed Directly Under Hero Section */}
-            <div className="max-w-6xl mx-auto bg-white rounded-lg shadow-md p-6 mt-6">
+           <div className ="max-w-6xl mx-auto bg-white rounded-lg shadow-md p-6 mt-6">
                 <h2 className="text-2xl font-bold mb-4">Activities</h2>
 
                 <div className="overflow-x-auto">
@@ -67,17 +77,6 @@ const Activities = () => {
                         </tbody>
                     </table>
                 </div>
-                {/* Floating Message Button - Bottom Right */}
-                <button className="fixed bottom-6 right-6 bg-green-500 text-white p-4 rounded-full shadow-lg flex items-center justify-center hover:bg-green-600 transition">
-                    <ChatBubbleOvalLeftEllipsisIcon className="w-8 h-8" />
-
-                    {/* Notification Badge */}
-                    {messageCount > 0 && (
-                        <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs w-6 h-6 rounded-full flex items-center justify-center">
-                        {messageCount}
-                    </span>
-                    )}
-                </button>
             </div>
         </div>
     );

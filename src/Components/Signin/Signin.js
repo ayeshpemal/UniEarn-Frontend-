@@ -1,17 +1,27 @@
 import React from "react";
 import "./signin.css";
+import {useNavigate} from "react-router-dom";
+import {GraduationCap} from "lucide-react";
 
 const Signin = () => {
+
+    const navigate = useNavigate();
+    const onNavigateToHomePage = () => {
+      navigate("/home");
+    }
+    const onNavigateToSignUpPage = () => {
+      navigate("/sign-up")
+    }
+
     return (
         <div className="signin-container">
             {/* Top-Left Logo, Title, and Text */}
-
-
-
             <header className="header">
-                <div className={"logo"}>
-                    <h1>UniEarn</h1>
+                <div className="flex items-center space-x-2">
+                    <GraduationCap size={50} className="text-white" />
+                    <span className="text-4xl font-bold">Uni Earn</span>
                 </div>
+
                 <div className="top-left-text">
                     <p>SIGN IN TO YOUR</p>
                     <p className="highlight">ADVENTURE!</p>
@@ -77,13 +87,13 @@ const Signin = () => {
                             required
                         />
 
-                        <button type="submit" className="signin-button">
+                        <button type="submit" className="signin-button" onClick={onNavigateToHomePage}>
                             Sign In
                         </button>
 
                     </form>
                     <div className="signup-link">
-                        Don’t have an account ? <a href="/signup">Sign Up</a>
+                        Don’t have an account ? <a onClick={onNavigateToSignUpPage}>Sign Up</a>
                     </div>
                 </div>
             </div>
