@@ -1,17 +1,51 @@
-import React from "react";
+import React, { useState } from "react";
 import "./signin.css";
 import {useNavigate} from "react-router-dom";
 import {GraduationCap} from "lucide-react";
+import axios from "axios";
 
 const Signin = () => {
 
     const navigate = useNavigate();
+    const [formData, setFormData] = useState({
+            userName: "",
+            password: "",        
+        });
     const onNavigateToHomePage = () => {
       navigate("/home");
     }
     const onNavigateToSignUpPage = () => {
       navigate("/sign-up")
     }
+    const verification = async (e) => {
+        e.preventDefault();
+        try {
+            const response = await axios.post(
+                "http://localhost:8100/api/user/login",
+                formData,
+                {
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                }
+            );
+
+            if (response.status === 200) {
+                console.log(response.data);
+                alert("Login Successful!");
+                onNavigateToHomePage(); // Redirect to Home Page after success
+            }
+        } catch (error) {
+            alert(error.response?.data?.message || "Login failed. Please try again.");
+            console.log(error.response?.data);
+            //window.location.reload();
+        }
+    };
+
+    const handleInputChange = (e) => {
+        const { name, value } = e.target;
+        setFormData({ ...formData, [name]: value });
+    };
 
     return (
         <div className="signin-container">
@@ -34,60 +68,25 @@ const Signin = () => {
                 <div className="login-form">
                     <h2>SIGN IN </h2>
                     <p>Sign in with your university email address </p>
-                    <form>
-                        <select className="form-input" required>
-                            <option value="" >
-                                Choose Your University
-                            </option>
-                            <option value="university of Colombo">University of Colombo</option>
-                            <option value="university of Peradeniya">University of Peradeniya</option>
-                            <option value="university of Sri Jayewardenepura">University of Sri Jayewardenepura</option>
-                            <option value="university of Kelaniya">University of Kelaniya</option>
-                            <option value="university of Moratuwa">University of Moratuwa</option>
-                            <option value="university of Jaffna">University of Jaffna</option>
-                            <option value="university of Ruhuna">University of Ruhuna</option>
-                            <option value="The Open University of Sri Lanka">The Open University of Sri Lanka</option>
-                            <option value="Eastern University, Sri Lanka">Eastern University, Sri Lanka</option>
-                            <option value="South Eastern University of Sri Lanka">South Eastern University of Sri Lanka</option>
-                            <option value="Rajarata University of Sri Lanka">Rajarata University of Sri Lanka</option>
-                            <option value="Sabaragamuwa University of Sri Lanka">Sabaragamuwa University of Sri Lanka</option>
-                            <option value="Wayamba University of Sri Lanka">Wayamba University of Sri Lanka</option>
-                            <option value="Uva Wellassa University">Uva Wellassa University</option>
-                            <option value="University of the Visual & Performing Arts">University of the Visual & Performing Arts</option>
-                            <option value="Gampaha Wickramarachchi University of Indigenous Medicine">Gampaha Wickramarachchi University of Indigenous Medicine</option>
-                            <option value="Institute of Technology University of Moratuwa">Institute of Technology University of Moratuwa</option>
-                            <option value="University of Vauniya, Sri Lanka">University of Vauniya, Sri Lanka</option>
-                            <option value="University of Vocational Technology">University of Vocational Technology</option>
-                            <option value="Buddhist and Pali University">Buddhist and Pali University</option>
-                            <option value="Ocean University of Sri Lanka">Ocean University of Sri Lanka</option>
-                            <option value="Buddhasravaka Bhiksu University">Buddhasravaka Bhiksu University</option>
-                            <option value="Sri Lanka Institute of Information Technology (SLIIT)">Sri Lanka Institute of Information Technology (SLIIT)</option>
-                            <option value="General Sir John Kotelawala Defence University">General Sir John Kotelawala Defence University</option>
-                            <option value="Sri Lanka Technological Campus">Sri Lanka Technological Campus</option>
-                            <option value="NSBM Green University">NSBM Green University</option>
-                            <option value="Informatics Institute of Technology Sri Lanka">Informatics Institute of Technology Sri Lanka</option>
-                            <option value="SLINTEC Academy">SLINTEC Academy</option>
-                            <option value="International College of Business and Technology">International College of Business and Technology</option>
-                            <option value="National Institute of Business Management (NIBM)">National Institute of Business Management (NIBM)</option>
-                            <option value="CINEC Campus">CINEC Campus</option>
-                            <option value="Institute of Higher National Diploma in Engineering (HNDE)">Institute of Higher National Diploma in Engineering (HNDE)</option>
-                            <option value="Java Institute For Advanced Technology">Java Institute For Advanced Technology</option>
-                            <option value="Other universities">Other universities</option>
-                        </select>
+                    <form onSubmit={verification}>
                         <input
-                            type="email"
-                            placeholder="University Email"
+                            type="text"
+                            placeholder="User Name"
                             className="form-input"
+                            name="userName"
                             required
+                            onChange={handleInputChange}
                         />
                         <input
                             type="password"
                             placeholder="Password"
                             className="form-input"
+                            name="password"
                             required
+                            onChange={handleInputChange}
                         />
 
-                        <button type="submit" className="signin-button" onClick={onNavigateToHomePage}>
+                        <button type="submit" className="signin-button">
                             Sign In
                         </button>
 
