@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import bgImage from "./bg.png";
-import {Search} from "lucide-react";
+import {Search, Star} from "lucide-react";
+import {useNavigate} from "react-router-dom";
 
 const jobs = [
     {
@@ -26,6 +27,11 @@ const JobDetails = () => {
     const handleSearch = (e) => {
         setSearchLocation(e.target.value);
     };
+    
+    const navigate = useNavigate();
+    const onNavigateToApplyJob = () =>{
+        navigate("/apply-job");
+    }
 
     return (
         <div className="bg-gray-100 min-h-screen">
@@ -92,15 +98,22 @@ const JobDetails = () => {
                             </p>
 
                             {/* Rating and Salary */}
-                            <div className="flex items-center mt-2 text-yellow-400">
-                                {"⭐".repeat(Math.floor(job.rating))}{" "}
-                                <span className="text-gray-500 text-sm ml-2">{job.reviews}</span>
+                            <div className="flex items-center mt-2">
+                                {[1, 2, 3, 4, 5].map((_, index) => (
+                                    <Star
+                                        key={index}
+                                        size={16}
+                                        className={index < 4 ? "text-yellow-400" : "text-gray-400"}
+                                        fill="currentColor"
+                                    />
+                                ))}
+                                <span className="ml-2 text-gray-500">{job.reviews}</span>
                             </div>
 
                             <p className="text-green-600 font-bold mt-1">{job.salary}</p>
 
                             {/* Apply Now Button */}
-                            <button className="bg-blue-600 text-white px-6 py-2 rounded-lg mt-4 md:mt-0 self-center">
+                            <button className="bg-blue-600 text-white px-6 py-2 rounded-lg mt-4 md:mt-0 self-center" onClick={onNavigateToApplyJob}>
                                 Apply Now
                             </button>
                         </div>
