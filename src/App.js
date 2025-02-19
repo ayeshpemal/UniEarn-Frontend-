@@ -11,6 +11,8 @@ import Activities from "./Components/Activities/Activities";
 import Hero from "./Components/hero/Hero";
 import ChatButton from "./Components/ChatButton/ChatButton";
 import { Route, Routes, useLocation } from "react-router-dom";
+import SearchBar from "./Components/SearchBar/SearchBar";
+import ApplyJob from "./Components/ApplyJob/ApplyJob";
 
 
 function App() {
@@ -18,13 +20,13 @@ function App() {
 
     // List of routes that do NOT include the Navbar
     const noNavRoutes = ["/", "/hero", "/sign-in", "/sign-up", "/pin"];
-    const chatButton=["/", "/hero", "/sign-in", "/sign-up", "/pin"]
+    const chatButton=["/", "/hero", "/sign-in", "/sign-up", "/pin"];
+
     return (
         <div className="App">
             {/* Show Navbar only if the route is NOT in noNavRoutes */}
-            {!chatButton.includes(location.pathname)&& <ChatButton/>}
+            {!chatButton.includes(location.pathname)&& <ChatButton />}
             {!noNavRoutes.includes(location.pathname) && <NavBar />}
-
             <Routes>
                 <Route path="/" element={<Hero />} />
                 <Route path="/hero" element={<Hero />} />
@@ -38,6 +40,7 @@ function App() {
                 <Route path="/profile" element={<StudentProfile />} />
                 <Route path="/activities" element={<Activities />} />
                 <Route path="/job-details" element={<JobDetails />} />
+                <Route path="/apply-job" element={<ApplyJob />}/>
             </Routes>
         </div>
     );
