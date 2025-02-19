@@ -1,12 +1,26 @@
-import React, {useState} from "react";
+import React, { useState } from "react";
 import "./Signup.css";
-import {useNavigate} from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 const Signup = () => {
 
     const navigate = useNavigate();
     const [showPinPopup, setShowPinPopup] = useState(false);
     const [pin, setPin] = useState(["", "", "", "", "", ""]);
+    const [formData, setFormData] = useState({
+        userName: "",
+        email: "",
+        password: "",
+        role: "STUDENT",
+        university: "",
+        gender: "",
+        skills: [],
+        preferences: [],
+        location: "",
+        contactNumbers: [],        
+    });
+
     const onNavigateToSignIn = () => {
         navigate("/sign-in");
     }
@@ -18,15 +32,54 @@ const Signup = () => {
     };
 
     // Handle Next Button (Open PIN Popup)
-    const handleNextClick = () => {
+    const handleNextClick = (e) => {
+        e.preventDefault();
+        const requiredFields = ["userName","email","password","role","university","gender","skills","preferences","location","contactNumbers"];
+    
+        for (const field of requiredFields) {
+            if (!formData[field]) {
+                alert(`${field} is required!`);
+                return;
+            }
+        }
+        if (formData.password !== formData.confirmPassword) {
+            alert("Passwords do not match!");
+            return;
+        }
         setShowPinPopup(true);
     };
 
     // Handle Create Account Button
-    const handleCreateAccount = () => {
-        alert("Account Created Successfully!");
-        navigate("/home"); // Redirect to Home Page after success
+    const handleCreateAccount = async (e) => {
+        e.preventDefault();
+        try {
+            const response = await axios.post(
+                "http://localhost:8100/api/user/register",
+                formData,
+                {
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                }
+            );
+
+            if (response.status === 201) {
+                console.log(response.data);
+                alert("Account Created Successfully!");
+                onNavigateToSignIn(); // Redirect to Home Page after success
+            }
+        } catch (error) {
+            alert(error.response?.data?.message || "Registration failed. Please try again.");
+            console.log(error.response?.data);
+            //window.location.reload();
+        }
     };
+
+    const handleInputChange = (e) => {
+        const { name, value } = e.target;
+        setFormData({ ...formData, [name]: value });
+    };
+
 
     return (
         <div className="relative w-full h-screen bg-cover bg-center signin-container" >
@@ -40,13 +93,16 @@ const Signup = () => {
             <div className="relative z-20 flex flex-col items-center justify-center h-full">
                 <div className="bg-opacity-90 rounded-lg p-8 w-11/12 max-w-4xl">
                     <h2 className="text-white text-3xl font-bold mb-6 text-center">SIGN UP</h2>
-                    <form className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-container">
+                    <form className="grid grid-cols-1 md:grid-cols-2 gap-4" onSubmit={handleNextClick}>
                         {/* First Name */}
                         <div>
                             <input
                                 type="text"
                                 placeholder="First Name"
                                 className="w-full px-4 py-3 rounded-lg placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 text-color"
+                                name="userName"
+                                required
+                                onChange={handleInputChange}
                             />
                         </div>
                         {/* Last Name */}
@@ -55,12 +111,18 @@ const Signup = () => {
                                 type="text"
                                 placeholder="Last Name"
                                 className="w-full px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                //name="lastName"
+                                required
+                                onChange={handleInputChange}
                             />
                         </div>
                         {/* University */}
                         <div>
                             <select
                                 className="w-full px-4 py-3 rounded-lg text-color focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                name="university"
+                                required
+                                onChange={handleInputChange}
                             >
                                 <option value="" >
                                     Choose Your University
@@ -108,6 +170,9 @@ const Signup = () => {
                                 type="email"
                                 placeholder="University Mail"
                                 className="w-full px-4 py-3 rounded-lg text-color focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                name="email"
+                                required
+                                onChange={handleInputChange}
                             />
                         </div>
                         {/* Mobile No */}
@@ -116,6 +181,9 @@ const Signup = () => {
                                 type="text"
                                 placeholder="Mobile No"
                                 className="w-full px-4 py-3 rounded-lg text-color  focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                //name="mobile"
+                                required
+                                onChange={handleInputChange}
                             />
                         </div>
                         {/* Emergency Mobile No */}
@@ -124,6 +192,9 @@ const Signup = () => {
                                 type="text"
                                 placeholder="Emergency Mobile No"
                                 className="w-full px-4 py-3 rounded-lg text-color focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                //name="contactNumbers"
+                                required
+                                onChange={handleInputChange}
                             />
                         </div>
                         {/* Address */}
@@ -132,16 +203,22 @@ const Signup = () => {
                                 type="text"
                                 placeholder="Address"
                                 className="w-full px-4 py-3 rounded-lg text-color focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                name="location"
+                                required
+                                onChange={handleInputChange}
                             />
                         </div>
                         {/* Gender */}
                         <div>
                             <select
                                 className="w-full px-4 py-3 rounded-lg text-color focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                name="gender"
+                                required
+                                onChange={handleInputChange}
                             >
                                 <option value="">Gender</option>
-                                <option value="male">Male</option>
-                                <option value="female">Female</option>
+                                <option value="MALE">Male</option>
+                                <option value="FEMALE">Female</option>
                             </select>
                         </div>
                         {/* Password */}
@@ -150,6 +227,9 @@ const Signup = () => {
                                 type="password"
                                 placeholder="Password"
                                 className="w-full px-4 py-3 rounded-lg text-color focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                name="password"
+                                required
+                                onChange={handleInputChange}
                             />
                         </div>
                         {/* Confirm Password */}
@@ -158,20 +238,23 @@ const Signup = () => {
                                 type="password"
                                 placeholder="Confirm Password"
                                 className="w-full px-4 py-3 rounded-lg text-color focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                name="confirmPassword"
+                                required
+                                onChange={handleInputChange}
                             />
                         </div>
-                    </form>
-                    {/* Submit Button */}
-                    <div className="mt-6 text-center">
-
+                        {/* Submit Button */}
                         <div className="mt-6 text-center">
                             <button
+                                type="submit"
                                 className="bg-gradient-to-r from-purple-500 to-blue-500 text-white py-3 px-6 rounded-lg font-bold hover:opacity-90"
-                                onClick={handleNextClick}
                             >
                                 Next
                             </button>
                         </div>
+                    </form>
+                    {/* SignIn Button */}
+                    <div className="mt-6 text-center">
                         <p className="signin-link">
                             Don’t have an account? <a onClick={onNavigateToSignIn} className="text-blue-400 font-bold">Sign In</a>
                         </p>
