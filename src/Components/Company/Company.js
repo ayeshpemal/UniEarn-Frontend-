@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import companyLogo from "./job-logo.png"
 import {Search} from "lucide-react";
+import SearchBar from "../SearchBar/SearchBar";
 // Replace with actual logo path
 
 const companies = Array(1).fill({
@@ -25,19 +26,7 @@ const Company = () => {
                         Find Your Perfect <br />
                         <span className="text-blue-400">Part-Time</span> Job
                     </h1>
-
-                    {/* Search Bar */}
-                    <div className="mt-6 flex items-center bg-white rounded-full shadow-md w-full max-w-xl px-4 py-2">
-                        <Search size={20} className="text-gray-500" />
-                        <input
-                            type="text"
-                            placeholder="Job, Category, Keyword, Company"
-                            className="w-full px-4 py-2 focus:outline-none text-gray-700"
-                        />
-                        <button className="bg-blue-600 text-white px-6 py-2 rounded-full">
-                            Search
-                        </button>
-                    </div>
+                    <SearchBar/>
                 </div>
             </header>
 
