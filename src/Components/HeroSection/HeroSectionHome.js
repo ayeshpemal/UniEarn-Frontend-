@@ -1,3 +1,5 @@
+import SearchBar from "../SearchBar/SearchBar";
+
 const HeroSectionHome = () =>{
 
     return(
@@ -21,4 +23,4 @@ const HeroSectionHome = () =>{
         </div>
     );
 };
-export default HeroSectionHomeS;
+export default HeroSectionHome;

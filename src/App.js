@@ -13,7 +13,8 @@ import ChatButton from "./Components/ChatButton/ChatButton";
 import { Route, Routes, useLocation } from "react-router-dom";
 import SearchBar from "./Components/SearchBar/SearchBar";
 import ApplyJob from "./Components/ApplyJob/ApplyJob";
-import HeroSectionHomeS from './Components/HeroSection/HeroSectionHome';
+import HeroSectionHome from "./Components/HeroSection/HeroSectionHome";
+import HeroSectionCompany from "./Components/HeroSection/HeroSectionCompany";
 
 
 function App() {
@@ -23,6 +24,7 @@ function App() {
     const noNavRoutes = ["/", "/hero", "/sign-in", "/sign-up", "/pin"];
     const chatButton=["/", "/hero", "/sign-in", "/sign-up", "/pin"];
     const searchBarHome=["/", "/hero", "/sign-in", "/sign-up", "/pin" ,"/company","/profile","/activities","/job-details","/apply-job"];
+    const searchBarCompany=["/", "/hero", "/sign-in", "/sign-up", "/pin" ,"/home","/profile","/activities","/job-details","/apply-job"];
 
     return (
         <div className="App">
@@ -30,7 +32,7 @@ function App() {
             {!chatButton.includes(location.pathname)&& <ChatButton />}
             {!noNavRoutes.includes(location.pathname) && <NavBar />}
             {!searchBarHome.includes(location.pathname) && <HeroSectionHome />}
-
+            {!searchBarCompany.includes(location.pathname) && <HeroSectionCompany />}
             <Routes>
                 <Route path="/" element={<Hero />} />
                 <Route path="/hero" element={<Hero />} />
