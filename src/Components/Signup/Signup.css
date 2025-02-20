@@ -1,0 +1,40 @@
+.signin-container {
+    position: relative;
+    width: 100%;
+    height: 100vh;
+    background: url('./Background.png') no-repeat center center/cover;
+    overflow: hidden;
+}
+.bg-container > div > input,.bg-container > div > select{
+    border-radius: 10.027px;
+    background: #261046;
+    backdrop-filter: blur(7.61834192276001px);
+}
+.text-color{
+    color: #A4A4A4;
+    font-size: 16.294px;
+    font-style: normal;
+    font-weight: 500;
+    line-height: normal;
+}
+.signin-button {
+    border-radius: 10px;
+    background: linear-gradient(90deg, #501794 0.03%, #3E70A1 101.88%);
+    color: #fff;
+    padding: 10px;
+    width: 40%;
+    border: none;
+    cursor: pointer;
+    font-size: 1.2rem;
+    font-weight: bold;
+    margin-top: 10px;
+}
+.signin-link a {
+    color: #eb386a;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.signin-link a:hover {
+    text-decoration: underline;
+}
