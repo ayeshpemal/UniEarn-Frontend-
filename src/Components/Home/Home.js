@@ -19,15 +19,11 @@ export function Home() {
         // Fetch jobs from the API using axios
         const fetchJobs = async () => {
             try {
-                console.log("before");
                 const initialToken = localStorage.getItem('token');
-                console.log("after");
                 console.log(initialToken);
-                console.log("haaaaaaaaaaaaaaaaa");
                 
                 let userDetails = null;
                 if (initialToken) {
-                    console.log("haaaaaaaaaaaaaaaaa");
                     try {
                         userDetails = jwtDecode(initialToken);  // Decoding the JWT
                         console.log("User Details:", userDetails); // Debugging
@@ -73,7 +69,6 @@ export function Home() {
     if (error) {
         return <div className="text-center text-danger">Error: {error}</div>;
     }
-    ///////////////////////////////////////////////////////////////////////
 
     return (
         <div className="bg-gray-100 min-h-screen">
