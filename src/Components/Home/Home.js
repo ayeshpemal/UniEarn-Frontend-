@@ -41,14 +41,10 @@ export function Home() {
                     return;
                 }
         
-                const response = await axios.get(`http://localhost:8100/api/v1/jobs/studentpreferedjobs?student_id=${userId}&page=1`);
-                console.log(response);
+                const response = await axios.get(`http://localhost:8100/api/v1/jobs/studentpreferedjobs?student_id=${userId}&page=0`);
         
-                if (response.data && response.data.length > 0) {
-                    setJobs(response.data);
-                } else {
-                    setError("No jobs found.");
-                }
+                const jobs = response.data?.data?.jobList || [];
+                setJobs(jobs);
         
             } catch (err) {
                 console.error("Error fetching jobs:", err);
@@ -83,8 +79,8 @@ export function Home() {
                     >
                         <div className="flex-1">
                             <h3 className="text-lg font-semibold">{job.company}</h3>
-                            <p className="text-gray-600">{job.description}</p>
-                            <p className="text-sm text-gray-500">{job.time}</p>
+                            <p className="text-gray-600">{job.job_description}</p>
+                            <p className="text-sm text-gray-500">{job.start_date}</p>
                             <p className="text-sm text-gray-500">{job.location}</p>
                             <div className="flex items-center mt-2">
                                 {[1, 2, 3, 4, 5].map((_, index) => (
