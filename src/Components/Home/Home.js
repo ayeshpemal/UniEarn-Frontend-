@@ -1,60 +1,85 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Search, Star, ChevronDown } from 'lucide-react';
-import {useNavigate} from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import SearchBar from "../SearchBar/SearchBar";
-
-
-const jobs = [
-    {
-        id: 1,
-        company: "K&D Garment",
-        description: "නොවැම්බර් 16 සහ 17 දින පැවත්වෙන චන්දය ව්‍යාපාරය සඳහා vote activation sampling and selling...",
-        reviews: "5,291 reviews",
-        price: "Rs. 3500.00",
-        time: "(9.00am to 6.00pm)",
-        location: "116-පිළියන්දල",
-        logo: "/job-logo.png",
-    },
-
-    {
-        id: 2,
-        company: "K&D Garment",
-        description: "නොවැම්බර් 16 සහ 17 දින පැවත්වෙන චන්දය ව්‍යාපාරය සඳහා vote activation sampling and selling...",
-        reviews: "5,291 reviews",
-        price: "Rs. 3500.00",
-        time: "(9.00am to 6.00pm)",
-        location: "116-පිළියන්දල",
-        logo: "/job-logo.png",
-    },
-];
+import { jwtDecode } from "jwt-decode";
+import axios from 'axios';
 
 export function Home() {
     const navigate = useNavigate();
-    const onNavigateToJobDetails = () =>{
+    const onNavigateToJobDetails = () => {
         navigate("/job-details");
     }
 
+    const [jobs, setJobs] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+
+    useEffect(() => {
+        // Fetch jobs from the API using axios
+        const fetchJobs = async () => {
+            try {
+                console.log("before");
+                const initialToken = localStorage.getItem('token');
+                console.log("after");
+                console.log(initialToken);
+                console.log("haaaaaaaaaaaaaaaaa");
+                
+                let userDetails = null;
+                if (initialToken) {
+                    console.log("haaaaaaaaaaaaaaaaa");
+                    try {
+                        userDetails = jwtDecode(initialToken);  // Decoding the JWT
+                        console.log("User Details:", userDetails); // Debugging
+                    } catch (error) {
+                        console.error("Invalid token:", error);
+                    }
+                }
+        
+                const userId = userDetails ? userDetails.user_id : null;
+                console.log(userId);
+        
+                if (!userId) {
+                    setError("User ID is missing or invalid.");
+                    setLoading(false);
+                    return;
+                }
+        
+                const response = await axios.get(`http://localhost:8100/api/v1/jobs/studentpreferedjobs?student_id=${userId}&page=1`);
+                console.log(response);
+        
+                if (response.data && response.data.length > 0) {
+                    setJobs(response.data);
+                } else {
+                    setError("No jobs found.");
+                }
+        
+            } catch (err) {
+                console.error("Error fetching jobs:", err);
+                setError(err.message);
+            } finally {
+                setLoading(false);
+            }
+        };
+        
+
+        fetchJobs();
+    }, []);
+
+    if (loading) {
+        return <div className="text-center">Loading...</div>;
+    }
+
+    if (error) {
+        return <div className="text-center text-danger">Error: {error}</div>;
+    }
+    ///////////////////////////////////////////////////////////////////////
+
     return (
         <div className="bg-gray-100 min-h-screen">
-            {/* Hero Section */}
-            <header
-                className="relative flex flex-col justify-center items-center text-white text-align h-[70vh] bg-cover bg-center px-6"
-                style={{ backgroundImage: 'url("https://images.unsplash.com/photo-1559136555-9303baea8ebd?auto=format&fit=crop&q=80")' }}
-            >
-                <div className="absolute inset-0 bg-black bg-opacity-50" />
-                <div className="relative z-10 text-center">
-                    <h1 className="text-4xl md:text-6xl font-bold text-white">
-                        Find Your Perfect <br />
-                        <span className="text-blue-400">Part-Time</span> Job
-                    </h1>
-
-                    <SearchBar/>
-                </div>
-            </header>
-
             {/* Job Listings */}
             <div className="max-w-6xl mx-auto bg-white rounded-lg shadow-md p-6 mt-6">
-                <h2 className="text-2xl font-bold mb-4">Explore All Jobs</h2>
+                <h2 className="text-2xl font-bold mb-4">Jobs For You</h2>
 
                 {jobs.map((job) => (
                     <div
@@ -79,7 +104,7 @@ export function Home() {
                             </div>
                             <p className="text-green-600 font-bold text-lg">{job.price}</p>
                             <button className="mt-2 bg-green-500 text-white px-4 py-2 rounded-lg font-medium hover:bg-green-600"
-                                    onClick={onNavigateToJobDetails}>
+                                onClick={onNavigateToJobDetails}>
                                 View Job
                             </button>
                         </div>

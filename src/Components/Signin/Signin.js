@@ -29,9 +29,10 @@ const Signin = () => {
                     },
                 }
             );
+            localStorage.setItem('token', response.data.data);
+
 
             if (response.status === 200) {
-                console.log(response.data);
                 alert("Login Successful!");
                 onNavigateToHomePage(); // Redirect to Home Page after success
             }
