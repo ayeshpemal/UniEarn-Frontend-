@@ -17,6 +17,18 @@
     font-weight: 500;
     line-height: normal;
 }
+.form-input {
+    display: block;
+    width: 100%;
+    padding: 10px;
+    margin: 10px auto;
+    border-radius: 10px;
+    font-size: 1rem;
+    background: #261046;
+
+    color: #ccc;
+    box-sizing: border-box;
+}
 .signin-button {
     border-radius: 10px;
     background: linear-gradient(90deg, #501794 0.03%, #3E70A1 101.88%);

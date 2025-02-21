@@ -81,7 +81,7 @@ const Signup = () => {
                             <input
                                 type="text"
                                 placeholder="Full Name"
-                                className="w-full px-4 py-3 rounded-lg placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 text-color"
+                                className="form-input w-full px-4 py-3 rounded-lg placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 text-color"
                                 name="userName"
                                 required
                                 onChange={handleInputChange}
@@ -94,7 +94,7 @@ const Signup = () => {
                             <input
                                 type="email"
                                 placeholder="University Email"
-                                className="w-full px-4 py-3 rounded-lg text-color focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                className="form-input w-full px-4 py-3 rounded-lg text-color focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 name="email"
                                 required
                                 onChange={handleInputChange}
@@ -105,7 +105,7 @@ const Signup = () => {
                         {/* University */}
                         <div>
                             <select
-                                className="w-full px-4 py-3 rounded-lg text-color focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                className="form-input w-full px-4 py-3 rounded-lg text-color focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 name="university"
                                 required
                                 onChange={handleInputChange}
@@ -127,7 +127,7 @@ const Signup = () => {
                         {/* Gender */}
                         <div>
                             <select
-                                className="w-full px-4 py-3 rounded-lg text-color focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                className="form-input w-full px-4 py-3 rounded-lg text-color focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 name="gender"
                                 required
                                 onChange={handleInputChange}
@@ -144,7 +144,7 @@ const Signup = () => {
                             <input
                                 type="text"
                                 placeholder="Mobile No"
-                                className="w-full px-4 py-3 rounded-lg text-color focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                className="form-input w-full px-4 py-3 rounded-lg text-color focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 name="contactNumber"
                                 required
                                 onChange={handleInputChange}
@@ -157,7 +157,7 @@ const Signup = () => {
                             <input
                                 type="text"
                                 placeholder="Address"
-                                className="w-full px-4 py-3 rounded-lg text-color focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                className="form-input w-full px-4 py-3 rounded-lg text-color focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 name="location"
                                 required
                                 onChange={handleInputChange}
@@ -170,7 +170,7 @@ const Signup = () => {
                             <input
                                 type="password"
                                 placeholder="Password"
-                                className="w-full px-4 py-3 rounded-lg text-color focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                className="form-input w-full px-4 py-3 rounded-lg text-color focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 name="password"
                                 required
                                 onChange={handleInputChange}
@@ -183,7 +183,7 @@ const Signup = () => {
                             <input
                                 type="password"
                                 placeholder="Confirm Password"
-                                className="w-full px-4 py-3 rounded-lg text-color focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                className="form-input w-full px-4 py-3 rounded-lg text-color focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 name="confirmPassword"
                                 required
                                 onChange={handleInputChange}
@@ -204,9 +204,9 @@ const Signup = () => {
 
                     {/* Sign In Button */}
                     <div className="mt-6 text-center">
-                        <p className="signin-link">
+                        <p className="signin-link text-gray-200">
                             Already have an account?{" "}
-                            <span className="text-blue-400 font-bold cursor-pointer" onClick={() => navigate("/sign-in")}>
+                            <span className="text-red-400 font-bold cursor-pointer" onClick={() => navigate("/sign-in")}>
                                 Sign In
                             </span>
                         </p>

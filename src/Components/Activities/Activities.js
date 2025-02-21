@@ -34,7 +34,7 @@ const Activities = () => {
                 <div className="absolute inset-0 bg-black bg-opacity-50">
                     <div className="max-w-7xl mx-auto h-full flex flex-col justify-center px-6">
                         <h1 className="text-4xl md:text-6xl font-bold text-white">
-                            My,<br/> <span className="text-blue-400">Activities</span>
+                            My<br/> <span className="text-blue-400">Activities</span>
                         </h1>
                     </div>
                 </div>

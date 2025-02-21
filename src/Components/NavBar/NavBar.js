@@ -1,15 +1,24 @@
 import React, { useState } from "react";
-import { NavLink } from "react-router-dom";
-import {GraduationCap, Menu, X, Home, ListTodo, Building2, User, Phone, LogOut, MessageCircle} from "lucide-react";
-
+import { NavLink, useNavigate } from "react-router-dom";
+import {
+    GraduationCap, Menu, X, Home, ListTodo, Building2, User, Phone, LogOut
+} from "lucide-react";
+import LogoutPopup from "../LogoutPopup/LogoutPopup"; // Import the Logout Popup
 
 const NavBar = () => {
     const [menuOpen, setMenuOpen] = useState(false);
+    const [logoutPopup, setLogoutPopup] = useState(false);
+    const navigate = useNavigate();
+
+    const handleLogout = () => {
+        setLogoutPopup(false);  // Close popup
+        localStorage.removeItem("token"); // Clear session (if using tokens)
+        navigate("/sign-in"); // Redirect to Sign In page
+    };
 
     return (
-        <nav className=" bg-gray-950/60 text-white p-4 fixed top-0 left-0 w-full z-50 ">
+        <nav className="bg-gray-950/60 text-white p-4 fixed top-0 left-0 w-full z-50">
             <div className="container mx-auto flex justify-between items-center">
-
                 {/* Logo Section */}
                 <div className="flex items-center space-x-2">
                     <GraduationCap size={28} className="text-white" />
@@ -30,12 +39,15 @@ const NavBar = () => {
                     <NavLink to="/profile" className="hover:underline flex items-center gap-1">
                         <User size={20} /> Profile
                     </NavLink>
-                    <NavLink to="/contact" className="hover:underline flex items-center gap-1">
+                    <NavLink to="/contact-us" className="hover:underline flex items-center gap-1">
                         <Phone size={20} /> Contact
                     </NavLink>
-                    <NavLink to="/logout" className="hover:underline flex items-center gap-1 text-red-400">
+                    <button
+                        onClick={() => setLogoutPopup(true)}
+                        className="hover:underline flex items-center gap-1 text-red-400"
+                    >
                         <LogOut size={20} /> Logout
-                    </NavLink>
+                    </button>
                 </div>
 
                 {/* Mobile Menu Icon */}
@@ -65,18 +77,29 @@ const NavBar = () => {
                     <NavLink to="/profile" className="hover:underline flex items-center gap-2" onClick={() => setMenuOpen(false)}>
                         <User size={24} /> Profile
                     </NavLink>
-                    <NavLink to="/contact" className="hover:underline flex items-center gap-2" onClick={() => setMenuOpen(false)}>
+                    <NavLink to="/contact-us" className="hover:underline flex items-center gap-2" onClick={() => setMenuOpen(false)}>
                         <Phone size={24} /> Contact
                     </NavLink>
-                    <NavLink to="/logout" className="hover:underline flex items-center gap-2 text-red-400" onClick={() => setMenuOpen(false)}>
+                    <button
+                        onClick={() => {
+                            setMenuOpen(false);
+                            setLogoutPopup(true);
+                        }}
+                        className="hover:underline flex items-center gap-2 text-red-400"
+                    >
                         <LogOut size={24} /> Logout
-                    </NavLink>
+                    </button>
                 </div>
-                {/* Floating Chat Button */}
-
             </div>
+
+            {/* Logout Confirmation Popup */}
+            <LogoutPopup
+                isOpen={logoutPopup}
+                onClose={() => setLogoutPopup(false)}
+                onConfirm={handleLogout}
+            />
         </nav>
     );
 };
 
-export default NavBar; // <-- Ensure this is present at the end
+export default NavBar;
