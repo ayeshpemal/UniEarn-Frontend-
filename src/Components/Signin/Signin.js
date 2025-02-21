@@ -93,7 +93,9 @@ const Signin = () => {
 
                     </form>
                     <div className="signup-link">
-                        Don’t have an account ? <a onClick={onNavigateToSignUpPage}>Sign Up</a>
+                        Don’t have an account ? <span className="text-red-400 font-bold cursor-pointer"  onClick={() => navigate("/sign-up")}>Sign Up</span><br/>
+
+                         <span className="text-blue-500 cursor-pointer" >Forgot Password</span>
                     </div>
                 </div>
             </div>

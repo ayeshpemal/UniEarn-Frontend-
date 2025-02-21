@@ -73,7 +73,6 @@ export function Home() {
     if (error) {
         return <div className="text-center text-danger">Error: {error}</div>;
     }
-    ///////////////////////////////////////////////////////////////////////
 
     return (
         <div className="bg-gray-100 min-h-screen">

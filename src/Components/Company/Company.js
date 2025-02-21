@@ -25,7 +25,7 @@ const Company = () => {
                             <img src={company.logo} alt={company.name} className="w-16 h-16 rounded-full" />
                             <h3 className="text-md font-semibold text-gray-700 mt-2">{company.name}</h3>
                             <button className="mt-2 bg-green-500 text-white px-4 py-2 rounded-full flex items-center hover:bg-green-600 transition-colors">
-                                View Deal
+                                View Company
                             </button>
                         </div>
                     ))}
