@@ -1,3 +1,4 @@
+import axios from "axios";
 import { Search } from "lucide-react";
 import React, { useState } from "react";
 
@@ -13,13 +14,34 @@ const jobs = [
     "TYPING", "DATA_ENTRY", "WEB_DEVELOPER", "OTHER"
 ];
 
+const searchJobs = async (selectedLocation, selectedJob, searchTerm) => {
+    try {
+        const response = await axios.get(
+            `http://localhost:8100/api/v1/jobs/search?location=${selectedLocation}&categories=${selectedJob}&keyword=${searchTerm}&page=0`,
+            {
+                headers: {
+                    "Content-Type": "application/json",
+                },
+            }
+        );
+        if (response.status === 200) {
+            alert("Search Successful!");
+            console.log("Job search results:", response.data);
+        }
+    } catch (error) {
+        alert(error.response?.data?.message || "Search failed. Please try again.");
+        console.error(error.response?.data);
+    }
+};
+
 const SearchBar = () => {
     const [selectedLocation, setSelectedLocation] = useState("All");
     const [selectedJob, setSelectedJob] = useState("All");
     const [searchTerm, setSearchTerm] = useState("");
 
     const handleSearch = () => {
-        alert(`Searching for: ${searchTerm} in ${selectedLocation} for ${selectedJob}`);
+        console.log("Searching for:", { selectedLocation, selectedJob, searchTerm });
+        searchJobs(selectedLocation, selectedJob, searchTerm);
     };
 
     return (

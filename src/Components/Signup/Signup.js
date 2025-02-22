@@ -17,17 +17,28 @@ const Signup = () => {
         university: "",
         gender: "",
         location: "",
-        contactNumber: "",
+        contactNumbers: [],
     });
 
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
-        setFormData((prev) => ({
-            ...prev,
-            [name]: value,
-        }));
+    
+        setFormData((prev) => {
+            if (name === "contactNumbers") {
+                return {
+                    ...prev,
+                    contactNumbers: value.split(",").map((num) => num.trim()), // Convert CSV input to arraya(07612333,12143214134)
+                };
+            } else {
+                return {
+                    ...prev,
+                    [name]: value,
+                };
+            }
+        });
     };
+    
 
 
     const handleSubmit = async (e) => {
@@ -145,10 +156,10 @@ const Signup = () => {
                                 type="text"
                                 placeholder="Mobile No"
                                 className="form-input w-full px-4 py-3 rounded-lg text-color focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                name="contactNumber"
+                                name="contactNumbers"
                                 required
                                 onChange={handleInputChange}
-                                value={formData.contactNumber}
+                                value={formData.contactNumbers}
                             />
                         </div>
 

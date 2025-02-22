@@ -19,15 +19,11 @@ export function Home() {
         // Fetch jobs from the API using axios
         const fetchJobs = async () => {
             try {
-                console.log("before");
                 const initialToken = localStorage.getItem('token');
-                console.log("after");
                 console.log(initialToken);
-                console.log("haaaaaaaaaaaaaaaaa");
                 
                 let userDetails = null;
                 if (initialToken) {
-                    console.log("haaaaaaaaaaaaaaaaa");
                     try {
                         userDetails = jwtDecode(initialToken);  // Decoding the JWT
                         console.log("User Details:", userDetails); // Debugging
@@ -46,7 +42,8 @@ export function Home() {
                 }
         
                 const response = await axios.get(`http://localhost:8100/api/v1/jobs/studentpreferedjobs?student_id=${userId}&page=0`);
-        
+                console.log("heeeeeee==> responce");
+                console.log(response);
                 const jobs = response.data?.data?.jobList || [];
                 setJobs(jobs);
         
@@ -82,16 +79,18 @@ export function Home() {
                         className="flex items-center p-4 rounded-lg mb-4 shadow-md"
                     >
                         <div className="flex-1">
-                            <h3 className="text-lg font-semibold">{job.company}</h3>
-                            <p className="text-gray-600">{job.job_description}</p>
-                            <p className="text-sm text-gray-500">{job.start_date}</p>
-                            <p className="text-sm text-gray-500">{job.location}</p>
+                            <h3 className="text-lg font-semibold">{job.jobTitle}({job.jobCategory})</h3>
+                            <p className="text-gray-600">{job.jobDescription}</p>
+                            <p className="text-sm text-gray-500"> 
+                                {new Date(job.startDate).toLocaleDateString()} to {new Date(job.endDate).toLocaleDateString()}
+                            </p>
+                            <p className="text-sm text-gray-500">{job.jobLocations}</p>
                             <div className="flex items-center mt-2">
                                 {[1, 2, 3, 4, 5].map((_, index) => (
                                     <Star
                                         key={index}
                                         size={16}
-                                        className={index < 4 ? "text-yellow-400" : "text-gray-400"}
+                                        className={index < job.employer.rating ? "text-yellow-400" : "text-gray-400"}
                                         fill="currentColor"
                                     />
                                 ))}
