@@ -26,8 +26,8 @@ function App() {
     // List of routes that do NOT include the Navbar
     const noNavRoutes = ["/", "/hero", "/sign-in", "/sign-up", "/pin"];
     const chatButton=["/", "/hero", "/sign-in", "/sign-up", "/pin"];
-    const searchBarHome=["/", "/hero", "/sign-in", "/sign-up", "/pin" ,"/company","/profile","/activities","/job-details","/apply-job","/contact-us"];
-    const searchBarCompany=["/", "/hero", "/sign-in", "/sign-up" ,"/home","/profile","/activities","/job-details","/apply-job","/contact-us"];
+    const searchBarHome=["/", "/hero", "/sign-in", "/sign-up", "/pin" ,"/company","/profile","/activities","/job-details","/apply-job","/contact-us","/company-rating"];
+    const searchBarCompany=["/", "/hero", "/sign-in", "/sign-up" ,"/home","/profile","/activities","/job-details","/apply-job","/contact-us","/company-rating"];
 
     return (
         <div className="App">
@@ -52,6 +52,7 @@ function App() {
                 <Route path="/apply-job" element={<ApplyJob />}/>
                 <Route path="/contact-us" element={<ContactUs/>}/>
                 <Route path="/log-out" element={<LogoutPopup/>}/>
+                <Route path="/company-rating" element={<CompanyRating/>}/>
 
             </Routes>
         </div>
