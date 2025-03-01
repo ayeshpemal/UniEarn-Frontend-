@@ -4,18 +4,18 @@ import {useNavigate} from "react-router-dom";
 import {GraduationCap} from "lucide-react";
 import axios from "axios";
 
-const Signin = () => {
+const ESignin = () => {
 
     const navigate = useNavigate();
     const [formData, setFormData] = useState({
-            userName: "",
-            password: "",        
-        });
-    const onNavigateToHomePage = () => {
-      navigate("/home");
+        userName: "",
+        password: "",
+    });
+    const onNavigateToEHomePage = () => {
+        navigate("/e-home");
     }
-    const onNavigateToSignUpPage = () => {
-      navigate("/sign-up")
+    const onNavigateToESignUpPage = () => {
+        navigate("/e-sign-up")
     }
     const verification = async (e) => {
         e.preventDefault();
@@ -34,7 +34,7 @@ const Signin = () => {
 
             if (response.status === 200) {
                 alert("Login Successful!");
-                onNavigateToHomePage(); // Redirect to Home Page after success
+                onNavigateToEHomePage(); // Redirect to Home Page after success
             }
         } catch (error) {
             alert(error.response?.data?.message || "Login failed. Please try again.");
@@ -68,7 +68,7 @@ const Signin = () => {
                 {/* Login Form */}
                 <div className="login-form">
                     <h2>SIGN IN </h2>
-                    <p>Sign in with your user name</p>
+                    <p>Sign in with company user name </p>
                     <form onSubmit={verification}>
                         <input
                             type="text"
@@ -93,9 +93,9 @@ const Signin = () => {
 
                     </form>
                     <div className="signup-link">
-                        Don’t have an account ? <span className="text-red-400 font-bold cursor-pointer"  onClick={() => navigate("/sign-up")}>Sign Up</span><br/>
+                        Don’t have an account ? <span className="text-red-400 font-bold cursor-pointer"  onClick={() => navigate("/e-sign-up")}>Sign Up</span><br/>
 
-                         <span className="text-blue-500 cursor-pointer" >Forgot Password</span>
+                        <span className="text-blue-500 cursor-pointer" >Forgot Password</span>
                     </div>
                 </div>
             </div>
@@ -103,4 +103,4 @@ const Signin = () => {
     );
 };
 
-export default Signin;
+export default ESignin;
