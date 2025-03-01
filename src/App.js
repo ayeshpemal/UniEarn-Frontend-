@@ -42,11 +42,13 @@ function App() {
         "/activities","/job-details","/apply-job","/contact-us","/company-rating","/e-hero","/e-sign-in","/e-sign-up"];
 
     //Employer
-    const eNoNavRoutes = ["/", "/hero", "/sign-in", "/sign-up", "/pin","/e-hero","/e-sign-in","/e-sign-up"];
-    const eChatButton=["/", "/hero", "/sign-in", "/sign-up", "/pin","/e-hero","/e-sign-in","/e-sign-up"];
-    const eSearchBarHome=["/", "/hero", "/sign-in", "/sign-up", "/pin" ,"/company",
+    const eNoNavRoutes = ["/", "/hero", "/sign-in", "/sign-up", "/pin","/e-hero","/e-sign-in","/e-sign-up","/home","/company","/profile",
+        "/activities","/job-details","/apply-job","/contact-us","/company-rating",];
+    const eChatButton=["/", "/hero", "/sign-in", "/sign-up", "/pin","/e-hero","/e-sign-in","/e-sign-up","/home","/company","/profile","/e-home",
+        "/activities","/job-details","/apply-job","/contact-us","/company-rating"];
+    const eSearchBarHome=["/", "/hero", "/sign-in", "/sign-up", "/pin" ,"/company","/home",
         "/profile","/activities","/job-details","/apply-job","/contact-us","/company-rating","/e-hero","/e-sign-in","/e-sign-up"];
-    const eSearchBarCompany=["/", "/hero", "/sign-in", "/sign-up" ,"/home","/profile","/e-home",
+    const eSearchBarCompany=["/", "/hero", "/sign-in", "/sign-up" ,"/home","/profile","/company","/e-home",
         "/activities","/job-details","/apply-job","/contact-us","/company-rating","/e-hero","/e-sign-in","/e-sign-up"];
 
 
