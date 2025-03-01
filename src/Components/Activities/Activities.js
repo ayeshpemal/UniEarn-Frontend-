@@ -1,7 +1,8 @@
 import React, {useState} from "react";
 import bgImage from "./bg.png"; // Background Image
 import companyLogo from "./job-logo.png";
-import {ChatBubbleOvalLeftEllipsisIcon} from "@heroicons/react/24/solid"; // Company Logo
+import {ChatBubbleOvalLeftEllipsisIcon} from "@heroicons/react/24/solid";
+import {useNavigate} from "react-router-dom"; // Company Logo
 
 
 const activities = [
@@ -23,6 +24,10 @@ const activities = [
 ];
 
 const Activities = () => {
+    const navigate = useNavigate();
+    const onNavigateToCompany=()=>{
+        navigate("/company-rating");
+    }
 
     return (
         <div className="bg-gray-100 min-h-screen">
@@ -57,6 +62,43 @@ const Activities = () => {
                         {activities.map((activity) => (
                             <tr key={activity.id} className="border-t">
                                 <td className="px-6 py-4 flex items-center">
+                                    <img
+                                        src={activity.logo}
+                                        alt="Company Logo"
+                                        className="w-12 h-12 rounded-full mr-4"
+                                    />
+                                    <div>
+                                        <p className="font-semibold">{activity.company}</p>
+                                        <p className="text-gray-600 text-sm">
+                                            {activity.description}
+                                        </p>
+                                    </div>
+                                </td>
+                                <td className="px-6 py-4 font-semibold">{activity.location}</td>
+                                <td className="px-6 py-4">{activity.date}</td>
+                            </tr>
+                        ))}
+
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div className ="max-w-6xl mx-auto bg-white rounded-lg shadow-md p-6 mt-6">
+                <h2 className="text-2xl font-bold mb-4">Recent Activities</h2>
+
+                <div className="overflow-x-auto">
+                    <table className="min-w-full bg-white border border-gray-200 rounded-lg shadow-md">
+                        <thead>
+                        <tr className="bg-gray-100 text-gray-700 text-left" >
+                            <th className="px-6 py-3">Company</th>
+                            <th className="px-6 py-3">Location</th>
+                            <th className="px-6 py-3">Date</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {activities.map((activity) => (
+                            <tr key={activity.id} className="border-t">
+                                <td className="px-6 py-4 flex items-center" onClick={onNavigateToCompany}>
                                     <img
                                         src={activity.logo}
                                         alt="Company Logo"
