@@ -2,13 +2,13 @@ import React from "react";
 import bgImage from "./bg.png";
 import {useNavigate} from "react-router-dom"; // Import the background image
 
-const Admins = () => {
+const EHero = () => {
     const navigate=useNavigate();
-    const onNavigateToStudents=() =>{
-        navigate("/hero")
+    const onNavigateToESignin=() =>{
+        navigate("/e-sign-in")
     }
-    const onNavigateToEmployer = () => {
-        navigate("/e-hero")
+    const onNavigateToESignup = () => {
+        navigate("/e-sign-up")
     }
 
     return (
@@ -28,11 +28,11 @@ const Admins = () => {
 
                 {/* Buttons */}
                 <div className="flex mt-8 space-x-4">
-                    <button className="px-6 py-3 bg-gradient-to-r from-purple-500 to-indigo-500 text-white rounded-lg font-semibold hover:opacity-90" onClick={onNavigateToStudents}>
-                        Students
+                    <button className="px-6 py-3 bg-gradient-to-r from-purple-500 to-indigo-500 text-white rounded-lg font-semibold hover:opacity-90" onClick={onNavigateToESignin}>
+                        Sign In
                     </button>
-                    <button className="px-6 py-3 bg-gradient-to-r from-indigo-500 to-blue-500 text-white rounded-lg font-semibold hover:opacity-90" onClick={onNavigateToEmployer}>
-                        Companies
+                    <button className="px-6 py-3 bg-gradient-to-r from-indigo-500 to-blue-500 text-white rounded-lg font-semibold hover:opacity-90" onClick={onNavigateToESignup}>
+                        Sign Up
                     </button>
                 </div>
             </div>
@@ -40,4 +40,4 @@ const Admins = () => {
     );
 };
 
-export default Admins;
+export default EHero;
