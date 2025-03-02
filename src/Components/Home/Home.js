@@ -7,9 +7,15 @@ import axios from 'axios';
 
 export function Home() {
     const navigate = useNavigate();
-    const onNavigateToJobDetails = () => {
-        navigate("/job-details");
-    }
+
+    const onNavigateToJobDetails = (jobId) => {
+        if (!jobId) {
+            console.error("Job ID is undefined");
+            return;
+        }
+        navigate(`/job-details/${jobId}`);
+    };
+    
 
     const [jobs, setJobs] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -42,7 +48,6 @@ export function Home() {
                 }
         
                 const response = await axios.get(`http://localhost:8100/api/v1/jobs/studentpreferedjobs?student_id=${userId}&page=0`);
-                console.log("heeeeeee==> responce");
                 console.log(response);
                 const jobs = response.data?.data?.jobList || [];
                 setJobs(jobs);
@@ -68,6 +73,7 @@ export function Home() {
     }
 
     return (
+        
         <div className="bg-gray-100 min-h-screen">
             {/* Job Listings */}
             <div className="max-w-6xl mx-auto bg-white rounded-lg shadow-md p-6 mt-6">
@@ -75,7 +81,7 @@ export function Home() {
 
                 {jobs.map((job) => (
                     <div
-                        key={job.id}
+                        key={job.jobId}
                         className="flex items-center p-4 rounded-lg mb-4 shadow-md"
                     >
                         <div className="flex-1">
@@ -98,7 +104,7 @@ export function Home() {
                             </div>
                             <p className="text-green-600 font-bold text-lg">{job.price}</p>
                             <button className="mt-2 bg-green-500 text-white px-4 py-2 rounded-lg font-medium hover:bg-green-600"
-                                onClick={onNavigateToJobDetails}>
+                                onClick={() => onNavigateToJobDetails(job.jobId)}>
                                 View Job
                             </button>
                         </div>

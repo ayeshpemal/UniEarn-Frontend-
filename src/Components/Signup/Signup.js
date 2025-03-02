@@ -18,6 +18,8 @@ const Signup = () => {
         gender: "",
         location: "",
         contactNumbers: [],
+        skills:[],
+        preferences:[],
     });
 
 

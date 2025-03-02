@@ -13,11 +13,13 @@ const ESignup = () => {
         email: "",
         password: "",
         confirmPassword: "",
-        role: "STUDENT",
-        university: "",
-        gender: "",
+        role: "EMPLOYER",
         location: "",
         contactNumber: "",
+
+        companyName:"",
+        companyDetails:"",
+        categories:[],
     });
 
 
@@ -76,24 +78,73 @@ const ESignup = () => {
                 <div className="bg-opacity-90 rounded-lg p-8 w-11/12 max-w-4xl">
                     <h2 className="text-white text-3xl font-bold mb-6 text-center">SIGN UP</h2>
                     <form className="grid grid-cols-1 md:grid-cols-2 gap-4" onSubmit={handleSubmit}>
-                        {/* Full Name */}
+                        {/* Company/Employer Name */}
                         <div>
                             <input
                                 type="text"
-                                placeholder="Full Name"
+                                placeholder="Company/Employer Name"
                                 className="form-input w-full px-4 py-3 rounded-lg placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 text-color"
-                                name="userName"
+                                name="companyName"
                                 required
                                 onChange={handleInputChange}
-                                value={formData.userName}
+                                value={formData.companyName}
                             />
+                        </div>
+                        <div>
+                            <input
+                                type="text"
+                                placeholder="Description"
+                                className="form-input w-full px-4 py-3 rounded-lg placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 text-color"
+                                name="companyDetails"
+                                required
+                                onChange={handleInputChange}
+                                value={formData.companyDetails}
+                            />
+                        </div>
+////////////////////////////////////////////////////////////////////////////////categories
+                        {/* Location */}
+                        <div>
+                            <select
+                                className="form-input w-full px-4 py-3 rounded-lg text-color focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                name="location"
+                                required
+                                onChange={handleInputChange}
+                                value={formData.location}
+                            >
+                                <option value="">Choose Your Location</option>
+                                <option value="AMPARA">AMPARA</option>
+                                <option value="ANURADHAPURA">ANURADHAPURA</option>
+                                <option value="BADULLA">BADULLA</option>
+                                <option value="BATTICALOA">BATTICALOA</option>
+                                <option value="COLOMBO">COLOMBO</option>
+                                <option value="GALLE">GALLE</option>
+                                <option value="GAMPAHA">GAMPAHA</option>
+                                <option value="HAMBANTOTA">HAMBANTOTA</option>
+                                <option value="JAFFNA">JAFFNA</option>
+                                <option value="KALUTARA">KALUTARA</option>
+                                <option value="KANDY">KANDY</option>
+                                <option value="KEGALLE">KEGALLE</option>
+                                <option value="KILINOCHCHI">KILINOCHCHI</option>
+                                <option value="KURUNEGALA">KURUNEGALA</option>
+                                <option value="MANNAR">MANNAR</option>
+                                <option value="MATARA">MATARA</option>
+                                <option value="MATALE">MATALE</option>
+                                <option value="MONERAGALA">MONERAGALA</option>
+                                <option value="MULLAITIVU">MULLAITIVU</option>
+                                <option value="NUWARA_ELIYA">NUWARA_ELIYA</option>
+                                <option value="POLONNARUWA">POLONNARUWA</option>
+                                <option value="PUTTALAM">PUTTALAM</option>
+                                <option value="RATNAPURA">RATNAPURA</option>
+                                <option value="TRINCOMALEE">TRINCOMALEE</option>
+                                <option value="VAUNIYA">VAUNIYA</option>
+                            </select>
                         </div>
 
                         {/* Email */}
                         <div>
                             <input
                                 type="email"
-                                placeholder="University Email"
+                                placeholder="email"
                                 className="form-input w-full px-4 py-3 rounded-lg text-color focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 name="email"
                                 required
@@ -101,44 +152,6 @@ const ESignup = () => {
                                 value={formData.email}
                             />
                         </div>
-
-                        {/* University */}
-                        <div>
-                            <select
-                                className="form-input w-full px-4 py-3 rounded-lg text-color focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                name="university"
-                                required
-                                onChange={handleInputChange}
-                                value={formData.university}
-
-                            >
-                                <option value="">Choose Your University</option>
-                                <option value="University of Colombo">University of Colombo</option>
-                                <option value="University of Peradeniya">University of Peradeniya</option>
-                                <option value="University of Sri Jayewardenepura">University of Sri Jayewardenepura</option>
-                                <option value="University of Kelaniya">University of Kelaniya</option>
-                                <option value="University of Moratuwa">University of Moratuwa</option>
-                                <option value="University of Jaffna">University of Jaffna</option>
-                                <option value="University of Ruhuna">University of Ruhuna</option>
-                                <option value="Other">Other</option>
-                            </select>
-                        </div>
-
-                        {/* Gender */}
-                        <div>
-                            <select
-                                className="form-input w-full px-4 py-3 rounded-lg text-color focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                name="gender"
-                                required
-                                onChange={handleInputChange}
-                                value={formData.gender}
-                            >
-                                <option value="">Gender</option>
-                                <option value="MALE">Male</option>
-                                <option value="FEMALE">Female</option>
-                            </select>
-                        </div>
-
                         {/* Contact Number */}
                         <div>
                             <input
@@ -151,17 +164,16 @@ const ESignup = () => {
                                 value={formData.contactNumber}
                             />
                         </div>
-
-                        {/* Location */}
+                        {/* UserName */}
                         <div>
                             <input
                                 type="text"
-                                placeholder="Address"
+                                placeholder="User Name"
                                 className="form-input w-full px-4 py-3 rounded-lg text-color focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                name="location"
+                                name="userName"
                                 required
                                 onChange={handleInputChange}
-                                value={formData.location}
+                                value={formData.userName}
                             />
                         </div>
 
@@ -211,6 +223,7 @@ const ESignup = () => {
                             </span>
                         </p>
                     </div>
+
                 </div>
 
                 {/* Email Verification Popup */}
