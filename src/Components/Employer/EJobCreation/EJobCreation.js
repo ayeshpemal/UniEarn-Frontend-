@@ -29,10 +29,12 @@ export default function JobCreationForm() {
     requiredWorkers: "",
     requiredGender: "",
     jobLocations: [],
+    startTime: { hour: 0, minute: 0, second: 0, nano: 0 },
+    endTime: { hour: 0, minute: 0, second: 0, nano: 0 },
     employer: null,
     status: true
   });
-  
+
   const [errors, setErrors] = useState({});
   const [submittedData, setSubmittedData] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -42,7 +44,7 @@ export default function JobCreationForm() {
     if (token) {
       try {
         const decoded = jwtDecode(token);
-        const employerId = decoded.user_id; // Updated to use user_id from your JWT
+        const employerId = decoded.user_id;
         if (employerId) {
           setFormData(prev => ({ ...prev, employer: Number(employerId) }));
         } else {
@@ -67,6 +69,8 @@ export default function JobCreationForm() {
     if (!formData.jobPayment || formData.jobPayment <= 0) newErrors.jobPayment = "Valid payment amount required";
     if (!formData.requiredWorkers || formData.requiredWorkers <= 0) newErrors.requiredWorkers = "Number of workers required";
     if (!formData.requiredGender) newErrors.requiredGender = "Please select gender requirement";
+    if (formData.startTime.hour < 0 || formData.startTime.hour > 23) newErrors.startTime = "Valid start time required";
+    if (formData.endTime.hour < 0 || formData.endTime.hour > 23) newErrors.endTime = "Valid end time required";
     
     if (formData.jobLocations.length === 0) {
       newErrors.jobLocations = "At least one location is required";
@@ -86,6 +90,30 @@ export default function JobCreationForm() {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: name === "jobPayment" || name === "requiredWorkers" ? Number(value) : value });
     setErrors({ ...errors, [name]: "" });
+  };
+
+  const handleTimeChange = (field, value) => {
+    if (!value) return;
+    
+    const [hours, minutes] = value.split(':');
+    setFormData(prev => ({
+      ...prev,
+      [field]: {
+        hour: parseInt(hours),
+        minute: parseInt(minutes),
+        second: 0,
+        nano: 0
+      }
+    }));
+    setErrors({ ...errors, [field]: "" });
+  };
+
+  const formatTimeForInput = (time) => {
+    return `${time.hour.toString().padStart(2, '0')}:${time.minute.toString().padStart(2, '0')}`;
+  };
+
+  const formatTimeForAPI = (time) => {
+    return `${time.hour.toString().padStart(2, '0')}:${time.minute.toString().padStart(2, '0')}:${time.second.toString().padStart(2, '0')}`;
   };
 
   const handleGenderChange = (e) => {
@@ -150,6 +178,7 @@ export default function JobCreationForm() {
       return;
     }
 
+    // Format the data for the API, converting startTime and endTime to strings
     const formattedData = {
       ...formData,
       jobLocations: formData.jobLocations.map(loc => ({
@@ -157,6 +186,8 @@ export default function JobCreationForm() {
         startDate: new Date(loc.startDate).toISOString(),
         endDate: new Date(loc.endDate).toISOString()
       })),
+      startTime: formatTimeForAPI(formData.startTime), // "HH:mm:ss"
+      endTime: formatTimeForAPI(formData.endTime),     // "HH:mm:ss"
       employer: Number(formData.employer)
     };
 
@@ -177,6 +208,8 @@ export default function JobCreationForm() {
         requiredWorkers: "",
         requiredGender: "",
         jobLocations: [],
+        startTime: { hour: 0, minute: 0, second: 0, nano: 0 },
+        endTime: { hour: 0, minute: 0, second: 0, nano: 0 },
         employer: formData.employer,
         status: true
       });
@@ -276,6 +309,30 @@ export default function JobCreationForm() {
               placeholder="Number of workers"
             />
             {errors.requiredWorkers && <p className="text-red-500 text-sm mt-1">{errors.requiredWorkers}</p>}
+          </div>
+        </div>
+
+        {/* Time Inputs with Clock Picker */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Start Time</label>
+            <input
+              type="time"
+              value={formatTimeForInput(formData.startTime)}
+              onChange={(e) => handleTimeChange('startTime', e.target.value)}
+              className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.startTime ? 'border-red-500' : 'border-gray-300'}`}
+            />
+            {errors.startTime && <p className="text-red-500 text-sm mt-1">{errors.startTime}</p>}
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">End Time</label>
+            <input
+              type="time"
+              value={formatTimeForInput(formData.endTime)}
+              onChange={(e) => handleTimeChange('endTime', e.target.value)}
+              className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.endTime ? 'border-red-500' : 'border-gray-300'}`}
+            />
+            {errors.endTime && <p className="text-red-500 text-sm mt-1">{errors.endTime}</p>}
           </div>
         </div>
 

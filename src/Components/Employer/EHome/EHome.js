@@ -9,7 +9,7 @@ const EHome = () => {
   const [currentPage, setCurrentPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0); // Assuming backend returns total pages or we calculate it
   const jobsPerPage = 5; // Number of jobs per page
-
+  
   useEffect(() => {
     const fetchJobs = async () => {
       try {
@@ -47,12 +47,13 @@ const EHome = () => {
     };
 
     fetchJobs();
-  }, [currentPage]); // Re-fetch when page changes
 
+  }, [currentPage]); // Re-fetch when page changes
+  
   const handleViewStudents = (jobId) => {
     window.location.href = `/e-job-details?jobId=${jobId}`;
   };
-
+  
   const handleDeleteJob = async (jobId) => {
     if (window.confirm('Are you sure you want to delete this job?')) {
       try {
@@ -75,7 +76,7 @@ const EHome = () => {
       }
     }
   };
-
+  
   const handlePageChange = (newPage) => {
     setCurrentPage(newPage);
     // Scroll to the top of the page when pagination changes
@@ -84,13 +85,28 @@ const EHome = () => {
       behavior: 'smooth', // Smooth scrolling for a better user experience
     });
   };
-
+  
   if (loading) return <div className="flex justify-center items-center h-screen">Loading...</div>;
   if (error) return <div className="text-red-500 text-center p-4">{error}</div>;
-
+  
   // Separate active and inactive jobs
   const activeJobs = jobs.filter(job => job.jobStatus === true);
   const inactiveJobs = jobs.filter(job => job.jobStatus === false);
+  
+  // Format time function (converts "09:00:00" to "9:00 AM")
+  const formatTime = (timeString) => {
+    if (!timeString) return 'Not specified';
+    
+    try {
+      const [hours, minutes] = timeString.split(':');
+      const hour = parseInt(hours, 10);
+      const ampm = hour >= 12 ? 'PM' : 'AM';
+      const formattedHour = hour % 12 || 12;
+      return `${formattedHour}:${minutes} ${ampm}`;
+    } catch (error) {
+      return timeString;
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -109,9 +125,9 @@ const EHome = () => {
                 <div className="flex-1 w-full sm:w-auto">
                   <h3 className="text-lg sm:text-xl font-semibold text-gray-900">{job.jobTitle || 'Job Title Not Available'}</h3>
                   <p className="text-gray-600 mt-2">{job.jobDescription || 'Job description not available'}</p>
-                  <p className="text-gray-600 mt-2">Working Hours: 9:00am to 6:00pm</p>
+                  <p className="text-gray-600 mt-2">Working Hours: {formatTime(job.startTime)} to {formatTime(job.endTime)}</p>
                   <p className="text-gray-600 mt-2">Required Workers: {job.requiredWorkers || 'Not specified'}</p>
-                  <p className="text-gray-600 mt-2">Gender: {job.requiredGender.length > 0 ? job.requiredGender.join(', ') : 'Not specified'}</p>
+                  <p className="text-gray-600 mt-2">Gender: {job.requiredGender?.length > 0 ? job.requiredGender.join(', ') : 'Not specified'}</p>
                   <p className="text-green-600 mt-2">Status: Active</p>
                   <p className="text-green-600 font-bold mt-2">Rs. {job.jobPayment || '0.00'}</p>
                   <div className="mt-4 flex flex-col sm:flex-row gap-2">
@@ -186,9 +202,9 @@ const EHome = () => {
                   <div className="flex-1 w-full sm:w-auto">
                     <h3 className="text-lg sm:text-xl font-semibold text-gray-900">{job.jobTitle || 'Job Title Not Available'}</h3>
                     <p className="text-gray-600 mt-2">{job.jobDescription || 'Job description not available'}</p>
-                    <p className="text-gray-600 mt-2">Working Hours: 9:00am to 6:00pm</p>
+                    <p className="text-gray-600 mt-2">Working Hours: {formatTime(job.startTime)} to {formatTime(job.endTime)}</p>
                     <p className="text-gray-600 mt-2">Required Workers: {job.requiredWorkers || 'Not specified'}</p>
-                    <p className="text-gray-600 mt-2">Gender: {job.requiredGender.length > 0 ? job.requiredGender.join(', ') : 'Not specified'}</p>
+                    <p className="text-gray-600 mt-2">Gender: {job.requiredGender?.length > 0 ? job.requiredGender.join(', ') : 'Not specified'}</p>
                     <p className="text-red-600 mt-2">Status: Inactive</p>
                     <p className="text-green-600 font-bold mt-2">Rs. {job.jobPayment || '0.00'}</p>
                     <div className="mt-4 flex flex-col sm:flex-row gap-2">
