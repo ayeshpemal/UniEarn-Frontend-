@@ -1,4 +1,3 @@
-// src/services/notificationService.js
 import SockJS from 'sockjs-client';
 import { Client } from '@stomp/stompjs';
 
@@ -23,7 +22,19 @@ export const connectWebSocket = (username, onMessageReceived, jwtToken) => {
         console.log('Connected: ' + frame);
         stompClient.subscribe(`/user/${username}/topic/notifications`, (message) => {
             console.log('Received message:', message.body);
-            const notification = JSON.parse(message.body);
+
+            let notification = null;
+
+            // Try parsing the message body as JSON
+            try {
+                notification = JSON.parse(message.body);
+            } catch (e) {
+                // If parsing fails, treat the message as plain text
+                console.warn('Message is not JSON. Handling as plain text.');
+                notification = { message: message.body };
+            }
+
+            // Pass the notification (either parsed JSON or plain text) to the callback
             onMessageReceived(notification);
         });
     };
