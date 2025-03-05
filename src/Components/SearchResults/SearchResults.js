@@ -1,12 +1,20 @@
 import React, { useEffect, useState } from 'react';
 import { Search, Star, ChevronDown } from 'lucide-react';
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import SearchBar from "../SearchBar/SearchBar";
 import { jwtDecode } from "jwt-decode";
 import axios from 'axios';
 
-export function Home() {
+export function SearchResults() {
     const navigate = useNavigate();
+    const { selectedLocation, selectedJob, searchTerm } = useParams();
+    const dselectedLocation = decodeURIComponent(selectedLocation);
+    const dselectedJob = decodeURIComponent(selectedJob);
+    const dsearchTerm = decodeURIComponent(searchTerm);
+
+    const [jobs, setJobs] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
     const onNavigateToJobDetails = (jobId) => {
         if (!jobId) {
@@ -15,39 +23,13 @@ export function Home() {
         }
         navigate(`/job-details/${jobId}`);
     };
-    
-
-    const [jobs, setJobs] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
 
     useEffect(() => {
         // Fetch jobs from the API using axios
         const fetchJobs = async () => {
             try {
-                const initialToken = localStorage.getItem('token');
-                console.log(initialToken);
-                
-                let userDetails = null;
-                if (initialToken) {
-                    try {
-                        userDetails = jwtDecode(initialToken);  // Decoding the JWT
-                        console.log("User Details:", userDetails); // Debugging
-                    } catch (error) {
-                        console.error("Invalid token:", error);
-                    }
-                }
-        
-                const userId = userDetails ? userDetails.user_id : null;
-                console.log(userId);
-        
-                if (!userId) {
-                    setError("User ID is missing or invalid.");
-                    setLoading(false);
-                    return;
-                }
-        
-                const response = await axios.get(`http://localhost:8100/api/v1/jobs/studentpreferedjobs?student_id=${userId}&page=0`);
+
+                const response = await axios.get(`http://localhost:8100/api/v1/jobs/search?location=${dselectedLocation}&categories=${dselectedJob}&keyword=${dsearchTerm}&page=0`);
                 console.log(response);
                 const jobs = response.data?.data?.jobList || [];
                 setJobs(jobs);
@@ -77,7 +59,7 @@ export function Home() {
         <div className="bg-gray-100 min-h-screen">
             {/* Job Listings */}
             <div className="max-w-6xl mx-auto bg-white rounded-lg shadow-md p-6 mt-6">
-                <h2 className="text-2xl font-bold mb-4">Jobs For You</h2>
+                <h2 className="text-2xl font-bold mb-4">Job Results For You</h2>
 
                 {jobs.map((job) => (
                     <div
@@ -110,11 +92,13 @@ export function Home() {
                         </div>
                         <div className="flex flex-col items-center">
                             <img src={job.logo} alt="Company Logo" className="w-20 h-20 rounded-full" />
+
                         </div>
+
                     </div>
                 ))}
             </div>
         </div>
     );
 }
-export default Home;
+export default SearchResults;

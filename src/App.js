@@ -3,7 +3,7 @@ import Signin from "./Components/Signin/Signin";
 import Signup from "./Components/Signup/Signup";
 import Otp from "./Components/OTP/Otp";
 import Home from "./Components/Home/Home";
-import Company from "./Components/Company/Company";
+import CompanyList from "./Components/CompanyList/CompanyList";
 import JobDetails from "./Components/JobDetails/JobDetails";
 import StudentProfile from "./Components/StudentProfile/StudentProfile";
 import NavBar from "./Components/NavBar/NavBar";
@@ -17,7 +17,7 @@ import HeroSectionHome from "./Components/HeroSection/HeroSectionHome";
 import HeroSectionCompany from "./Components/HeroSection/HeroSectionCompany";
 import ContactUs from "./Components/ContactUs/ContactUs";
 import LogoutPopup from "./Components/LogoutPopup/LogoutPopup";
-import CompanyRating from "./Components/CompanyRating/CompanyRating";
+import CompanyDetails from "./Components/CompanyDetails/CompanyDetails";
 import Admins from "./Components/Admins/Admins";
 import ESignin from "./Components/Employer/ESignin/ESignin";
 import EHero from "./Components/Employer/EHero/EHero";
@@ -27,6 +27,7 @@ import EHeroSectionCompany from "./Components/Employer/EHeroSection/EHeroSection
 import EHeroSectionHome from "./Components/Employer/EHeroSection/EHeroSectionHome";
 import ESignup from "./Components/Employer/ESignup/ESignup";
 import EHome from "./Components/Employer/EHome/EHome";
+import SearchResults from "./Components/SearchResults/SearchResults";
 
 
 
@@ -36,9 +37,11 @@ function App() {
     // List of routes that do NOT include the Navbar
     const noNavRoutes = ["/", "/hero", "/sign-in", "/sign-up","/e-hero","/e-sign-in","/e-sign-up","/e-home","/job-details/:jobId"];
     const chatButton=["/", "/hero", "/sign-in", "/sign-up", "/pin","/e-hero","/e-sign-in","/e-sign-up","/e-home","/job-details/:jobId"];
-    const searchBarHome = ["/", "/hero", "/sign-in", "/sign-up", "/pin", "/company", "/e-home",
+    const searchBarHome = ["/", "/hero", "/sign-in", "/sign-up", "/pin", "/companyList", "/e-home",
         "/profile", "/activities", "/apply-job", "/contact-us", "/company-rating",
         "/e-hero", "/e-sign-in", "/e-sign-up", "/job-details/:jobId"]; 
+    //const searchBarCompany=["/", "/hero", "/sign-in", "/sign-up" ,"/home","/profile","/e-home",
+    //    "/activities","/job-details","/apply-job","/contact-us","/company-rating","/e-hero","/e-sign-in","/e-sign-up","/job-details/:jobId"];
     const searchBarCompany = ["/", "/hero", "/sign-in", "/sign-up", "/home", "/profile", "/e-home",
         "/activities", "/apply-job", "/contact-us", "/company-rating",
         "/e-hero", "/e-sign-in", "/e-sign-up", "/job-details/:jobId"];
@@ -46,7 +49,7 @@ function App() {
     //Employer
     const eNoNavRoutes = ["/", "/hero", "/sign-in", "/sign-up", "/pin","/e-hero","/e-sign-in","/e-sign-up","/job-details/:jobId"];
     const eChatButton=["/", "/hero", "/sign-in", "/sign-up", "/pin","/e-hero","/e-sign-in","/e-sign-up","/job-details/:jobId"];
-    const eSearchBarHome=["/", "/hero", "/sign-in", "/sign-up", "/pin" ,"/company","/home",
+    const eSearchBarHome=["/", "/hero", "/sign-in", "/sign-up", "/pin" ,"/companyList","/home",
         "/profile","/activities","/job-details","/apply-job","/contact-us","/company-rating","/e-hero","/e-sign-in","/e-sign-up","/job-details/:jobId"];
     const eSearchBarCompany=["/", "/hero", "/sign-in", "/sign-up" ,"/home","/profile","/e-home",
         "/activities","/job-details","/apply-job","/contact-us","/company-rating","/e-hero","/e-sign-in","/e-sign-up","/job-details/:jobId"];
@@ -83,17 +86,18 @@ function App() {
                 <Route path="/hero" element={<Hero />} />
                 <Route path="/sign-in" element={<Signin />} />
                 <Route path="/sign-up" element={<Signup />} />
+                <Route path="/searched-results/:selectedLocation/:selectedJob/:searchTerm" element={<SearchResults />} />
 
                 {/* Pages with NavBar */}
                 <Route path="/home" element={<Home />} />
-                <Route path="/company" element={<Company />} />
+                <Route path="/companyList" element={<CompanyList />} />
                 <Route path="/profile" element={<StudentProfile />} />
                 <Route path="/activities" element={<Activities />} />
                 <Route path="/job-details/:jobId" element={<JobDetails />} />
                 <Route path="/apply-job" element={<ApplyJob />}/>
                 <Route path="/contact-us" element={<ContactUs/>}/>
                 <Route path="/log-out" element={<LogoutPopup/>}/>
-                <Route path="/company-rating" element={<CompanyRating/>}/>
+                <Route path="/company-details/:employerId" element={<CompanyDetails/>}/>
 
             </Routes>
         </div>

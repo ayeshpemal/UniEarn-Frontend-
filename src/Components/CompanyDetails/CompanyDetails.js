@@ -3,31 +3,32 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faStar as solidStar } from "@fortawesome/free-solid-svg-icons";
 import { faStar as regularStar } from "@fortawesome/free-regular-svg-icons";
 
-const JobReview = () => {
+const CompanyDetails = () => {
     // Sample Reviews
-    const reviews = [
-        {
-            id: 1,
-            name: "Floyd Miles",
-            image: "https://randomuser.me/api/portraits/women/44.jpg",
-            rating: 4.5,
-            comment: "Amet minim mollit non deserunt ullamco est sit aliqua dolor do amet sint.",
-        },
-        {
-            id: 2,
-            name: "Ronald Richards",
-            image: "https://randomuser.me/api/portraits/men/45.jpg",
-            rating: 5,
-            comment: "ullamco est sit aliqua dolor do amet sint. Veit officia consequat.",
-        },
-        {
-            id: 3,
-            name: "Savannah Nguyen",
-            image: "https://randomuser.me/api/portraits/women/46.jpg",
-            rating: 4,
-            comment: "Amet minim mollit non deserunt ullamco est sit aliqua dolor do amet sint.",
-        },
-    ];
+    const [reviews, setReviews] = useState([]);
+    // const reviews = [
+    //     {
+    //         id: 1,
+    //         name: "Floyd Miles",
+    //         image: "https://randomuser.me/api/portraits/women/44.jpg",
+    //         rating: 4.5,
+    //         comment: "Amet minim mollit non deserunt ullamco est sit aliqua dolor do amet sint.",
+    //     },
+    //     {
+    //         id: 2,
+    //         name: "Ronald Richards",
+    //         image: "https://randomuser.me/api/portraits/men/45.jpg",
+    //         rating: 5,
+    //         comment: "ullamco est sit aliqua dolor do amet sint. Veit officia consequat.",
+    //     },
+    //     {
+    //         id: 3,
+    //         name: "Savannah Nguyen",
+    //         image: "https://randomuser.me/api/portraits/women/46.jpg",
+    //         rating: 4,
+    //         comment: "Amet minim mollit non deserunt ullamco est sit aliqua dolor do amet sint.",
+    //     },
+    // ];
 
     // Rating & Feedback State
     const [userRating, setUserRating] = useState(0);
@@ -54,6 +55,35 @@ const JobReview = () => {
         setUserRating(0);
         setComment("");
     };
+
+    useEffect(() => {
+        // Fetch job details from the API using axios
+        const fetchEmployer = async () => {
+            try {
+                console.log("Fetching employer with ID:", jobId);
+                const response = await axios.get(`http://localhost:8100/api/v1/jobs/getjob/${jobId}`);
+                console.log("API Response:", response);
+
+                const fetchedJob = response.data?.data || null;
+                setJob(fetchedJob);
+            } catch (err) {
+                console.error("Error fetching job:", err);
+                setError("Failed to fetch job details.");
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchJob();
+    }, [jobId]); // Dependency array updated
+
+    if (loading) {
+        return <div className="text-center">Loading...</div>;
+    }
+
+    if (error) {
+        return <div className="text-center text-danger">Error: {error}</div>;
+    }
 
     return (
         <div className="min-h-screen bg-white">
@@ -161,4 +191,4 @@ const JobReview = () => {
     );
 };
 
-export default JobReview;
+export default CompanyDetails;
