@@ -30,6 +30,7 @@ import EHome from "./Components/Employer/EHome/EHome";
 import EJobCreation from "./Components/Employer/EJobCreation/EJobCreation";
 import EJobUpdate from "./Components/Employer/EJobUpdate/EJobUpdate";
 import AdminStats from "./Components/Admins/AdminStats/AdminStats";
+import JobPreferences from "./Components/JobPreferences/JobPreferences";
 
 
 
@@ -37,21 +38,20 @@ function App() {
     const location = useLocation();
     // Student
     // List of routes that do NOT include the Navbar
-    const noNavRoutes = ["/", "/hero", "/sign-in", "/sign-up", "/pin","/e-hero","/e-sign-in","/e-sign-up","/e-home","/e-job-create","/e-job-edit","/e-contact-us","/admins/stats"];
-    const chatButton=["/", "/hero", "/sign-in", "/sign-up", "/pin","/e-hero","/e-sign-in","/e-sign-up","/e-home","/e-job-create","/e-job-edit","/e-contact-us","/admins/stats"];
-    const searchBarHome=["/", "/hero", "/sign-in", "/sign-up", "/pin" ,"/company","/e-home",
+    const noNavRoutes = ["/", "/hero", "/sign-in", "/sign-up", "/pin","/verify/","/e-hero","/e-sign-in","/e-sign-up","/e-home","/e-job-create","/e-job-edit","/e-contact-us","/admins/stats"];
+    const chatButton=["/", "/hero", "/sign-in", "/sign-up", "/pin","/verify/","/e-hero","/e-sign-in","/e-sign-up","/e-home","/e-job-create","/e-job-edit","/e-contact-us","/admins/stats"];
+    const searchBarHome=["/", "/hero", "/sign-in", "/sign-up", "/pin" ,"/verify/","/company","/e-home",
         "/profile","/activities","/job-details","/apply-job","/contact-us","/company-rating","/e-hero","/e-sign-in","/e-sign-up","/e-job-create","/e-job-edit","/e-contact-us","/admins/stats"];
-    const searchBarCompany=["/", "/hero", "/sign-in", "/sign-up" ,"/home","/profile","/e-home",
+    const searchBarCompany=["/", "/hero", "/sign-in", "/sign-up" ,"/home","/profile","/verify/","/e-home",
         "/activities","/job-details","/apply-job","/contact-us","/company-rating","/e-hero","/e-sign-in","/e-sign-up","/e-job-create","/e-job-edit","/e-contact-us","/admins/stats"];
 
     //Employer
-    const eNoNavRoutes = ["/", "/home", "/hero", "/sign-in", "/sign-up", "/pin","/e-hero","/e-sign-in","/e-sign-up","/admins/stats"];
-    const eChatButton=["/", "/home", "/hero", "/sign-in", "/sign-up", "/pin","/e-hero","/e-sign-in","/e-sign-up","/admins/stats"];
-    const eSearchBarHome=["/", "/home", "/hero", "/sign-in", "/sign-up", "/pin" ,"/company",
+    const eNoNavRoutes = ["/", "/home", "/hero", "/sign-in", "/sign-up", "/pin","/verify/","/e-hero","/e-sign-in","/e-sign-up","/admins/stats"];
+    const eChatButton=["/", "/home", "/hero", "/sign-in", "/sign-up", "/pin","/verify/","/e-hero","/e-sign-in","/e-sign-up","/admins/stats"];
+    const eSearchBarHome=["/", "/home", "/hero", "/sign-in", "/sign-up", "/pin" ,"/verify/","/company",
         "/profile","/activities","/job-details","/apply-job","/contact-us","/company-rating","/e-hero","/e-sign-in","/e-sign-up","/e-job-create","/e-job-edit","/e-contact-us","/admins/stats"];
-    const eSearchBarCompany=["/", "/home", "/hero", "/sign-in", "/sign-up" ,"/home","/profile","/e-home",
+    const eSearchBarCompany=["/", "/home", "/hero", "/sign-in", "/sign-up" ,"/home","/profile","/verify/","/e-home",
         "/activities","/job-details","/apply-job","/contact-us","/company-rating","/e-hero","/e-sign-in","/e-sign-up","/e-contact-us","/admins/stats"];
-
 
     return (
         <div className="App">
@@ -88,6 +88,7 @@ function App() {
                 <Route path="/hero" element={<Hero />} />
                 <Route path="/sign-in" element={<Signin />} />
                 <Route path="/sign-up" element={<Signup />} />
+                <Route path="/verify/:userid" element={<JobPreferences />} />
 
                 {/* Pages with NavBar */}
                 <Route path="/home" element={<Home />} />
