@@ -4,11 +4,11 @@ import { Client } from '@stomp/stompjs';
 let stompClient = null;
 
 export const connectWebSocket = (username, onMessageReceived, jwtToken) => {
-    const socket = new SockJS('http://localhost:8100/ws'); // Adjust port if needed
+    const socket = new SockJS('http://localhost:8100/ws');
     stompClient = new Client({
         webSocketFactory: () => socket,
         connectHeaders: {
-            Authorization: `Bearer ${jwtToken}`, // Pass JWT token
+            Authorization: `Bearer ${jwtToken}`,
         },
         debug: (str) => {
             console.log('STOMP: ' + str);
@@ -20,22 +20,65 @@ export const connectWebSocket = (username, onMessageReceived, jwtToken) => {
 
     stompClient.onConnect = (frame) => {
         console.log('Connected: ' + frame);
-        stompClient.subscribe(`/user/${username}/topic/notifications`, (message) => {
-            console.log('Received message:', message.body);
 
+        // Subscribe to job notifications
+        stompClient.subscribe(`/user/${username}/topic/notifications`, (message) => {
+            console.log('Received job notification:', message.body);
             let notification = null;
 
-            // Try parsing the message body as JSON
             try {
                 notification = JSON.parse(message.body);
             } catch (e) {
-                // If parsing fails, treat the message as plain text
                 console.warn('Message is not JSON. Handling as plain text.');
-                notification = { message: message.body };
+                notification = { message: message.body, type: 'job' };
             }
 
-            // Pass the notification (either parsed JSON or plain text) to the callback
-            onMessageReceived(notification);
+            onMessageReceived(notification, notification.type || 'job');
+        });
+
+        // Subscribe to user-specific admin notifications
+        stompClient.subscribe(`/user/${username}/topic/admin-notifications`, (message) => {
+            console.log('Received user-specific admin notification:', message.body);
+            let notification = null;
+
+            try {
+                notification = JSON.parse(message.body);
+            } catch (e) {
+                console.warn('Message is not JSON. Handling as plain text.');
+                notification = { message: message.body, type: 'system' };
+            }
+
+            onMessageReceived(notification, notification.type || 'system');
+        });
+
+        // Subscribe to student-specific admin notifications
+        stompClient.subscribe(`/user/student/topic/admin-notifications`, (message) => {
+            console.log('Received student-specific admin notification:', message.body);
+            let notification = null;
+
+            try {
+                notification = JSON.parse(message.body);
+            } catch (e) {
+                console.warn('Message is not JSON. Handling as plain text.');
+                notification = { message: message.body, type: 'system' };
+            }
+
+            onMessageReceived(notification, notification.type || 'system');
+        });
+
+        // Subscribe to system-wide broadcast notifications
+        stompClient.subscribe('/topic/admin-notifications', (message) => {
+            console.log('Received system notification:', message.body);
+            let notification = null;
+
+            try {
+                notification = JSON.parse(message.body);
+            } catch (e) {
+                console.warn('Message is not JSON. Handling as plain text.');
+                notification = { message: message.body, type: 'system' };
+            }
+
+            onMessageReceived(notification, notification.type || 'system');
         });
     };
 
