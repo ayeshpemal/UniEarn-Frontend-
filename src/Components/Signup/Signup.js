@@ -7,6 +7,9 @@ import { X } from "lucide-react";
 const Signup = () => {
     const navigate = useNavigate();
     const [showVerificationPopup, setShowVerificationPopup] = useState(false);
+    const [showErrorPopup, setShowErrorPopup] = useState(false); // State for error popup
+    const [errorMessage, setErrorMessage] = useState(""); // State to store error message
+    const [isResendSuccess, setIsResendSuccess] = useState(false); // New state to track resend success
 
     const [formData, setFormData] = useState({
         userName: "",
@@ -20,15 +23,14 @@ const Signup = () => {
         contactNumbers: [],
     });
 
-
     const handleInputChange = (e) => {
         const { name, value } = e.target;
-    
+
         setFormData((prev) => {
             if (name === "contactNumbers") {
                 return {
                     ...prev,
-                    contactNumbers: value.split(",").map((num) => num.trim()), // Convert CSV input to arraya(07612333,12143214134)
+                    contactNumbers: value.split(",").map((num) => num.trim()),
                 };
             } else {
                 return {
@@ -38,12 +40,9 @@ const Signup = () => {
             }
         });
     };
-    
-
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-
 
         if (formData.password !== formData.confirmPassword) {
             alert("Passwords do not match!");
@@ -64,15 +63,41 @@ const Signup = () => {
                 setShowVerificationPopup(true);
             }
         } catch (error) {
-            alert(error.response?.data?.message || "Registration failed. Please try again.");
-            console.log(error.response?.data);
+            if (error.response && error.response.status === 500) {
+                // Handle 500 error (verification email failure)
+                setErrorMessage(error.response.data.message || "Failed to send verification email. Please try again.");
+                setIsResendSuccess(false); // Reset success state
+                setShowErrorPopup(true);
+            } else {
+                // Other errors
+                alert(error.response?.data?.message || "Registration failed. Please try again.");
+                console.log(error.response?.data);
+            }
         }
     };
-
 
     const handleNextButton = () => {
         setShowVerificationPopup(false);
         navigate("/sign-in");
+    };
+
+    const handleResendEmail = async () => {
+        try {
+            const response = await axios.get(
+                `http://localhost:8100/api/user/resend-verification-email?username=${formData.userName}`,
+                {
+                    headers: { "Content-Type": "application/json" },
+                }
+            );
+            if (response.status === 200) {
+                setErrorMessage("Verification email resent successfully. Please check your inbox.");
+                setIsResendSuccess(true); // Set success state
+            }
+        } catch (error) {
+            setErrorMessage(error.response?.data?.message || "Failed to resend verification email. Please try again.");
+            setIsResendSuccess(false); // Ensure success state is false on failure
+            console.log(error.response?.data);
+        }
     };
 
     return (
@@ -81,7 +106,6 @@ const Signup = () => {
                 <h1 className="text-4xl font-bold">SIGN UP TO YOUR</h1>
                 <p className="text-4xl font-bold text-blue-500">ADVENTURE!</p>
             </header>
-
 
             <div className="relative z-20 flex flex-col items-center justify-center h-full">
                 <div className="bg-opacity-90 rounded-lg p-8 w-11/12 max-w-4xl">
@@ -121,7 +145,6 @@ const Signup = () => {
                                 required
                                 onChange={handleInputChange}
                                 value={formData.university}
-
                             >
                                 <option value="">Choose Your University</option>
                                 <option value="University of Colombo">University of Colombo</option>
@@ -228,7 +251,6 @@ const Signup = () => {
                 {showVerificationPopup && (
                     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
                         <div className="bg-white rounded-2xl p-6 shadow-lg w-auto text-center relative">
-                            {/* Close Button */}
                             <button
                                 className="absolute top-2 right-2 text-gray-600 hover:text-red-500"
                                 onClick={() => setShowVerificationPopup(false)}
@@ -243,6 +265,45 @@ const Signup = () => {
                             >
                                 Close
                             </button>
+                        </div>
+                    </div>
+                )}
+
+                {/* Error/Success Popup for 500 Error */}
+                {showErrorPopup && (
+                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                        <div className="bg-white rounded-2xl p-6 shadow-lg w-auto text-center relative">
+                            <button
+                                className="absolute top-2 right-2 text-gray-600 hover:text-red-500"
+                                onClick={() => setShowErrorPopup(false)}
+                                aria-label="Close"
+                            >
+                                <X size={20} />
+                            </button>
+                            <h2
+                                className={`text-lg font-bold mb-4 ${
+                                    isResendSuccess ? "text-green-600" : "text-red-600"
+                                }`}
+                            >
+                                {isResendSuccess ? "Success" : "Error"}
+                            </h2>
+                            <p className="text-gray-600 mb-4">{errorMessage}</p>
+                            <div className="flex justify-center space-x-4">
+                                <button
+                                    className="bg-blue-500 text-white py-2 px-6 rounded-lg hover:bg-blue-600 transition"
+                                    onClick={handleResendEmail}
+                                    aria-label="Resend Email"
+                                >
+                                    Resend Email
+                                </button>
+                                <button
+                                    className="bg-gray-500 text-white py-2 px-6 rounded-lg hover:bg-gray-600"
+                                    onClick={() => setShowErrorPopup(false)}
+                                    aria-label="Close"
+                                >
+                                    Close
+                                </button>
+                            </div>
                         </div>
                     </div>
                 )}

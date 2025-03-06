@@ -59,7 +59,7 @@ const JobPreferences = () => {
         throw new Error('Failed to update preferences');
       }
 
-      navigate('/home');
+      navigate('/sign-in');
     } catch (err) {
       setError(err.message);
     } finally {
