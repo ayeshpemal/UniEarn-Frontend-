@@ -32,7 +32,7 @@ import EJobUpdate from "./Components/Employer/EJobUpdate/EJobUpdate";
 import AdminStats from "./Components/Admins/AdminStats/AdminStats";
 import JobPreferences from "./Components/JobPreferences/JobPreferences";
 import SearchStudent from "./Components/SearchStudent/SearchStudent";
-
+import SearchEmployer from "./Components/SearchEmployer/SearchEmployer";
 
 function App() {
     const location = useLocation();
@@ -43,7 +43,7 @@ function App() {
     const searchBarHome=["/", "/hero", "/sign-in", "/sign-up", "/pin" ,"/verify/","/company","/e-home",
         "/profile","/activities","/job-details","/apply-job","/contact-us","/company-rating","/e-hero","/e-sign-in","/e-sign-up","/e-job-create","/e-job-edit","/e-contact-us","/admins/stats",'/search-student'];
     const searchBarCompany=["/", "/hero", "/sign-in", "/sign-up" ,"/home","/profile","/verify/","/e-home",
-        "/activities","/job-details","/apply-job","/contact-us","/company-rating","/e-hero","/e-sign-in","/e-sign-up","/e-job-create","/e-job-edit","/e-contact-us","/admins/stats",'/search-student'];
+        "/activities","/job-details","/apply-job","/contact-us","/company-rating","/e-hero","/e-sign-in","/e-sign-up","/e-job-create","/e-job-edit","/e-contact-us","/admins/stats",'/search-student',"/company"];
 
     //Employer
     const eNoNavRoutes = ["/", "/home", "/hero", "/sign-in", "/sign-up", "/pin","/verify/","/e-hero","/e-sign-in","/e-sign-up","/admins/stats","/company","/activities","/profile","/contact-us",'/search-student',"/job-details"];
@@ -93,7 +93,7 @@ function App() {
 
                 {/* Pages with NavBar */}
                 <Route path="/home" element={<Home />} />
-                <Route path="/company" element={<Company />} />
+                <Route path="/company" element={<SearchEmployer />} />
                 <Route path="/profile" element={<StudentProfile />} />
                 <Route path="/activities" element={<Activities />} />
                 <Route path="/job-details" element={<JobDetails />} />
