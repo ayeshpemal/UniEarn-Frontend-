@@ -4,15 +4,24 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { X } from "lucide-react";
 
+const ADDRESS_OPTIONS = [
+    "AMPARA", "ANURADHAPURA", "BADULLA", "BATTICALOA", "COLOMBO", "GALLE",
+    "GAMPAHA", "HAMBANTOTA", "JAFFNA", "KALUTARA", "KANDY", "KEGALLE",
+    "KILINOCHCHI", "KURUNEGALA", "MANNAR", "MATARA", "MATALE", "MONERAGALA",
+    "MULLAITIVU", "NUWARA_ELIYA", "POLONNARUWA", "PUTTALAM", "RATNAPURA",
+    "TRINCOMALEE", "VAUNIYA"
+];
+
 const Signup = () => {
     const navigate = useNavigate();
     const [showVerificationPopup, setShowVerificationPopup] = useState(false);
-    const [showErrorPopup, setShowErrorPopup] = useState(false); // State for error popup
-    const [errorMessage, setErrorMessage] = useState(""); // State to store error message
-    const [isResendSuccess, setIsResendSuccess] = useState(false); // New state to track resend success
+    const [showErrorPopup, setShowErrorPopup] = useState(false);
+    const [errorMessage, setErrorMessage] = useState("");
+    const [isResendSuccess, setIsResendSuccess] = useState(false);
 
     const [formData, setFormData] = useState({
         userName: "",
+        displayName: "", // Still in state but not shown in UI
         email: "",
         password: "",
         confirmPassword: "",
@@ -49,10 +58,16 @@ const Signup = () => {
             return;
         }
 
+        // Set displayName to match userName before submitting
+        const submitData = {
+            ...formData,
+            displayName: formData.userName
+        };
+
         try {
             const response = await axios.post(
                 "http://localhost:8100/api/user/register",
-                formData,
+                submitData,
                 {
                     headers: { "Content-Type": "application/json" },
                 }
@@ -64,12 +79,10 @@ const Signup = () => {
             }
         } catch (error) {
             if (error.response && error.response.status === 500) {
-                // Handle 500 error (verification email failure)
                 setErrorMessage(error.response.data.message || "Failed to send verification email. Please try again.");
-                setIsResendSuccess(false); // Reset success state
+                setIsResendSuccess(false);
                 setShowErrorPopup(true);
             } else {
-                // Other errors
                 alert(error.response?.data?.message || "Registration failed. Please try again.");
                 console.log(error.response?.data);
             }
@@ -91,49 +104,36 @@ const Signup = () => {
             );
             if (response.status === 200) {
                 setErrorMessage("Verification email resent successfully. Please check your inbox.");
-                setIsResendSuccess(true); // Set success state
+                setIsResendSuccess(true);
             }
         } catch (error) {
             setErrorMessage(error.response?.data?.message || "Failed to resend verification email. Please try again.");
-            setIsResendSuccess(false); // Ensure success state is false on failure
+            setIsResendSuccess(false);
             console.log(error.response?.data);
         }
     };
 
     return (
-        <div className="relative w-full h-screen bg-cover bg-center signin-container">
-            <header className="absolute top-10 left-10 z-10 text-white">
-                <h1 className="text-4xl font-bold">SIGN UP TO YOUR</h1>
-                <p className="text-4xl font-bold text-blue-500">ADVENTURE!</p>
+        <div className="relative w-full min-h-screen bg-cover bg-center signin-container flex items-center justify-center">
+            <header className="absolute top-4 sm:top-10 left-4 sm:left-10 z-10 text-white">
+                <h1 className="text-2xl sm:text-4xl font-bold">SIGN UP TO YOUR</h1>
+                <p className="text-2xl sm:text-4xl font-bold text-blue-500">ADVENTURE!</p>
             </header>
 
-            <div className="relative z-20 flex flex-col items-center justify-center h-full">
-                <div className="bg-opacity-90 rounded-lg p-8 w-11/12 max-w-4xl">
-                    <h2 className="text-white text-3xl font-bold mb-6 text-center">SIGN UP</h2>
-                    <form className="grid grid-cols-1 md:grid-cols-2 gap-4" onSubmit={handleSubmit}>
-                        {/* Full Name */}
+            <div className="relative z-20 w-full max-w-5xl mx-4 sm:mx-6 lg:mx-8 py-8">
+                <div className="rounded-lg p-6 sm:p-8">
+                    <h2 className="text-white text-2xl sm:text-3xl font-bold mb-6 text-center">SIGN UP</h2>
+                    <form className="grid grid-cols-1 sm:grid-cols-2 gap-4" onSubmit={handleSubmit}>
+                        {/* User Name */}
                         <div>
                             <input
                                 type="text"
-                                placeholder="Full Name"
+                                placeholder="User Name"
                                 className="form-input w-full px-4 py-3 rounded-lg placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 text-color"
                                 name="userName"
                                 required
                                 onChange={handleInputChange}
                                 value={formData.userName}
-                            />
-                        </div>
-
-                        {/* Email */}
-                        <div>
-                            <input
-                                type="email"
-                                placeholder="University Email"
-                                className="form-input w-full px-4 py-3 rounded-lg text-color focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                name="email"
-                                required
-                                onChange={handleInputChange}
-                                value={formData.email}
                             />
                         </div>
 
@@ -156,6 +156,19 @@ const Signup = () => {
                                 <option value="University of Ruhuna">University of Ruhuna</option>
                                 <option value="Other">Other</option>
                             </select>
+                        </div>
+
+                        {/* Email */}
+                        <div>
+                            <input
+                                type="email"
+                                placeholder="University Email"
+                                className="form-input w-full px-4 py-3 rounded-lg text-color focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                name="email"
+                                required
+                                onChange={handleInputChange}
+                                value={formData.email}
+                            />
                         </div>
 
                         {/* Gender */}
@@ -188,19 +201,24 @@ const Signup = () => {
 
                         {/* Location */}
                         <div>
-                            <input
-                                type="text"
-                                placeholder="Address"
+                            <select
                                 className="form-input w-full px-4 py-3 rounded-lg text-color focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 name="location"
                                 required
                                 onChange={handleInputChange}
                                 value={formData.location}
-                            />
+                            >
+                                <option value="">Select Address</option>
+                                {ADDRESS_OPTIONS.map((address) => (
+                                    <option key={address} value={address}>
+                                        {address}
+                                    </option>
+                                ))}
+                            </select>
                         </div>
 
-                        {/* Password */}
-                        <div>
+                        {/* Password and Confirm Password in same row */}
+                        <div className="sm:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <input
                                 type="password"
                                 placeholder="Password"
@@ -210,10 +228,6 @@ const Signup = () => {
                                 onChange={handleInputChange}
                                 value={formData.password}
                             />
-                        </div>
-
-                        {/* Confirm Password */}
-                        <div>
                             <input
                                 type="password"
                                 placeholder="Confirm Password"
@@ -226,10 +240,10 @@ const Signup = () => {
                         </div>
 
                         {/* Submit Button */}
-                        <div className="col-span-2 mt-6 text-center">
+                        <div className="col-span-1 sm:col-span-2 mt-6 text-center">
                             <button
                                 type="submit"
-                                className="bg-gradient-to-r from-purple-500 to-blue-500 text-white py-3 px-6 rounded-lg font-bold hover:opacity-90"
+                                className="bg-gradient-to-r from-purple-500 to-blue-500 text-white py-3 px-6 rounded-lg font-bold hover:opacity-90 w-full sm:w-auto"
                             >
                                 Submit
                             </button>
@@ -250,7 +264,7 @@ const Signup = () => {
                 {/* Email Verification Popup */}
                 {showVerificationPopup && (
                     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-                        <div className="bg-white rounded-2xl p-6 shadow-lg w-auto text-center relative">
+                        <div className="bg-white rounded-2xl p-6 shadow-lg w-11/12 max-w-md text-center relative">
                             <button
                                 className="absolute top-2 right-2 text-gray-600 hover:text-red-500"
                                 onClick={() => setShowVerificationPopup(false)}
@@ -272,7 +286,7 @@ const Signup = () => {
                 {/* Error/Success Popup for 500 Error */}
                 {showErrorPopup && (
                     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                        <div className="bg-white rounded-2xl p-6 shadow-lg w-auto text-center relative">
+                        <div className="bg-white rounded-2xl p-6 shadow-lg w-11/12 max-w-md text-center relative">
                             <button
                                 className="absolute top-2 right-2 text-gray-600 hover:text-red-500"
                                 onClick={() => setShowErrorPopup(false)}
@@ -288,7 +302,7 @@ const Signup = () => {
                                 {isResendSuccess ? "Success" : "Error"}
                             </h2>
                             <p className="text-gray-600 mb-4">{errorMessage}</p>
-                            <div className="flex justify-center space-x-4">
+                            <div className="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-4">
                                 <button
                                     className="bg-blue-500 text-white py-2 px-6 rounded-lg hover:bg-blue-600 transition"
                                     onClick={handleResendEmail}

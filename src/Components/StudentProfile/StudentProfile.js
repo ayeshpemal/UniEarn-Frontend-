@@ -11,10 +11,20 @@ const PREFERENCE_OPTIONS = [
     'WEB_DEVELOPER', 'OTHER'
 ];
 
+// Define address options
+const ADDRESS_OPTIONS = [
+    'AMPARA', 'ANURADHAPURA', 'BADULLA', 'BATTICALOA', 'COLOMBO', 'GALLE',
+    'GAMPAHA', 'HAMBANTOTA', 'JAFFNA', 'KALUTARA', 'KANDY', 'KEGALLE',
+    'KILINOCHCHI', 'KURUNEGALA', 'MANNAR', 'MATARA', 'MATALE', 'MONERAGALA',
+    'MULLAITIVU', 'NUWARA_ELIYA', 'POLONNARUWA', 'PUTTALAM', 'RATNAPURA',
+    'TRINCOMALEE', 'VAUNIYA'
+];
+
 function App() {
     const [isEditing, setIsEditing] = useState(false);
     const [formData, setFormData] = useState({
-        fullName: '',
+        userName: '',
+        displayName: '',
         university: '',
         email: '',
         gender: '',
@@ -63,7 +73,8 @@ function App() {
                 }
 
                 const fetchedData = {
-                    fullName: userData.userName || '',
+                    userName: userData.userName || '',
+                    displayName: userData.displayName || '',
                     university: userData.university || '',
                     email: userData.email || '',
                     gender: userData.gender ? userData.gender.charAt(0).toUpperCase() + userData.gender.slice(1).toLowerCase() : '',
@@ -130,6 +141,7 @@ function App() {
         const sortedPreferences = [...formData.preferences].sort();
         const sortedOriginalPreferences = [...originalFormData.preferences].sort();
         return (
+            formData.displayName !== originalFormData.displayName ||  // Added displayName check
             formData.mobileNo !== originalFormData.mobileNo ||
             formData.address !== originalFormData.address ||
             JSON.stringify(sortedPreferences) !== JSON.stringify(sortedOriginalPreferences) ||
@@ -147,6 +159,7 @@ function App() {
 
             if (hasUserDataChanges()) {
                 const updateData = {
+                    displayName: formData.displayName,  // Added displayName to update data
                     location: formData.address,
                     contactNumber: [formData.mobileNo],
                     gender: formData.gender.toUpperCase(),
@@ -188,6 +201,7 @@ function App() {
 
             setOriginalFormData({
                 ...originalFormData,
+                displayName: formData.displayName,  // Added displayName to original data
                 mobileNo: formData.mobileNo,
                 address: formData.address,
                 preferences: [...formData.preferences],
@@ -216,7 +230,7 @@ function App() {
                         <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-white">
                             Welcome
                             <br />
-                            <span className="text-[#6B7AFF]">{formData.fullName}</span>
+                            <span className="text-[#6B7AFF]">{formData.displayName}</span>
                         </h1>
                     </div>
                 </div>
@@ -251,7 +265,7 @@ function App() {
                             )}
                         </div>
                         <div className="flex-1 text-center sm:text-left">
-                            <h2 className="text-xl sm:text-2xl font-bold">{formData.fullName}</h2>
+                            <h2 className="text-xl sm:text-2xl font-bold">{formData.displayName}</h2>
                             <p className="text-gray-600 text-sm sm:text-base">{formData.email}</p>
                             <div className="flex justify-center sm:justify-start items-center space-x-1 mt-2 md:float-right">
                                 {[...Array(5)].map((_, i) => (
@@ -297,9 +311,15 @@ function App() {
                     {/* Profile Form */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                         <ProfileField
-                            label="Full Name"
-                            value={formData.fullName}
+                            label="User name"
+                            value={formData.userName}
                             disabled={true}
+                        />
+                        <ProfileField
+                            label="Display Name"
+                            value={formData.displayName}
+                            disabled={!isEditing}
+                            onChange={(value) => handleInputChange('displayName', value)}
                         />
                         <ProfileField
                             label="University"
@@ -317,12 +337,30 @@ function App() {
                             disabled={!isEditing}
                             onChange={(value) => handleInputChange('mobileNo', value)}
                         />
-                        <ProfileField
-                            label="Address"
-                            value={formData.address}
-                            disabled={!isEditing}
-                            onChange={(value) => handleInputChange('address', value)}
-                        />
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Address</label>
+                            {isEditing ? (
+                                <select
+                                    value={formData.address}
+                                    onChange={(e) => handleInputChange('address', e.target.value)}
+                                    className="w-full p-2 sm:p-3 border rounded-lg bg-gray-50 text-sm sm:text-base"
+                                >
+                                    <option value="">Select an address</option>
+                                    {ADDRESS_OPTIONS.map(address => (
+                                        <option key={address} value={address}>
+                                            {address}
+                                        </option>
+                                    ))}
+                                </select>
+                            ) : (
+                                <input
+                                    type="text"
+                                    value={formData.address}
+                                    disabled={true}
+                                    className="w-full p-2 sm:p-3 border rounded-lg bg-gray-50 text-sm sm:text-base"
+                                />
+                            )}
+                        </div>
                         <div className="col-span-1 sm:col-span-2">
                             <label className="block text-sm font-medium text-gray-700 mb-2">Preferences</label>
                             {isEditing ? (
