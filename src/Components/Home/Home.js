@@ -7,9 +7,9 @@ import axios from 'axios';
 
 export function Home() {
     const navigate = useNavigate();
-    const onNavigateToJobDetails = () => {
-        navigate("/job-details");
-    }
+    const onNavigateToJobDetails = (jobId) => {
+        window.location.href = `/job-details?jobId=${jobId}`;
+    };
 
     const [jobs, setJobs] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -98,7 +98,7 @@ export function Home() {
                             </div>
                             <p className="text-green-600 font-bold text-lg">{job.price}</p>
                             <button className="mt-2 bg-green-500 text-white px-4 py-2 rounded-lg font-medium hover:bg-green-600"
-                                onClick={onNavigateToJobDetails}>
+                                onClick={() => onNavigateToJobDetails(job.jobId)}>
                                 View Job
                             </button>
                         </div>
