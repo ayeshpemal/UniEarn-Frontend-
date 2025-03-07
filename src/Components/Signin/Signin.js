@@ -3,6 +3,7 @@ import "./signin.css";
 import { useNavigate } from "react-router-dom";
 import { GraduationCap, X } from "lucide-react";
 import axios from "axios";
+import { jwtDecode } from "jwt-decode";
 
 const Signin = () => {
     const navigate = useNavigate();
@@ -13,14 +14,6 @@ const Signin = () => {
     const [showErrorPopup, setShowErrorPopup] = useState(false);
     const [errorMessage, setErrorMessage] = useState("");
     const [isResendSuccess, setIsResendSuccess] = useState(false);
-
-    const onNavigateToHomePage = () => {
-        navigate("/home");
-    };
-
-    const onNavigateToSignUpPage = () => {
-        navigate("/sign-up");
-    };
 
     const verification = async (e) => {
         e.preventDefault();
@@ -34,11 +27,33 @@ const Signin = () => {
                     },
                 }
             );
-            localStorage.setItem("token", response.data.data);
+            const token = response.data.data;
+            localStorage.setItem("token", token);
 
             if (response.status === 200) {
+                // Decode the token to get the role
+                const decoded = jwtDecode(token);
+                console.log("Decoded token:", decoded); // Debug: Check token structure
+                const role = decoded.role;
+
                 alert("Login Successful!");
-                onNavigateToHomePage();
+
+                // Navigate based on role
+                switch (role) {
+                    case "STUDENT":
+                        navigate("/home");
+                        break;
+                    case "EMPLOYER":
+                        navigate("/e-home");
+                        break;
+                    case "ADMIN":
+                        navigate("/admin");
+                        break;
+                    default:
+                        alert("Unknown role. Please contact support.");
+                        navigate("/"); // Redirect to a default page or handle differently
+                        break;
+                }
             }
         } catch (error) {
             if (error.response && error.response.status === 403) {
@@ -74,6 +89,10 @@ const Signin = () => {
             setIsResendSuccess(false);
             console.log(error.response?.data);
         }
+    };
+
+    const onNavigateToSignUpPage = () => {
+        navigate("/sign-up");
     };
 
     return (

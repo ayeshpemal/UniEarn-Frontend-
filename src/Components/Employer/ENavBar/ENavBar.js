@@ -13,7 +13,7 @@ const ENavBar = () => {
     const handleLogout = () => {
         setLogoutPopup(false);  // Close popup
         localStorage.removeItem("token"); // Clear session (if using tokens)
-        navigate("/e-sign-in"); // Redirect to Sign In page
+        navigate("/sign-in"); // Redirect to Sign In page
     };
 
     return (
