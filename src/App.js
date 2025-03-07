@@ -31,7 +31,7 @@ import EJobCreation from "./Components/Employer/EJobCreation/EJobCreation";
 import EJobUpdate from "./Components/Employer/EJobUpdate/EJobUpdate";
 import AdminStats from "./Components/Admins/AdminStats/AdminStats";
 import JobPreferences from "./Components/JobPreferences/JobPreferences";
-
+import SearchStudent from "./Components/SearchStudent/SearchStudent";
 
 
 function App() {
@@ -41,17 +41,17 @@ function App() {
     const noNavRoutes = ["/", "/hero", "/sign-in", "/sign-up", "/pin","/verify/","/e-hero","/e-sign-in","/e-sign-up","/e-home","/e-job-create","/e-job-edit","/e-contact-us","/admins/stats"];
     const chatButton=["/", "/hero", "/sign-in", "/sign-up", "/pin","/verify/","/e-hero","/e-sign-in","/e-sign-up","/e-home","/e-job-create","/e-job-edit","/e-contact-us","/admins/stats"];
     const searchBarHome=["/", "/hero", "/sign-in", "/sign-up", "/pin" ,"/verify/","/company","/e-home",
-        "/profile","/activities","/job-details","/apply-job","/contact-us","/company-rating","/e-hero","/e-sign-in","/e-sign-up","/e-job-create","/e-job-edit","/e-contact-us","/admins/stats"];
+        "/profile","/activities","/job-details","/apply-job","/contact-us","/company-rating","/e-hero","/e-sign-in","/e-sign-up","/e-job-create","/e-job-edit","/e-contact-us","/admins/stats",'/search-student'];
     const searchBarCompany=["/", "/hero", "/sign-in", "/sign-up" ,"/home","/profile","/verify/","/e-home",
-        "/activities","/job-details","/apply-job","/contact-us","/company-rating","/e-hero","/e-sign-in","/e-sign-up","/e-job-create","/e-job-edit","/e-contact-us","/admins/stats"];
+        "/activities","/job-details","/apply-job","/contact-us","/company-rating","/e-hero","/e-sign-in","/e-sign-up","/e-job-create","/e-job-edit","/e-contact-us","/admins/stats",'/search-student'];
 
     //Employer
-    const eNoNavRoutes = ["/", "/home", "/hero", "/sign-in", "/sign-up", "/pin","/verify/","/e-hero","/e-sign-in","/e-sign-up","/admins/stats","/company","/activities","/profile","/contact-us"];
-    const eChatButton=["/", "/home", "/hero", "/sign-in", "/sign-up", "/pin","/verify/","/e-hero","/e-sign-in","/e-sign-up","/admins/stats","/company","/activities","/profile","/contact-us"];
+    const eNoNavRoutes = ["/", "/home", "/hero", "/sign-in", "/sign-up", "/pin","/verify/","/e-hero","/e-sign-in","/e-sign-up","/admins/stats","/company","/activities","/profile","/contact-us",'/search-student'];
+    const eChatButton=["/", "/home", "/hero", "/sign-in", "/sign-up", "/pin","/verify/","/e-hero","/e-sign-in","/e-sign-up","/admins/stats","/company","/activities","/profile","/contact-us",'/search-student'];
     const eSearchBarHome=["/", "/home", "/hero", "/sign-in", "/sign-up", "/pin" ,"/verify/","/company",
-        "/profile","/activities","/job-details","/apply-job","/contact-us","/company-rating","/e-hero","/e-sign-in","/e-sign-up","/e-job-create","/e-job-edit","/e-contact-us","/admins/stats","/company","/activities"];
+        "/profile","/activities","/job-details","/apply-job","/contact-us","/company-rating","/e-hero","/e-sign-in","/e-sign-up","/e-job-create","/e-job-edit","/e-contact-us","/admins/stats","/company","/activities",'/search-student'];
     const eSearchBarCompany=["/", "/home", "/hero", "/sign-in", "/sign-up" ,"/home","/profile","/verify/","/e-home",
-        "/activities","/job-details","/apply-job","/contact-us","/company-rating","/e-hero","/e-sign-in","/e-sign-up","/e-contact-us","/admins/stats","/company","/activities","/profile"];
+        "/activities","/job-details","/apply-job","/contact-us","/company-rating","/e-hero","/e-sign-in","/e-sign-up","/e-contact-us","/admins/stats","/company","/activities","/profile",'/search-student'];
 
     return (
         <div className="App">
@@ -89,6 +89,7 @@ function App() {
                 <Route path="/sign-in" element={<Signin />} />
                 <Route path="/sign-up" element={<Signup />} />
                 <Route path="/verify/:userid" element={<JobPreferences />} />
+                <Route path='/search-student' element={<SearchStudent/>} />
 
                 {/* Pages with NavBar */}
                 <Route path="/home" element={<Home />} />

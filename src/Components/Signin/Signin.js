@@ -1,9 +1,8 @@
 import React, { useState } from "react";
 import "./signin.css";
 import { useNavigate } from "react-router-dom";
-import { GraduationCap } from "lucide-react";
+import { GraduationCap, X } from "lucide-react";
 import axios from "axios";
-import { X } from "lucide-react"; // Import X icon for closing popup
 
 const Signin = () => {
     const navigate = useNavigate();
@@ -11,9 +10,9 @@ const Signin = () => {
         userName: "",
         password: "",
     });
-    const [showErrorPopup, setShowErrorPopup] = useState(false); // State for error popup
-    const [errorMessage, setErrorMessage] = useState(""); // State for error message
-    const [isResendSuccess, setIsResendSuccess] = useState(false); // New state to track resend success
+    const [showErrorPopup, setShowErrorPopup] = useState(false);
+    const [errorMessage, setErrorMessage] = useState("");
+    const [isResendSuccess, setIsResendSuccess] = useState(false);
 
     const onNavigateToHomePage = () => {
         navigate("/home");
@@ -39,16 +38,14 @@ const Signin = () => {
 
             if (response.status === 200) {
                 alert("Login Successful!");
-                onNavigateToHomePage(); // Redirect to Home Page after success
+                onNavigateToHomePage();
             }
         } catch (error) {
             if (error.response && error.response.status === 403) {
-                // Handle 403 error (unverified email)
                 setErrorMessage(error.response.data.message || "Your email is not verified. Please check your inbox.");
-                setIsResendSuccess(false); // Reset success state
+                setIsResendSuccess(false);
                 setShowErrorPopup(true);
             } else {
-                // Other errors
                 alert(error.response?.data?.message || "Login failed. Please try again.");
                 console.log(error.response?.data);
             }
@@ -70,41 +67,40 @@ const Signin = () => {
             );
             if (response.status === 200) {
                 setErrorMessage("Verify mail is resent and check the mail.");
-                setIsResendSuccess(true); // Set success state
+                setIsResendSuccess(true);
             }
         } catch (error) {
             setErrorMessage(error.response?.data?.message || "Failed to resend verification email. Please try again.");
-            setIsResendSuccess(false); // Ensure success state is false on failure
+            setIsResendSuccess(false);
             console.log(error.response?.data);
         }
     };
 
     return (
-        <div className="signin-container">
+        <div className="signin-container min-h-screen flex items-center justify-center">
             {/* Top-Left Logo, Title, and Text */}
-            <header className="header">
+            <header className="absolute top-4 sm:top-10 left-4 sm:left-10 z-10 text-white">
                 <div className="flex items-center space-x-2">
-                    <GraduationCap size={50} className="text-white" />
-                    <span className="text-4xl font-bold">Uni Earn</span>
+                    <GraduationCap size={40} className="sm:size-50 text-white" />
+                    <span className="text-2xl sm:text-4xl font-bold">Uni Earn</span>
                 </div>
-
-                <div className="top-left-text">
-                    <p>SIGN IN TO YOUR</p>
-                    <p className="highlight">ADVENTURE!</p>
+                <div className="mt-2 sm:mt-4">
+                    <p className="text-lg sm:text-2xl">SIGN IN TO YOUR</p>
+                    <p className="text-lg sm:text-2xl font-bold text-blue-500 highlight">ADVENTURE!</p>
                 </div>
             </header>
 
             {/* Background Overlay */}
-            <div className="background-overlay">
+            <div className="background-overlay w-full max-w-md mx-4 sm:mx-6 lg:mx-8 py-8">
                 {/* Login Form */}
                 <div className="login-form">
-                    <h2>SIGN IN </h2>
-                    <p>Sign in with your user name</p>
-                    <form onSubmit={verification}>
+                    <h2 className="text-2xl sm:text-3xl">SIGN IN</h2>
+                    <p className="mb-6">Sign in with your user name</p>
+                    <form onSubmit={verification} className="space-y-4">
                         <input
                             type="text"
                             placeholder="User Name"
-                            className="form-input"
+                            className="form-input w-full px-4 py-3"
                             name="userName"
                             required
                             onChange={handleInputChange}
@@ -112,17 +108,16 @@ const Signin = () => {
                         <input
                             type="password"
                             placeholder="Password"
-                            className="form-input"
+                            className="form-input w-full px-4 py-3"
                             name="password"
                             required
                             onChange={handleInputChange}
                         />
-
-                        <button type="submit" className="signin-button">
+                        <button type="submit" className="signin-button w-full py-3 px-6">
                             Sign In
                         </button>
                     </form>
-                    <div className="signup-link">
+                    <div className="signup-link mt-6">
                         Don’t have an account ?{" "}
                         <span className="text-red-400 font-bold cursor-pointer" onClick={onNavigateToSignUpPage}>
                             Sign Up
@@ -136,7 +131,7 @@ const Signin = () => {
             {/* Error/Success Popup for 403 Error */}
             {showErrorPopup && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                    <div className="bg-white rounded-2xl p-6 shadow-lg w-auto text-center relative">
+                    <div className="bg-white rounded-2xl p-6 shadow-lg w-11/12 max-w-md text-center relative">
                         <button
                             className="absolute top-2 right-2 text-gray-600 hover:text-red-500"
                             onClick={() => setShowErrorPopup(false)}
@@ -152,7 +147,7 @@ const Signin = () => {
                             {isResendSuccess ? "Success" : "Error"}
                         </h2>
                         <p className="text-gray-600 mb-4">{errorMessage}</p>
-                        <div className="flex justify-center space-x-4">
+                        <div className="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-4">
                             <button
                                 className="bg-blue-500 text-white py-2 px-6 rounded-lg hover:bg-blue-600 transition"
                                 onClick={handleResendEmail}
@@ -161,7 +156,7 @@ const Signin = () => {
                                 Resend Email
                             </button>
                             <button
-                                className="bg-gray-500 text-white py-2 px-6 rounded-lg hover:bg-gray-600"
+                                className="bg-gray-500 text-white py-2 px-6 rounded-lg hover:bg-gray-600 transition"
                                 onClick={() => setShowErrorPopup(false)}
                                 aria-label="Close"
                             >
