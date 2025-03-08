@@ -1,211 +1,39 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Star } from "lucide-react";
-import { useNavigate, useSearchParams } from "react-router-dom";
-import { jwtDecode } from "jwt-decode";
-
-const DEFAULT_PROFILE_PICTURE = "/job-logo.png"; // Default image path
+import { useNavigate, useParams } from "react-router-dom";
+import axios from "axios";
 
 const JobDetails = () => {
-  const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const [job, setJob] = useState(null);
-  const [profilePictureUrl, setProfilePictureUrl] = useState(DEFAULT_PROFILE_PICTURE);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [showApplySection, setShowApplySection] = useState(false);
-  const [currentUser, setCurrentUser] = useState(null);
-  const [appliedUsers, setAppliedUsers] = useState([]);
-  const [showPopup, setShowPopup] = useState(false);
-  const [followingStudents, setFollowingStudents] = useState([]);
-  const [currentPage, setCurrentPage] = useState(0);
-  const [hasMore, setHasMore] = useState(true);
-  const [errorMessage, setErrorMessage] = useState(null);
-  const [successMessage, setSuccessMessage] = useState(null);
-  const [teamName, setTeamName] = useState("");
-  const pageSize = 10;
+    const { jobId } = useParams(); // Get jobId from URL
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const [job, setJob] = useState(null); // Store job details
 
-  useEffect(() => {
-    fetchJobDetails();
-    fetchCurrentUser();
-  }, []);
+    useEffect(() => {
+        // Fetch job details from the API using axios
+        const fetchJob = async () => {
+            try {
+                console.log("Fetching job with ID:", jobId);
+                const response = await axios.get(`http://localhost:8100/api/v1/jobs/getjob/${jobId}`);
+                console.log("API Response:", response);
 
-  useEffect(() => {
-    if (showPopup) {
-      fetchFollowingStudents();
-    }
-  }, [currentPage, showPopup]);
+                const fetchedJob = response.data?.data || null;
+                setJob(fetchedJob);
+            } catch (err) {
+                console.error("Error fetching job:", err);
+                setError("Failed to fetch job details.");
+            } finally {
+                setLoading(false);
+            }
+        };
 
-  const fetchJobDetails = async () => {
-    try {
-      const jobId = searchParams.get("jobId");
-      if (!jobId) {
-        setError("No Job ID Provided");
-        setLoading(false);
-        return;
-      }
+        fetchJob();
+    }, [jobId]); // Dependency array updated
 
-      const token = localStorage.getItem("token");
-      if (!token) {
-        setError("Authentication Token Not Found");
-        setLoading(false);
-        return;
-      }
-
-      const response = await fetch(
-        `http://localhost:8100/api/v1/jobs/getjob/${jobId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      const data = await response.json();
-      if (data.code === 200) {
-        const jobData = data.data;
-        if (!jobData.activeStatus) {
-          setError("Job Not Active");
-          setLoading(false);
-          return;
-        }
-        setJob(jobData);
-        if (jobData.employer.profilePictureUrl) {
-          fetchProfilePicture(jobData.employer.userId, token);
-        }
-      } else {
-        setError(data.message || "Failed to Fetch Job Details");
-      }
-    } catch (err) {
-      setError("Error Fetching Job Details: " + err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchProfilePicture = async (userId, token) => {
-    try {
-      if (!userId) {
-        setProfilePictureUrl(DEFAULT_PROFILE_PICTURE);
-        return;
-      }
-
-      const response = await fetch(
-        `http://localhost:8100/api/user/${userId}/profile-picture`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      const data = await response.json();
-      if (data.code === 200 && data.data) {
-        setProfilePictureUrl(data.data);
-      } else {
-        setProfilePictureUrl(DEFAULT_PROFILE_PICTURE);
-      }
-    } catch (err) {
-      console.error("Error Fetching Profile Picture:", err);
-      setProfilePictureUrl(DEFAULT_PROFILE_PICTURE);
-    }
-  };
-
-  const fetchCurrentUser = async () => {
-    try {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        setError("Authentication Token Not Found");
-        return;
-      }
-
-      const decodedToken = jwtDecode(token);
-      const userId = decodedToken.user_id;
-
-      const response = await fetch(
-        `http://localhost:8100/api/user/get-user-by-id/${userId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      const data = await response.json();
-      if (data.code === 200 && data.data) {
-        setCurrentUser(data.data);
-      } else {
-        setError(data.message || "Failed to Fetch User Data");
-      }
-    } catch (err) {
-      setError("Error Fetching User Data: " + err.message);
-    }
-  };
-
-  const fetchFollowingStudents = async () => {
-    try {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        setError("Authentication Token Not Found");
-        return;
-      }
-
-      const decodedToken = jwtDecode(token);
-      const userId = decodedToken.user_id;
-
-      const response = await fetch(
-        `http://localhost:8100/follows/${userId}/followingstudents?page=${currentPage}&size=${pageSize}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      const data = await response.json();
-      if (data.code === 200 && data.data) {
-        setFollowingStudents(data.data);
-        setHasMore(data.data.length === pageSize);
-      } else {
-        setError(data.message || "Failed to Fetch Following Students");
-      }
-    } catch (err) {
-      setError("Error Fetching Following Students: " + err.message);
-    }
-  };
-
-  const handleApplyClick = () => {
-    if (currentUser && job.requiredGender && !job.requiredGender.includes(currentUser.gender)) {
-      setErrorMessage({ header: "Gender Mismatch Error", message: "Your gender does not match the job's required gender." });
-      return;
-    }
-    setShowApplySection(true);
-    if (currentUser && !appliedUsers.some(user => user.userId === currentUser.userId)) {
-      setAppliedUsers([...appliedUsers, currentUser]);
-    }
-  };
-
-  const handleRemoveUser = (userId) => {
-    setAppliedUsers(appliedUsers.filter(user => user.userId !== userId));
-  };
-
-  const handleAddMember = () => {
-    setShowPopup(true);
-    setCurrentPage(0);
-  };
-
-  const handleAddStudent = (student) => {
-    if (appliedUsers.length >= job.requiredWorkers) {
-      setErrorMessage({ header: "Member Limit Exceeded", message: `Cannot add more members. Maximum limit is ${job.requiredWorkers}.` });
-      return;
-    }
-    if (job.requiredGender && !job.requiredGender.includes(student.gender)) {
-      setErrorMessage({ header: "Gender Mismatch Error", message: `The gender of ${student.userName} does not match the job's required gender.` });
-      return;
-    }
-    if (!appliedUsers.some(user => user.userId === student.userId)) {
-      setAppliedUsers([...appliedUsers, { ...student, displayName: student.userName }]);
-    }
-  };
+    const navigate = useNavigate();
+    const onNavigateToApplyJob = () => {
+        navigate("/apply-job");
+    };
 
   const checkApplicationStatus = async (userId) => {
     const token = localStorage.getItem("token");
@@ -354,163 +182,87 @@ const JobDetails = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-        <p className="text-lg">Loading...</p>
-      </div>
-    );
-  }
+        <div className="bg-gray-100 min-h-screen">
+            <section className="max-w-4xl mx-auto p-6">
+                <h2 className="text-2xl font-bold mb-4 text-center">Job Details</h2>
 
-  if (error) {
-    return (
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-        <p className="text-lg text-red-600">{error}</p>
-      </div>
-    );
-  }
+                {/* Loading & Error Handling */}
+                {loading && <p className="text-center text-gray-600">Loading job details...</p>}
+                {error && <p className="text-center text-red-500">{error}</p>}
+                {!loading && !error && job ? (
+                    <div key={job.jobId} className="bg-white p-6 rounded-xl shadow-md flex flex-col md:flex-row-reverse relative items-start md:items-center mb-6">
+                        {/* Job Logo */}
+                        <div className="absolute top-6 left-6 w-20 h-20">
+                            <img src="/job-logo.png" alt="Company Logo" className="rounded-full w-full h-full" />
+                        </div>
 
-  if (!job) {
-    return null;
-  }
+                        {/* Job Details */}
+                        <div className="flex-grow ml-20 bg-white p-6 rounded-lg shadow-lg">
+                            {/* Job Title & Category */}
+                            <h2 className="text-2xl font-bold text-gray-800">
+                                {job?.jobTitle || "No job title available"}
+                                <span className="text-blue-600 text-lg"> ({job?.jobCategory || "No category"})</span>
+                            </h2>
+                            <p className="text-gray-600 mt-2">{job?.jobDescription || "No job description available."}</p>
 
-  return (
-    <div className="bg-gray-100 min-h-screen">
-      {/* Hero Section */}
-      <header
-        className="relative flex flex-col justify-center items-center text-white h-[50vh] sm:h-[70vh] bg-cover bg-center px-4 sm:px-6"
-        style={{
-          backgroundImage:
-            'url("https://images.unsplash.com/photo-1559136555-9303baea8ebd?auto=format&fit=crop&q=80")',
-        }}
-      >
-        <div className="absolute inset-0 bg-black bg-opacity-50" />
-        <div className="relative z-10 text-center">
-          <h1 className="text-2xl sm:text-4xl md:text-6xl font-bold">
-            Find Your Perfect <br />
-            <span className="text-blue-400">Part-Time</span> Job
-          </h1>
-        </div>
-      </header>
+                            {/* Job Information */}
+                            <div className="mt-4 space-y-2">
+                                <p><span className="font-semibold text-gray-700">📅 Start Date:</span> {job?.startDate || "N/A"}</p>
+                                <p><span className="font-semibold text-gray-700">📅 End Date:</span> {job?.endDate || "N/A"}</p>
+                                <p><span className="font-semibold text-gray-700">🧑‍🤝‍🧑 Gender:</span> {job?.requiredGender || "Any"}</p>
+                                <p><span className="font-semibold text-gray-700">👥 No. of Students:</span> {job?.requiredWorkers || "N/A"}</p>
+                            </div>
 
-      {/* Job Listings Section */}
-      <section className="max-w-4xl mx-auto p-4 sm:p-6">
-        <h2 className="text-xl sm:text-2xl font-bold mb-4 text-center">
-          Job Details
-        </h2>
+                            {/* Locations */}
+                            <div className="mt-4">
+                                <span className="font-bold text-gray-700">📍 Locations:</span>
+                                {job?.jobLocations?.length > 0 ? (
+                                    <ul className="list-disc list-inside text-gray-600">
+                                        {job.jobLocations.map((loc, index) => (
+                                            <li key={index}>{loc}</li>
+                                        ))}
+                                    </ul>
+                                ) : (
+                                    <p className="text-gray-500">No locations provided</p>
+                                )}
+                            </div>
 
-        <div className="bg-white p-4 sm:p-6 rounded-xl shadow-md flex flex-col relative mb-6">
-          {/* Job Title and Profile Picture */}
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
-            <h3 className="text-lg sm:text-xl font-bold">{job.jobTitle}</h3>
-            <div className="w-16 h-16 sm:w-20 sm:h-20 mt-2 sm:mt-0">
-              <img
-                src={profilePictureUrl}
-                alt="Company Logo"
-                className="rounded-full w-full h-full object-cover"
-                onError={() => setProfilePictureUrl(DEFAULT_PROFILE_PICTURE)}
-              />
-            </div>
-          </div>
+                            {/* Rating & Salary */}
+                            <p><br/>{job?.employer?.companyName || "N/A"}</p>
+                            <div className="flex items-center mt-4">
+                                <div className="flex">
+                                    {[1, 2, 3, 4, 5].map((_, index) => (
+                                        <Star
+                                            key={index}
+                                            size={20}
+                                            className={index < job.employer.rating ? "text-yellow-400" : "text-gray-300"}
+                                            fill="currentColor"
+                                        />
+                                    ))}
+                                </div>
+                                <span className="ml-2 text-gray-500">{job?.reviews || "No reviews"}</span>
+                            </div>
 
-          {/* Job Details */}
-          <div className="flex-grow">
-            <div className="mb-4">
-              <p className="text-gray-600 font-semibold text-sm sm:text-base">
-                {job.employer.companyName}
-              </p>
-              <p className="text-gray-500 text-xs sm:text-sm">
-                {job.employer.companyDetails}
-              </p>
-              <p className="text-gray-700 text-sm sm:text-base mt-2">
-                <span className="font-bold">Category:</span> {job.jobCategory} <br />
-                <span className="font-bold">Description:</span> {job.jobDescription} <br />
-                <span className="font-bold">Date:</span>{" "}
-                {new Date(job.startDate).toLocaleDateString()} -{" "}
-                {new Date(job.endDate).toLocaleDateString()} <br />
-                <span className="font-bold">Time:</span> {job.startTime} -{" "}
-                {job.endTime} <br />
-                <span className="font-bold">Gender:</span>{" "}
-                {job.requiredGender.join(", ")} <br />
-                <span className="font-bold">No of Workers:</span>{" "}
-                {job.requiredWorkers}
-              </p>
-            </div>
+                            {/* Salary */}
+                            <p className="text-green-600 font-bold text-xl mt-2">
+                                💰 {job?.jobPayment || "Salary not specified"}
+                            </p>
 
-            <p className="text-gray-700 mt-2">
-              <span className="font-bold">Locations:</span>{" "}
-              {job.jobLocations.map((loc, index) => (
-                <span key={index} className="block text-sm text-gray-500">
-                  {loc}
-                </span>
-              ))}
-            </p>
+                            {/* Apply Now Button */}
+                            <button
+                                className="bg-blue-600 text-white px-6 py-2 rounded-lg mt-6 hover:bg-blue-700 transition duration-300"
+                                onClick={onNavigateToApplyJob}
+                            >
+                                Apply Now 🚀
+                            </button>
+                        </div>
 
-            {/* Salary */}
-            <p className="text-green-600 font-bold mt-1 text-sm sm:text-base">
-              Rs. {job.jobPayment.toLocaleString()}.00
-            </p>
-
-            {/* Apply Now Button (disappears after click) */}
-            {!showApplySection && (
-              <button
-                onClick={handleApplyClick}
-                className="bg-blue-600 text-white px-4 sm:px-6 py-2 rounded-lg mt-4 w-full sm:w-auto"
-              >
-                Apply Now
-              </button>
-            )}
-
-            {/* Apply Section */}
-            {showApplySection && (
-              <div className="mt-6 border-t pt-4">
-                <h3 className="text-lg font-bold mb-4">Apply</h3>
-                <div className="grid grid-cols-2 sm:grid-cols-2 gap-4 mb-4">
-                  <div className="font-bold">Name</div>
-                  <div className="font-bold">Action</div>
-                  {appliedUsers.map((user) => (
-                    <React.Fragment key={user.userId}>
-                      <div className="flex items-center">
-                        <span>{user.displayName || user.userName}</span>
-                      </div>
-                      <div>
-                        {user.userId !== currentUser?.userId && (
-                          <button
-                            onClick={() => handleRemoveUser(user.userId)}
-                            className="text-red-500"
-                          >
-                            Remove
-                          </button>
-                        )}
-                      </div>
-                    </React.Fragment>
-                  ))}
-                </div>
-                {job.requiredWorkers > 1 && (
-                  <>
-                    <input
-                      type="text"
-                      value={teamName}
-                      onChange={(e) => setTeamName(e.target.value)}
-                      placeholder="Enter team name"
-                      className="w-full mb-2 p-2 border rounded"
-                    />
-                    <button
-                      onClick={handleAddMember}
-                      className="bg-purple-600 text-white px-4 py-2 rounded-lg flex items-center justify-center mb-2"
-                    >
-                      <span className="mr-2">👤</span> Add Member
-                    </button>
-                  </>
+                    </div>
+                ) : (
+                    !loading && !error && <p className="text-center text-gray-500">No job details found.</p>
                 )}
-                <button
-                  onClick={handleApply}
-                  className="bg-blue-600 text-white px-4 py-2 rounded-lg"
-                  disabled={job.requiredWorkers !== appliedUsers.length}
-                >
-                  Apply
-                </button>
-              </div>
-            )}
-          </div>
+            </section>
+
         </div>
       </section>
 

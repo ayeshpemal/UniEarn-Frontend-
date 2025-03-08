@@ -3,7 +3,7 @@ import Signin from "./Components/Signin/Signin";
 import Signup from "./Components/Signup/Signup";
 import Otp from "./Components/OTP/Otp";
 import Home from "./Components/Home/Home";
-import Company from "./Components/Company/Company";
+import CompanyList from "./Components/CompanyList/CompanyList";
 import JobDetails from "./Components/JobDetails/JobDetails";
 import StudentProfile from "./Components/StudentProfile/StudentProfile";
 import NavBar from "./Components/NavBar/NavBar";
@@ -17,7 +17,6 @@ import HeroSectionHome from "./Components/HeroSection/HeroSectionHome";
 import HeroSectionCompany from "./Components/HeroSection/HeroSectionCompany";
 import ContactUs from "./Components/ContactUs/ContactUs";
 import LogoutPopup from "./Components/LogoutPopup/LogoutPopup";
-import CompanyRating from "./Components/CompanyRating/CompanyRating";
 import Admins from "./Components/Admins/Admins";
 import ESignin from "./Components/Employer/ESignin/ESignin";
 import EHero from "./Components/Employer/EHero/EHero";
@@ -27,8 +26,10 @@ import EHeroSectionCompany from "./Components/Employer/EHeroSection/EHeroSection
 import EHeroSectionHome from "./Components/Employer/EHeroSection/EHeroSectionHome";
 import ESignup from "./Components/Employer/ESignup/ESignup";
 import EHome from "./Components/Employer/EHome/EHome";
+import SearchResults from "./Components/SearchResults/SearchResults";
 import EJobCreation from "./Components/Employer/EJobCreation/EJobCreation";
 import EJobUpdate from "./Components/Employer/EJobUpdate/EJobUpdate";
+import CompanyDetails from './Components/Employer/CompanyDetails/CompanyDetails';
 import AdminStats from "./Components/Admins/AdminStats/AdminStats";
 import JobPreferences from "./Components/JobPreferences/JobPreferences";
 import SearchStudent from "./Components/SearchStudent/SearchStudent";
@@ -82,13 +83,18 @@ function App() {
                 <Route path="/e-home" element={<EHome />} />
                 <Route path="/e-job-create" element={<EJobCreation />} />
                 <Route path="/e-job-edit" element={<EJobUpdate />} />
+                <Route path="/e-profile" element={<CompanyDetails />} />
                 <Route path="/e-contact-us" element={<ContactUs/>}/>
-
 
                 {/*Students*/}
                 <Route path="/hero" element={<Hero />} />
                 <Route path="/sign-in" element={<Signin />} />
                 <Route path="/sign-up" element={<Signup />} />
+                <Route path="/searched-results/:selectedLocation/:selectedJob/:searchTerm" element={<SearchResults />} />
+
+                {/* Pages with NavBar */}
+                <Route path="/home" element={<Home />} />
+                <Route path="/companyList" element={<CompanyList />} />
                 <Route path="/verify/:userid" element={<JobPreferences />} />
                 <Route path='/search-student' element={<SearchStudent/>} />
                 <Route path="/activities/summary" element={<StudentSummary />} />
@@ -98,11 +104,11 @@ function App() {
                 <Route path="/company" element={<SearchEmployer />} />
                 <Route path="/profile" element={<StudentProfile />} />
                 <Route path="/activities" element={<Activities />} />
-                <Route path="/job-details" element={<JobDetails />} />
+                <Route path="/job-details/:jobId" element={<JobDetails />} />
                 <Route path="/apply-job" element={<ApplyJob />}/>
                 <Route path="/contact-us" element={<ContactUs/>}/>
                 <Route path="/log-out" element={<LogoutPopup/>}/>
-                <Route path="/company-rating" element={<CompanyRating/>}/>
+                <Route path="/company-details/:employerId" element={<CompanyDetails/>}/>
 
             </Routes>
         </div>
