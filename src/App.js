@@ -34,25 +34,26 @@ import JobPreferences from "./Components/JobPreferences/JobPreferences";
 import SearchStudent from "./Components/SearchStudent/SearchStudent";
 import SearchEmployer from "./Components/SearchEmployer/SearchEmployer";
 import StudentSummary from "./Components/StudentSummary/StudentSummary";
+import ResetPassword from "./Components/ResetPassword/ResetPassword";
 
 function App() {
     const location = useLocation();
     // Student
     // List of routes that do NOT include the Navbar
-    const noNavRoutes = ["/", "/hero", "/sign-in", "/sign-up", "/pin","/verify/","/e-hero","/e-sign-in","/e-sign-up","/e-home","/e-job-create","/e-job-edit","/e-contact-us","/admins/stats"];
-    const chatButton=["/", "/hero", "/sign-in", "/sign-up", "/pin","/verify/","/e-hero","/e-sign-in","/e-sign-up","/e-home","/e-job-create","/e-job-edit","/e-contact-us","/admins/stats"];
-    const searchBarHome=["/", "/hero", "/sign-in", "/sign-up", "/pin" ,"/verify/","/company","/e-home",
-        "/profile","/activities","/job-details","/apply-job","/contact-us","/company-rating","/e-hero","/e-sign-in","/e-sign-up","/e-job-create","/e-job-edit","/e-contact-us","/admins/stats",'/search-student',"/activities/summary"];
-    const searchBarCompany=["/", "/hero", "/sign-in", "/sign-up" ,"/home","/profile","/verify/","/e-home",
-        "/activities","/job-details","/apply-job","/contact-us","/company-rating","/e-hero","/e-sign-in","/e-sign-up","/e-job-create","/e-job-edit","/e-contact-us","/admins/stats",'/search-student',"/company","/activities/summary"];
+    const noNavRoutes = ["/", "/hero", "/sign-in", "/sign-up", "/pin","/verify","/e-hero","/e-sign-in","/e-sign-up","/e-home","/e-job-create","/e-job-edit","/e-contact-us","/admins/stats","/reset-password"];
+    const chatButton=["/", "/hero", "/sign-in", "/sign-up", "/pin","/verify","/e-hero","/e-sign-in","/e-sign-up","/e-home","/e-job-create","/e-job-edit","/e-contact-us","/admins/stats","/reset-password"];
+    const searchBarHome=["/", "/hero", "/sign-in", "/sign-up", "/pin" ,"/verify","/company","/e-home",
+        "/profile","/activities","/job-details","/apply-job","/contact-us","/company-rating","/e-hero","/e-sign-in","/e-sign-up","/e-job-create","/e-job-edit","/e-contact-us","/admins/stats",'/search-student',"/activities/summary","/reset-password"];
+    const searchBarCompany=["/", "/hero", "/sign-in", "/sign-up" ,"/home","/profile","/verify","/e-home",
+        "/activities","/job-details","/apply-job","/contact-us","/company-rating","/e-hero","/e-sign-in","/e-sign-up","/e-job-create","/e-job-edit","/e-contact-us","/admins/stats",'/search-student',"/company","/activities/summary","/reset-password"];
 
     //Employer
-    const eNoNavRoutes = ["/", "/home", "/hero", "/sign-in", "/sign-up", "/pin","/verify/","/e-hero","/e-sign-in","/e-sign-up","/admins/stats","/company","/activities","/profile","/contact-us",'/search-student',"/job-details","/activities/summary"];
-    const eChatButton=["/", "/home", "/hero", "/sign-in", "/sign-up", "/pin","/verify/","/e-hero","/e-sign-in","/e-sign-up","/admins/stats","/company","/activities","/profile","/contact-us",'/search-student',"/job-details","/activities/summary"];
-    const eSearchBarHome=["/", "/home", "/hero", "/sign-in", "/sign-up", "/pin" ,"/verify/","/company",
-        "/profile","/activities","/job-details","/apply-job","/contact-us","/company-rating","/e-hero","/e-sign-in","/e-sign-up","/e-contact-us","/admins/stats","/company","/activities",'/search-student',"/job-details","/activities/summary"];
-    const eSearchBarCompany=["/", "/home", "/hero", "/sign-in", "/sign-up" ,"/home","/profile","/verify/","/e-home",
-        "/activities","/job-details","/apply-job","/contact-us","/company-rating","/e-hero","/e-sign-in","/e-sign-up","/e-contact-us","/admins/stats","/company","/activities","/profile",'/search-student',"/job-details","/e-job-create","/e-job-edit","/activities/summary"];
+    const eNoNavRoutes = ["/", "/home", "/hero", "/sign-in", "/sign-up", "/pin","/verify","/e-hero","/e-sign-in","/e-sign-up","/admins/stats","/company","/activities","/profile","/contact-us",'/search-student',"/job-details","/activities/summary","/reset-password"];
+    const eChatButton=["/", "/home", "/hero", "/sign-in", "/sign-up", "/pin","/verify","/e-hero","/e-sign-in","/e-sign-up","/admins/stats","/company","/activities","/profile","/contact-us",'/search-student',"/job-details","/activities/summary","/reset-password"];
+    const eSearchBarHome=["/", "/home", "/hero", "/sign-in", "/sign-up", "/pin" ,"/verify","/company",
+        "/profile","/activities","/job-details","/apply-job","/contact-us","/company-rating","/e-hero","/e-sign-in","/e-sign-up","/e-contact-us","/admins/stats","/company","/activities",'/search-student',"/job-details","/activities/summary","/reset-password"];
+    const eSearchBarCompany=["/", "/home", "/hero", "/sign-in", "/sign-up" ,"/home","/profile","/verify","/e-home",
+        "/activities","/job-details","/apply-job","/contact-us","/company-rating","/e-hero","/e-sign-in","/e-sign-up","/e-contact-us","/admins/stats","/company","/activities","/profile",'/search-student',"/job-details","/e-job-create","/e-job-edit","/activities/summary","/reset-password"];
 
     return (
         <div className="App">
@@ -89,7 +90,7 @@ function App() {
                 <Route path="/hero" element={<Hero />} />
                 <Route path="/sign-in" element={<Signin />} />
                 <Route path="/sign-up" element={<Signup />} />
-                <Route path="/verify/:userid" element={<JobPreferences />} />
+                <Route path="/verify" element={<JobPreferences />} />
                 <Route path='/search-student' element={<SearchStudent/>} />
                 <Route path="/activities/summary" element={<StudentSummary />} />
 
@@ -103,6 +104,7 @@ function App() {
                 <Route path="/contact-us" element={<ContactUs/>}/>
                 <Route path="/log-out" element={<LogoutPopup/>}/>
                 <Route path="/company-rating" element={<CompanyRating/>}/>
+                <Route path="/reset-password" element={<ResetPassword/>}/>
 
             </Routes>
         </div>
