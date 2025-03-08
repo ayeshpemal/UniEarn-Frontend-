@@ -22,7 +22,6 @@ const Signup = () => {
         preferences:[],
     });
 
-
     const handleInputChange = (e) => {
         const { name, value } = e.target;
     
@@ -45,7 +44,6 @@ const Signup = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-
 
         if (formData.password !== formData.confirmPassword) {
             alert("Passwords do not match!");

@@ -1,10 +1,9 @@
-import React, { useState } from "react";
-import "./Signup.css";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { X } from "lucide-react";
 
-const ESignup = () => {
+const EmployerSignUp = () => {
     const navigate = useNavigate();
     const [showVerificationPopup, setShowVerificationPopup] = useState(false);
 
@@ -14,27 +13,70 @@ const ESignup = () => {
         password: "",
         confirmPassword: "",
         role: "EMPLOYER",
+        companyName: "",
+        companyDetails: "",
         location: "",
-        contactNumber: "",
-
-        companyName:"",
-        companyDetails:"",
-        categories:[],
+        categories: [],
+        contactNumbers: [],
     });
 
+    const jobCategoriesList = [
+        "CASHIER",
+        "SALESMEN",
+        "RETAIL",
+        "TUTORING",
+        "CATERING",
+        "EVENT_BASED",
+        "FOOD_AND_BEVERAGE",
+        "DELIVERY",
+        "MASCOT_DANCER",
+        "SUPERVISOR",
+        "KITCHEN_HELPER",
+        "STORE_HELPER",
+        "ANNOUNCER",
+        "LEAFLET_DISTRIBUTOR",
+        "TYPING",
+        "DATA_ENTRY",
+        "WEB_DEVELOPER",
+        "OTHER",
+    ];
 
+    // Handle Input Change
     const handleInputChange = (e) => {
         const { name, value } = e.target;
-        setFormData((prev) => ({
-            ...prev,
-            [name]: value,
+
+        setFormData((prev) => {
+            if (name === "contactNumbers") {
+                return {
+                    ...prev,
+                    contactNumbers: value.split(",").map((num) => num.trim()), // Convert CSV input to arraya(07612333,12143214134)
+                };
+            } else {
+                return {
+                    ...prev,
+                    [name]: value,
+                };
+            }
+        });
+    };
+
+    // Handle Checkbox Change
+    const handleCheckboxChange = (e) => {
+        const { value, checked } = e.target;
+        setFormData((prevData) => ({
+            ...prevData,
+            categories: checked
+                ? [...(prevData.categories || []), value]
+                : (prevData.categories || []).filter((cat) => cat !== value),
+
         }));
     };
 
-
+    // Handle Submit
     const handleSubmit = async (e) => {
         e.preventDefault();
 
+        console.log(formData);
 
         if (formData.password !== formData.confirmPassword) {
             alert("Passwords do not match!");
@@ -42,6 +84,7 @@ const ESignup = () => {
         }
 
         try {
+            console.log("Sending request to register employer...");
             const response = await axios.post(
                 "http://localhost:8100/api/user/register",
                 formData,
@@ -49,6 +92,7 @@ const ESignup = () => {
                     headers: { "Content-Type": "application/json" },
                 }
             );
+            console.log("API Response:", response);
 
             if (response.status === 201) {
                 console.log(response.data);
@@ -60,10 +104,9 @@ const ESignup = () => {
         }
     };
 
-
     const handleNextButton = () => {
         setShowVerificationPopup(false);
-        navigate("/e-sign-in");
+        navigate("/sign-in");
     };
 
     return (
@@ -73,39 +116,39 @@ const ESignup = () => {
                 <p className="text-4xl font-bold text-blue-500">ADVENTURE!</p>
             </header>
 
-
             <div className="relative z-20 flex flex-col items-center justify-center h-full">
                 <div className="bg-opacity-90 rounded-lg p-8 w-11/12 max-w-4xl">
                     <h2 className="text-white text-3xl font-bold mb-6 text-center">SIGN UP</h2>
                     <form className="grid grid-cols-1 md:grid-cols-2 gap-4" onSubmit={handleSubmit}>
-                        {/* Company/Employer Name */}
+                        {/* Company Name */}
                         <div>
                             <input
                                 type="text"
                                 placeholder="Company/Employer Name"
-                                className="form-input w-full px-4 py-3 rounded-lg placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 text-color"
+                                className="form-input w-full px-4 py-3 rounded-lg"
                                 name="companyName"
                                 required
                                 onChange={handleInputChange}
                                 value={formData.companyName}
                             />
                         </div>
+                        {/* Company Details */}
                         <div>
                             <input
                                 type="text"
                                 placeholder="Description"
-                                className="form-input w-full px-4 py-3 rounded-lg placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 text-color"
+                                className="form-input w-full px-4 py-3 rounded-lg"
                                 name="companyDetails"
                                 required
                                 onChange={handleInputChange}
                                 value={formData.companyDetails}
                             />
                         </div>
-////////////////////////////////////////////////////////////////////////////////categories
+
                         {/* Location */}
                         <div>
                             <select
-                                className="form-input w-full px-4 py-3 rounded-lg text-color focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                className="form-input w-full px-4 py-3 rounded-lg"
                                 name="location"
                                 required
                                 onChange={handleInputChange}
@@ -131,7 +174,7 @@ const ESignup = () => {
                                 <option value="MATALE">MATALE</option>
                                 <option value="MONERAGALA">MONERAGALA</option>
                                 <option value="MULLAITIVU">MULLAITIVU</option>
-                                <option value="NUWARA_ELIYA">NUWARA_ELIYA</option>
+                                <option value="NUWARA_ELIYA">NUWARA ELIYA</option>
                                 <option value="POLONNARUWA">POLONNARUWA</option>
                                 <option value="PUTTALAM">PUTTALAM</option>
                                 <option value="RATNAPURA">RATNAPURA</option>
@@ -144,32 +187,34 @@ const ESignup = () => {
                         <div>
                             <input
                                 type="email"
-                                placeholder="email"
-                                className="form-input w-full px-4 py-3 rounded-lg text-color focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                placeholder="Email"
+                                className="form-input w-full px-4 py-3 rounded-lg"
                                 name="email"
                                 required
                                 onChange={handleInputChange}
                                 value={formData.email}
                             />
                         </div>
+
                         {/* Contact Number */}
                         <div>
                             <input
                                 type="text"
                                 placeholder="Mobile No"
-                                className="form-input w-full px-4 py-3 rounded-lg text-color focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                name="contactNumber"
+                                className="form-input w-full px-4 py-3 rounded-lg"
+                                name="contactNumbers"
                                 required
                                 onChange={handleInputChange}
-                                value={formData.contactNumber}
+                                value={formData.contactNumbers}
                             />
                         </div>
-                        {/* UserName */}
+
+                        {/* Username */}
                         <div>
                             <input
                                 type="text"
                                 placeholder="User Name"
-                                className="form-input w-full px-4 py-3 rounded-lg text-color focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                className="form-input w-full px-4 py-3 rounded-lg"
                                 name="userName"
                                 required
                                 onChange={handleInputChange}
@@ -177,12 +222,34 @@ const ESignup = () => {
                             />
                         </div>
 
+                        {/* Job Categories (Checkboxes) */}
+                        <div className="col-span-2">
+                            <label className="text-white font-bold mb-2 block">Select Job Categories In Your Company:</label>
+                            <div className="grid grid-cols-3 gap-2 px-4 py-3 rounded-lg bg-[#261046] text-white">
+
+                                {jobCategoriesList.map((category) => (
+                                    <label key={category} className="flex items-center space-x-2">
+                                        <input
+                                            type="checkbox"
+                                            name="categories"
+                                            value={category}
+                                            checked={formData.categories.includes(category)}
+                                            onChange={handleCheckboxChange}
+                                            className="form-checkbox bg-gray-700 border-gray-600"
+                                        />
+                                        <span className="text-white">{category.replace(/_/g, " ")}</span>
+                                    </label>
+                                ))}
+                            </div>
+                        </div>
+
+
                         {/* Password */}
                         <div>
                             <input
                                 type="password"
                                 placeholder="Password"
-                                className="form-input w-full px-4 py-3 rounded-lg text-color focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                className="form-input w-full px-4 py-3 rounded-lg"
                                 name="password"
                                 required
                                 onChange={handleInputChange}
@@ -195,7 +262,7 @@ const ESignup = () => {
                             <input
                                 type="password"
                                 placeholder="Confirm Password"
-                                className="form-input w-full px-4 py-3 rounded-lg text-color focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                className="form-input w-full px-4 py-3 rounded-lg"
                                 name="confirmPassword"
                                 required
                                 onChange={handleInputChange}
@@ -205,29 +272,15 @@ const ESignup = () => {
 
                         {/* Submit Button */}
                         <div className="col-span-2 mt-6 text-center">
-                            <button
-                                type="submit"
-                                className="bg-gradient-to-r from-purple-500 to-blue-500 text-white py-3 px-6 rounded-lg font-bold hover:opacity-90"
-                            >
+                            <button type="submit" className="bg-blue-500 text-white py-3 px-6 rounded-lg font-bold hover:opacity-90">
                                 Submit
                             </button>
                         </div>
                     </form>
-
-                    {/* Sign In Button */}
-                    <div className="mt-6 text-center">
-                        <p className="signin-link text-gray-200">
-                            Already have an account?{" "}
-                            <span className="text-red-400 font-bold cursor-pointer" onClick={() => navigate("/e-sign-in")}>
-                                Sign In
-                            </span>
-                        </p>
-                    </div>
-
                 </div>
 
-                {/* Email Verification Popup */}
-                {showVerificationPopup && (
+ {/* Email Verification Popup */}
+ {showVerificationPopup && (
                     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
                         <div className="bg-white rounded-2xl p-6 shadow-lg w-auto text-center relative">
                             {/* Close Button */}
@@ -248,9 +301,11 @@ const ESignup = () => {
                         </div>
                     </div>
                 )}
+
             </div>
+
         </div>
     );
 };
 
-export default ESignup;
+export default EmployerSignUp;

@@ -17,7 +17,6 @@ import HeroSectionHome from "./Components/HeroSection/HeroSectionHome";
 import HeroSectionCompany from "./Components/HeroSection/HeroSectionCompany";
 import ContactUs from "./Components/ContactUs/ContactUs";
 import LogoutPopup from "./Components/LogoutPopup/LogoutPopup";
-import CompanyDetails from "./Components/CompanyDetails/CompanyDetails";
 import Admins from "./Components/Admins/Admins";
 import ESignin from "./Components/Employer/ESignin/ESignin";
 import EHero from "./Components/Employer/EHero/EHero";
@@ -30,6 +29,7 @@ import EHome from "./Components/Employer/EHome/EHome";
 import SearchResults from "./Components/SearchResults/SearchResults";
 import EJobCreation from "./Components/Employer/EJobCreation/EJobCreation";
 import EJobUpdate from "./Components/Employer/EJobUpdate/EJobUpdate";
+import CompanyDetails from './Components/Employer/CompanyDetails/CompanyDetails';
 
 
 
@@ -80,6 +80,7 @@ function App() {
                 <Route path="/e-home" element={<EHome />} />
                 <Route path="/e-job-create" element={<EJobCreation />} />
                 <Route path="/e-job-edit" element={<EJobUpdate />} />
+                <Route path="/e-profile" element={<CompanyDetails />} />
 
 
                 {/*Students*/}

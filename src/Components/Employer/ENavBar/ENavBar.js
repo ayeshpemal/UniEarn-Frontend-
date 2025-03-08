@@ -30,9 +30,6 @@ const ENavBar = () => {
                     <NavLink to="/e-home" className="hover:underline flex items-center gap-1">
                         <Home size={20} /> Home
                     </NavLink>
-                    <NavLink to="/e-company" className="hover:underline flex items-center gap-1">
-                        <Building2 size={18} /> Company
-                    </NavLink>
                     <NavLink to="/e-activities" className="hover:underline flex items-center gap-1">
                         <ListTodo size={18} /> Activities
                     </NavLink>
