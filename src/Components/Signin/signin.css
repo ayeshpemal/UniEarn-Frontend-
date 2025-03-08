@@ -28,27 +28,23 @@ body, html {
     z-index: 1; /* Place the shadow below the content */
 }
 
-
 /* Background overlay centered */
 .background-overlay {
     position: absolute;
     top: 50%;
-    right: 0;  /* Align to the right side */
-    transform: translateY(-50%);  /* Keep it vertically centered */
+    left: 50%;
+    transform: translate(-50%, -50%); /* Center both horizontally and vertically */
     padding: 20px;
     text-align: center;
     width: 90%;
     max-width: 400px;
     border-radius: 10px;
     z-index: 2;
-    margin-right: 10vh;
     box-shadow: dimgray;
 }
 
-
 /* Header - Logo, Title, and Text */
 .header {
-
     position: absolute;
     top: 20px;
     left: 20px;
@@ -58,15 +54,11 @@ body, html {
     z-index: 3;
 }
 
-
-
-
 .header h1 {
     margin-left: 120px;
     font-size: 2.5rem;
     font-weight: bold;
     color: #fff;
-
 }
 
 .top-left-text {
@@ -100,7 +92,6 @@ body, html {
     color: #ffffff;
     font-size: 1rem;
     margin-bottom: 20px;
-
 }
 
 .form-input {
@@ -111,7 +102,6 @@ body, html {
     border-radius: 10px;
     font-size: 1rem;
     background: #261046;
-
     color: #ccc;
     box-sizing: border-box;
 }
@@ -160,16 +150,25 @@ body, html {
 /* For tablets and small desktops */
 @media (max-width: 1024px) {
     .background-overlay {
-        width: 80%;
+        width: 85%;
     }
 
     .header h1 {
-        font-size: 1.5rem;
+        font-size: 1.8rem;
     }
 
     .top-left-text p {
-        font-size: 1rem;
+        font-size: 1.2rem;
+        margin-left: 5vh;
+    }
 
+    .form-input {
+        font-size: 1.1rem;
+    }
+
+    .signin-button {
+        font-size: 1.1rem;
+        padding: 12px;
     }
 }
 
@@ -186,27 +185,58 @@ body, html {
     }
 
     .header h1 {
-        font-size: 1.2rem;
+        font-size: 1.5rem;
     }
 
-
-
     .top-left-text p {
-        font-size: 0.9rem;
+        font-size: 1rem;
+        margin-left: 0;
     }
 
     .signin-button {
         font-size: 1rem;
-        padding: 8px;
+        padding: 10px;
     }
 
     .form-input {
         padding: 8px;
+        font-size: 1rem;
+    }
+
+    .signup-link {
+        font-size: 0.8rem;
     }
 }
 
 /* For very small devices */
 @media (max-width: 480px) {
+    .background-overlay {
+        width: 95%;
+        padding: 12px;
+    }
+
+    .header h1 {
+        font-size: 1.2rem;
+        margin-left: 0;
+    }
+
+    .form-input {
+        padding: 8px;
+        font-size: 1rem;
+    }
+
+    .signin-button {
+        font-size: 0.9rem;
+        padding: 8px;
+    }
+
+    .signup-link {
+        font-size: 0.7rem;
+    }
+}
+
+/* For super small screens (portrait on very small devices) */
+@media (max-width: 375px) {
     .background-overlay {
         width: 95%;
         padding: 10px;
@@ -216,18 +246,17 @@ body, html {
         font-size: 1rem;
     }
 
-
-
-    .signin-button {
-        font-size: 0.9rem;
+    .form-input {
         padding: 6px;
+        font-size: 0.9rem;
     }
 
-    .form-input {
+    .signin-button {
+        font-size: 0.85rem;
         padding: 6px;
     }
 
     .signup-link {
-        font-size: 0.8rem;
+        font-size: 0.6rem;
     }
 }

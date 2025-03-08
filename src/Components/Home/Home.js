@@ -15,7 +15,6 @@ export function Home() {
         }
         navigate(`/job-details/${jobId}`);
     };
-    
 
     const [jobs, setJobs] = useState([]);
     const [loading, setLoading] = useState(true);
