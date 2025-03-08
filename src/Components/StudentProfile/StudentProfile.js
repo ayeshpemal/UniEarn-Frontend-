@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { ChevronDown, Star, Edit2, Camera, Save } from 'lucide-react';
+import { ChevronDown, Star, Edit2, Camera, Save, Lock } from 'lucide-react';
 import { ChatBubbleOvalLeftEllipsisIcon } from "@heroicons/react/24/solid";
 import { jwtDecode } from 'jwt-decode';
 
@@ -31,15 +31,21 @@ function App() {
         mobileNo: '',
         address: '',
         preferences: [],
-        password: '',
-        confirmPassword: '',
         profilePicture: '',
         rating: 0,
     });
     const [originalFormData, setOriginalFormData] = useState(null);
-    const [passwordError, setPasswordError] = useState('');
     const [selectedProfilePictureFile, setSelectedProfilePictureFile] = useState(null);
     const fileInputRef = useRef(null);
+
+    // Password update state
+    const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
+    const [passwordUpdateData, setPasswordUpdateData] = useState({
+        oldPassword: '',
+        newPassword: '',
+        confirmNewPassword: '',
+    });
+    const [passwordUpdateError, setPasswordUpdateError] = useState('');
 
     // Fetch user data and profile picture on mount
     useEffect(() => {
@@ -81,8 +87,6 @@ function App() {
                     mobileNo: userData.contactNumbers?.[0] || '',
                     address: userData.location || '',
                     preferences: userData.preferences || [],
-                    password: '',
-                    confirmPassword: '',
                     profilePicture: profilePictureUrl,
                     rating: userData.rating || 0,
                 };
@@ -98,17 +102,30 @@ function App() {
 
     const handleInputChange = (field, value) => {
         setFormData(prev => ({ ...prev, [field]: value }));
-        if (field === 'password' || field === 'confirmPassword') {
-            validatePasswords(field === 'password' ? value : formData.password, 
-                            field === 'confirmPassword' ? value : formData.confirmPassword);
-        }
     };
 
-    const validatePasswords = (pass, confirm) => {
-        if (pass || confirm) {
-            setPasswordError(pass !== confirm ? 'Passwords do not match' : '');
+    const handlePasswordUpdateChange = (field, value) => {
+        setPasswordUpdateData(prev => {
+            const updated = { ...prev, [field]: value };
+            validatePasswordUpdate(updated.oldPassword, updated.newPassword, updated.confirmNewPassword);
+            return updated;
+        });
+    };
+
+    const validatePasswordUpdate = (oldPass, newPass, confirmPass) => {
+        if (!newPass || !confirmPass) {
+            setPasswordUpdateError('');
+            return;
+        }
+
+        if (newPass === oldPass) {
+            setPasswordUpdateError('New password cannot be the same as the current password');
+        } else if (newPass !== confirmPass) {
+            setPasswordUpdateError('New password and confirm password do not match');
+        } else if (newPass.length < 6) {
+            setPasswordUpdateError('Password must be at least 6 characters long');
         } else {
-            setPasswordError('');
+            setPasswordUpdateError('');
         }
     };
 
@@ -141,17 +158,14 @@ function App() {
         const sortedPreferences = [...formData.preferences].sort();
         const sortedOriginalPreferences = [...originalFormData.preferences].sort();
         return (
-            formData.displayName !== originalFormData.displayName ||  // Added displayName check
+            formData.displayName !== originalFormData.displayName ||
             formData.mobileNo !== originalFormData.mobileNo ||
             formData.address !== originalFormData.address ||
-            JSON.stringify(sortedPreferences) !== JSON.stringify(sortedOriginalPreferences) ||
-            formData.password !== originalFormData.password
+            JSON.stringify(sortedPreferences) !== JSON.stringify(sortedOriginalPreferences)
         );
     };
 
     const handleSave = async () => {
-        if (passwordError) return;
-
         try {
             const token = localStorage.getItem('token');
             const decodedToken = jwtDecode(token);
@@ -159,7 +173,7 @@ function App() {
 
             if (hasUserDataChanges()) {
                 const updateData = {
-                    displayName: formData.displayName,  // Added displayName to update data
+                    displayName: formData.displayName,
                     location: formData.address,
                     contactNumber: [formData.mobileNo],
                     gender: formData.gender.toUpperCase(),
@@ -167,7 +181,6 @@ function App() {
                     skills: [],
                     companyName: null,
                     companyDetails: null,
-                    ...(formData.password && { password: formData.password }),
                 };
 
                 const response = await fetch(`http://localhost:8100/api/user/update/${userId}`, {
@@ -201,18 +214,51 @@ function App() {
 
             setOriginalFormData({
                 ...originalFormData,
-                displayName: formData.displayName,  // Added displayName to original data
+                displayName: formData.displayName,
                 mobileNo: formData.mobileNo,
                 address: formData.address,
                 preferences: [...formData.preferences],
                 profilePicture: formData.profilePicture,
-                password: formData.password,
             });
-            setFormData(prev => ({ ...prev, password: '', confirmPassword: '' }));
-            setPasswordError('');
             setIsEditing(false);
         } catch (error) {
             console.error('Error saving data:', error);
+        }
+    };
+
+    const handleUpdatePassword = async () => {
+        if (passwordUpdateError) return;
+
+        try {
+            const token = localStorage.getItem('token');
+            const decodedToken = jwtDecode(token);
+            const userId = decodedToken.user_id;
+
+            const updateData = {
+                oldPassword: passwordUpdateData.oldPassword,
+                newPassword: passwordUpdateData.newPassword,
+            };
+
+            const response = await fetch(`http://localhost:8100/api/user/update-password/${userId}`, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(updateData),
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'Failed to update password');
+            }
+
+            setPasswordUpdateData({ oldPassword: '', newPassword: '', confirmNewPassword: '' });
+            setPasswordUpdateError('');
+            setIsUpdatingPassword(false);
+            alert('Password updated successfully!');
+        } catch (error) {
+            setPasswordUpdateError(error.message || 'An error occurred while updating the password');
         }
     };
 
@@ -282,9 +328,9 @@ function App() {
                             {isEditing && (
                                 <button
                                     onClick={handleSave}
-                                    disabled={!!passwordError}
+                                    disabled={!hasUserDataChanges()}
                                     className={`px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors text-sm sm:text-base ${
-                                        passwordError ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-500 hover:bg-green-600 text-white'
+                                        !hasUserDataChanges() ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-500 hover:bg-green-600 text-white'
                                     }`}
                                 >
                                     <Save size={18} />
@@ -295,7 +341,6 @@ function App() {
                                 onClick={() => {
                                     if (isEditing) {
                                         setFormData(originalFormData);
-                                        setPasswordError('');
                                         setSelectedProfilePictureFile(null);
                                     }
                                     setIsEditing(!isEditing);
@@ -383,26 +428,65 @@ function App() {
                                 </div>
                             )}
                         </div>
-                        <ProfileField
-                            label="Password"
-                            value={formData.password}
-                            type="password"
-                            disabled={!isEditing}
-                            onChange={(value) => handleInputChange('password', value)}
-                        />
-                        <div>
-                            <ProfileField
-                                label="Confirm Password"
-                                value={formData.confirmPassword}
-                                type="password"
-                                disabled={!isEditing}
-                                onChange={(value) => handleInputChange('confirmPassword', value)}
-                            />
-                            {passwordError && (
-                                <p className="text-red-500 text-sm mt-1">{passwordError}</p>
-                            )}
-                        </div>
                     </div>
+                </div>
+
+                {/* Update Password Section */}
+                <div className="bg-white rounded-3xl shadow-lg p-4 sm:p-6 md:p-8 mb-6 sm:mb-12">
+                    <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 flex items-center space-x-2">
+                        <Lock size={24} />
+                        <span>Update Password</span>
+                    </h2>
+                    <button
+                        onClick={() => setIsUpdatingPassword(!isUpdatingPassword)}
+                        className="px-4 py-2 bg-blue-500 text-white rounded-lg flex items-center space-x-2 hover:bg-blue-600 transition-colors text-sm sm:text-base mb-4"
+                    >
+                        <ChevronDown size={18} className={isUpdatingPassword ? 'rotate-180' : ''} />
+                        <span>{isUpdatingPassword ? 'Hide' : 'Update Password'}</span>
+                    </button>
+                    {isUpdatingPassword && (
+                        <div className="grid grid-cols-1 gap-4 sm:gap-6">
+                            <div>
+                                <ProfileField
+                                    label="Current Password"
+                                    value={passwordUpdateData.oldPassword}
+                                    type="password"
+                                    onChange={(value) => handlePasswordUpdateChange('oldPassword', value)}
+                                />
+                            </div>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                                <ProfileField
+                                    label="New Password"
+                                    value={passwordUpdateData.newPassword}
+                                    type="password"
+                                    onChange={(value) => handlePasswordUpdateChange('newPassword', value)}
+                                />
+                                <ProfileField
+                                    label="Confirm New Password"
+                                    value={passwordUpdateData.confirmNewPassword}
+                                    type="password"
+                                    onChange={(value) => handlePasswordUpdateChange('confirmNewPassword', value)}
+                                />
+                            </div>
+                            {passwordUpdateError && (
+                                <p className="text-red-500 text-sm mt-1 col-span-1 sm:col-span-2">{passwordUpdateError}</p>
+                            )}
+                            <div className="col-span-1 sm:col-span-2">
+                                <button
+                                    onClick={handleUpdatePassword}
+                                    disabled={!!passwordUpdateError || !passwordUpdateData.newPassword || !passwordUpdateData.confirmNewPassword || !passwordUpdateData.oldPassword}
+                                    className={`px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors text-sm sm:text-base ${
+                                        passwordUpdateError || !passwordUpdateData.newPassword || !passwordUpdateData.confirmNewPassword || !passwordUpdateData.oldPassword
+                                            ? 'bg-gray-400 cursor-not-allowed'
+                                            : 'bg-green-500 hover:bg-green-600 text-white'
+                                    }`}
+                                >
+                                    <Save size={18} />
+                                    <span>Update Password</span>
+                                </button>
+                            </div>
+                        </div>
+                    )}
                 </div>
 
                 {/* Company Feedback Section */}
@@ -439,7 +523,7 @@ function App() {
     );
 }
 
-function ProfileField({ label, value, type = 'text', disabled = true, onChange = null }) {
+function ProfileField({ label, value, type = 'text', onChange = null }) {
     return (
         <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">{label}</label>
@@ -447,7 +531,6 @@ function ProfileField({ label, value, type = 'text', disabled = true, onChange =
                 type={type}
                 value={value}
                 onChange={onChange ? (e) => onChange(e.target.value) : undefined}
-                disabled={disabled}
                 className="w-full p-2 sm:p-3 border rounded-lg bg-gray-50 text-sm sm:text-base"
             />
         </div>

@@ -8,7 +8,7 @@ const Activities = () => {
   const [confirmedActivities, setConfirmedActivities] = useState([]);
   const [currentPage, setCurrentPage] = useState(0);
   const [totalCount, setTotalCount] = useState(0);
-  const itemsPerPage = 5; // Reduced for better mobile view
+  const itemsPerPage = 5;
 
   useEffect(() => {
     fetchActivities();
@@ -42,8 +42,12 @@ const Activities = () => {
     }
   };
 
-  const onNavigateToCompany = () => {
-    navigate("/company-rating");
+  const onNavigateToJobDetails = (jobId) => {
+    navigate(`/job-details?jobId=${jobId}`);
+  };
+
+  const onNavigateToSummary = () => {
+    navigate("/activities/summary");
   };
 
   const totalPages = Math.ceil(totalCount / itemsPerPage);
@@ -55,40 +59,49 @@ const Activities = () => {
   };
 
   const renderTable = (activities, title) => (
-    <div className="w-full max-w-6xl mx-auto bg-white rounded-lg shadow-md p-4 sm:p-6 mt-6">
-      <h2 className="text-xl sm:text-2xl font-bold mb-4">{title}</h2>
+    <div className="w-full max-w-6xl mx-auto bg-white rounded-xl shadow-lg p-6 mt-8 transition-all duration-300 hover:shadow-xl">
+      <h2 className="text-2xl font-bold mb-6 text-gray-800 border-b pb-2">{title}</h2>
       <div className="overflow-x-auto">
-        <table className="w-full bg-white border border-gray-200 rounded-lg shadow-md">
+        <table className="w-full border-collapse">
           <thead>
-            <tr className="bg-gray-100 text-gray-700 text-left text-xs sm:text-sm">
-              <th className="px-2 py-2 sm:px-6 sm:py-3">Job Title</th>
-              <th className="px-2 py-2 sm:px-6 sm:py-3 hidden sm:table-cell">Category</th>
-              <th className="px-2 py-2 sm:px-6 sm:py-3 hidden md:table-cell">Description</th>
-              <th className="px-2 py-2 sm:px-6 sm:py-3">Date</th>
+            <tr className="bg-gradient-to-r from-gray-50 to-gray-100 text-gray-700 text-left text-sm uppercase tracking-wider">
+              <th className="px-6 py-4 font-semibold">Job Title</th>
+              <th className="px-6 py-4 font-semibold hidden sm:table-cell">Category</th>
+              <th className="px-6 py-4 font-semibold hidden md:table-cell">Description</th>
+              <th className="px-6 py-4 font-semibold">Date</th>
             </tr>
           </thead>
           <tbody>
             {activities.map((activity) => (
-              <tr key={activity.jobId} className="border-t text-xs sm:text-sm">
-                <td 
-                  className="px-2 py-3 sm:px-6 sm:py-4 flex items-center cursor-pointer" 
-                  onClick={onNavigateToCompany}
+              <tr
+                key={activity.jobId}
+                className={`border-b last:border-0 hover:bg-gray-50 transition-colors duration-200 ${
+                  activities.indexOf(activity) % 2 === 0 ? "bg-white" : "bg-gray-25"
+                }`}
+              >
+                <td
+                  className="px-6 py-4 cursor-pointer text-blue-600 hover:text-blue-800 transition-colors duration-200"
+                  onClick={() => onNavigateToJobDetails(activity.jobId)}
                 >
                   <div>
                     <p className="font-semibold">{activity.jobTitle}</p>
-                    <p className="text-gray-600 sm:hidden">
+                    <p className="text-gray-600 text-sm sm:hidden">
                       {activity.jobCategory} - {activity.jobDescription}
                     </p>
                   </div>
                 </td>
-                <td className="px-2 py-3 sm:px-6 sm:py-4 hidden sm:table-cell">
-                  {activity.jobCategory}
+                <td className="px-6 py-4 text-gray-700 hidden sm:table-cell">
+                  <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs">
+                    {activity.jobCategory}
+                  </span>
                 </td>
-                <td className="px-2 py-3 sm:px-6 sm:py-4 hidden md:table-cell">
+                <td className="px-6 py-4 text-gray-700 hidden md:table-cell">
                   {activity.jobDescription}
                 </td>
-                <td className="px-2 py-3 sm:px-6 sm:py-4">
-                  {new Date(activity.startDate).toLocaleDateString()}
+                <td className="px-6 py-4 text-gray-700">
+                  <span className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs">
+                    {new Date(activity.startDate).toLocaleDateString()}
+                  </span>
                 </td>
               </tr>
             ))}
@@ -99,11 +112,11 @@ const Activities = () => {
   );
 
   const renderPagination = () => (
-    <div className="w-full max-w-6xl mx-auto mt-6 flex flex-wrap justify-center gap-2 px-4">
+    <div className="w-full max-w-6xl mx-auto mt-6 flex flex-wrap justify-center items-center gap-3 px-4">
       <button
         onClick={() => handlePageChange(currentPage - 1)}
         disabled={currentPage === 0}
-        className="px-3 py-1 sm:px-4 sm:py-2 bg-blue-500 text-white rounded disabled:bg-gray-300 text-sm"
+        className="px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg shadow-md hover:from-blue-600 hover:to-blue-700 disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed transition-all duration-200"
       >
         Previous
       </button>
@@ -111,9 +124,11 @@ const Activities = () => {
         <button
           key={i}
           onClick={() => handlePageChange(i)}
-          className={`px-3 py-1 sm:px-4 sm:py-2 ${
-            currentPage === i ? "bg-blue-700" : "bg-blue-500"
-          } text-white rounded text-sm`}
+          className={`px-4 py-2 rounded-lg shadow-md text-sm transition-all duration-200 ${
+            currentPage === i
+              ? "bg-gradient-to-r from-blue-600 to-blue-700 text-white"
+              : "bg-white text-blue-600 hover:bg-blue-50"
+          }`}
         >
           {i + 1}
         </button>
@@ -121,7 +136,7 @@ const Activities = () => {
       <button
         onClick={() => handlePageChange(currentPage + 1)}
         disabled={currentPage === totalPages - 1}
-        className="px-3 py-1 sm:px-4 sm:py-2 bg-blue-500 text-white rounded disabled:bg-gray-300 text-sm"
+        className="px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg shadow-md hover:from-blue-600 hover:to-blue-700 disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed transition-all duration-200"
       >
         Next
       </button>
@@ -129,8 +144,8 @@ const Activities = () => {
   );
 
   return (
-    <div className="bg-gray-100 min-h-screen">
-      {/* Hero Section */}
+    <div className="min-h-screen bg-white">
+      {/* Hero Section (Original size: h-[50vh] sm:h-[70vh]) */}
       <div
         className="relative h-[50vh] sm:h-[70vh] bg-cover bg-center"
         style={{
@@ -138,21 +153,37 @@ const Activities = () => {
             'url("https://images.unsplash.com/photo-1559136555-9303baea8ebd?auto=format&fit=crop&q=80")',
         }}
       >
-        <div className="absolute inset-0 bg-black bg-opacity-50">
+        <div className="absolute inset-0 bg-gradient-to-b from-black/70 to-black/30">
           <div className="max-w-7xl mx-auto h-full flex flex-col justify-center px-4 sm:px-6">
-            <h1 className="text-2xl sm:text-4xl md:text-6xl font-bold text-white">
-              My<br /> <span className="text-blue-400">Activities</span>
+            <h1 className="text-3xl sm:text-5xl md:text-6xl font-extrabold text-white tracking-tight">
+              My<br />
+              <span className="text-blue-400 drop-shadow-lg">Activities</span>
             </h1>
+            <p className="mt-2 text-white/90 text-lg sm:text-xl max-w-2xl">
+              Track your job applications and opportunities
+            </p>
           </div>
         </div>
       </div>
 
       {/* Activities Tables */}
-      {pendingActivities.length > 0 && renderTable(pendingActivities, "Activities (Pending)")}
-      {confirmedActivities.length > 0 && renderTable(confirmedActivities, "Recent Activities (Confirmed)")}
+      <div className="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+        {pendingActivities.length > 0 && renderTable(pendingActivities, "Pending Activities")}
+        {confirmedActivities.length > 0 && renderTable(confirmedActivities, "Confirmed Activities")}
 
-      {/* Pagination */}
-      {totalCount > itemsPerPage && renderPagination()}
+        {/* Pagination */}
+        {totalCount > itemsPerPage && renderPagination()}
+
+        {/* Summary Button */}
+        <div className="text-center mt-8">
+          <button
+            onClick={onNavigateToSummary}
+            className="px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg shadow-md hover:from-blue-600 hover:to-blue-700 transition-all duration-200"
+          >
+            View Summary
+          </button>
+        </div>
+      </div>
     </div>
   );
 };
