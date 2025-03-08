@@ -13,11 +13,9 @@ const EHeroSectionHome = () =>{
                 <div className="absolute inset-0 bg-black bg-opacity-50" />
                 <div className="relative z-10 text-center">
                     <h1 className="text-4xl md:text-6xl font-bold text-white">
-                        Find Your Perfect <br />
-                        <span className="text-blue-400">Part-Time</span> Job
+                        Find perfect <br />
+                        <span className="text-blue-400">candidates</span> for Job
                     </h1>
-
-                    <ESearchBar />
                 </div>
             </header>
         </div>
