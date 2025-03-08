@@ -59,7 +59,7 @@ function App() {
         <div className="App">
 
             {/*Show Navbar only if the route is NOT in noNavRoutes*/}
-            {!eChatButton.includes(location.pathname)&& <EChatButton />}
+            {!eChatButton.includes(location.pathname)&& <ChatButton />}
             {!eNoNavRoutes.includes(location.pathname) && <ENavBar />}
             {!eSearchBarHome.includes(location.pathname) && <EHeroSectionHome />}
             {!eSearchBarCompany.includes(location.pathname) && <EHeroSectionCompany />}
