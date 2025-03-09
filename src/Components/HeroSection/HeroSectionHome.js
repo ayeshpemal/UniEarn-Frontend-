@@ -16,15 +16,7 @@ const HeroSectionHome = () =>{
                         Find Your Perfect <br />
                         <span className="text-blue-400">Part-Time</span> Job
                     </h1>
-                    <SearchBar
-                        selectedLocation={selectedLocation}
-                        setSelectedLocation={setSelectedLocation}
-                        selectedJob={selectedJob}
-                        setSelectedJob={setSelectedJob}
-                        searchTerm={searchTerm}
-                        setSearchTerm={setSearchTerm}
-                        handleSearch={handleSearch}
-                    />
+                
                 </div>
             </header>
         </div>

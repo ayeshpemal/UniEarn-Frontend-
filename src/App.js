@@ -1,7 +1,6 @@
 import './App.css';
 import Signin from "./Components/Signin/Signin";
 import Signup from "./Components/Signup/Signup";
-import Otp from "./Components/OTP/Otp";
 import Home from "./Components/Home/Home";
 import CompanyList from "./Components/CompanyList/CompanyList";
 import JobDetails from "./Components/JobDetails/JobDetails";
@@ -44,26 +43,28 @@ function App() {
     // List of routes that do NOT include the Navbar
     const noNavRoutes = [
         "/", "/hero", "/sign-in", "/sign-up", "/pin", "/verify", "/e-hero", "/e-sign-in", "/e-sign-up", 
-        "/e-home", "/e-job-create", "/e-job-edit", "/e-contact-us", "/admins/stats", "/reset-password"
+        "/e-home", "/e-job-create", "/e-job-edit", "/e-contact-us", "/admins/stats", "/reset-password",
+        "/e-profile"
     ];
     
     const chatButton = [
         "/", "/hero", "/sign-in", "/sign-up", "/pin", "/verify", "/e-hero", "/e-sign-in", "/e-sign-up", 
-        "/e-home", "/e-job-create", "/e-job-edit", "/e-contact-us", "/admins/stats", "/reset-password"
+        "/e-home", "/e-job-create", "/e-job-edit", "/e-contact-us", "/admins/stats", "/reset-password",
+        "/e-profile"
     ];
     
     const searchBarHome = [
         "/", "/hero", "/sign-in", "/sign-up", "/pin", "/verify", "/company", "/e-home", "/profile", 
         "/activities", "/job-details", "/apply-job", "/contact-us", "/company-rating", "/e-hero", 
         "/e-sign-in", "/e-sign-up", "/e-job-create", "/e-job-edit", "/e-contact-us", "/admins/stats", 
-        "/search-student", "/activities/summary", "/reset-password", "/home"
+        "/search-student", "/activities/summary", "/reset-password", "/home","/e-profile"
     ];
     
     const searchBarCompany = [
         "/", "/hero", "/sign-in", "/sign-up", "/home", "/profile", "/verify", "/e-home", "/activities", 
         "/job-details", "/apply-job", "/contact-us", "/company-rating", "/e-hero", "/e-sign-in", 
         "/e-sign-up", "/e-job-create", "/e-job-edit", "/e-contact-us", "/admins/stats", "/search-student", 
-        "/company", "/activities/summary", "/reset-password"
+        "/company", "/activities/summary", "/reset-password","/e-profile"
     ];
     
     // Employer Routes
@@ -83,7 +84,7 @@ function App() {
         "/", "/home", "/hero", "/sign-in", "/sign-up", "/pin", "/verify", "/company", "/profile", 
         "/activities", "/job-details", "/apply-job", "/contact-us", "/company-rating", "/e-hero", 
         "/e-sign-in", "/e-sign-up", "/e-contact-us", "/admins/stats", "/company", "/activities", 
-        "/search-student", "/job-details", "/activities/summary", "/reset-password"
+        "/search-student", "/job-details", "/activities/summary", "/reset-password","/e-profile"
     ];
     
     const eSearchBarCompany = [
@@ -150,7 +151,6 @@ function App() {
                 <Route path="/apply-job" element={<ApplyJob />}/>
                 <Route path="/contact-us" element={<ContactUs/>}/>
                 <Route path="/log-out" element={<LogoutPopup/>}/>
-                <Route path="/company-rating" element={<CompanyRating/>}/>
                 <Route path="/reset-password" element={<ResetPassword/>}/>
                 <Route path="/company-details/:employerId" element={<CompanyDetails/>}/>
 

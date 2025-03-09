@@ -30,7 +30,7 @@ const NavBar = () => {
                     <NavLink to="/home" className="hover:underline flex items-center gap-1">
                         <Home size={20} /> Home
                     </NavLink>
-                    <NavLink to="/companyList" className="hover:underline flex items-center gap-1">
+                    <NavLink to="/company" className="hover:underline flex items-center gap-1">
                         <Building2 size={18} /> Company
                     </NavLink>
                     <NavLink to="/search-student" className="hover:underline flex items-center gap-1">
