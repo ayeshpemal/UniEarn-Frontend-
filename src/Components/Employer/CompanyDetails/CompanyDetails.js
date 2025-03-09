@@ -1,38 +1,42 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faStar as solidStar } from "@fortawesome/free-solid-svg-icons";
 import { faStar as regularStar } from "@fortawesome/free-regular-svg-icons";
 
-const JobReview = () => {
+const CompanyDetails = () => {
     // Sample Reviews
-    const reviews = [
-        {
-            id: 1,
-            name: "Floyd Miles",
-            image: "https://randomuser.me/api/portraits/women/44.jpg",
-            rating: 4.5,
-            comment: "Amet minim mollit non deserunt ullamco est sit aliqua dolor do amet sint.",
-        },
-        {
-            id: 2,
-            name: "Ronald Richards",
-            image: "https://randomuser.me/api/portraits/men/45.jpg",
-            rating: 5,
-            comment: "ullamco est sit aliqua dolor do amet sint. Veit officia consequat.",
-        },
-        {
-            id: 3,
-            name: "Savannah Nguyen",
-            image: "https://randomuser.me/api/portraits/women/46.jpg",
-            rating: 4,
-            comment: "Amet minim mollit non deserunt ullamco est sit aliqua dolor do amet sint.",
-        },
-    ];
+    const [reviews, setReviews] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    // const reviews = [
+    //     {
+    //         id: 1,
+    //         name: "Floyd Miles",
+    //         image: "https://randomuser.me/api/portraits/women/44.jpg",
+    //         rating: 4.5,
+    //         comment: "Amet minim mollit non deserunt ullamco est sit aliqua dolor do amet sint.",
+    //     },
+    //     {
+    //         id: 2,
+    //         name: "Ronald Richards",
+    //         image: "https://randomuser.me/api/portraits/men/45.jpg",
+    //         rating: 5,
+    //         comment: "ullamco est sit aliqua dolor do amet sint. Veit officia consequat.",
+    //     },
+    //     {
+    //         id: 3,
+    //         name: "Savannah Nguyen",
+    //         image: "https://randomuser.me/api/portraits/women/46.jpg",
+    //         rating: 4,
+    //         comment: "Amet minim mollit non deserunt ullamco est sit aliqua dolor do amet sint.",
+    //     },
+    // ];
 
     // Rating & Feedback State
     const [userRating, setUserRating] = useState(0);
     const [hoverRating, setHoverRating] = useState(0);
     const [comment, setComment] = useState("");
+    const [employer, setEmployer] = useState(null); // Store job details
 
     // Handle Rating Selection
     const handleRating = (rate) => {
@@ -54,6 +58,56 @@ const JobReview = () => {
         setUserRating(0);
         setComment("");
     };
+
+    useEffect(() => {
+            // Fetch jobs from the API using axios
+            const fetchEmployer = async () => {
+                try {
+                    const initialToken = localStorage.getItem('token');
+                    console.log(initialToken);
+                    
+                    let userDetails = null;
+                    if (initialToken) {
+                        try {
+                            userDetails = jwtDecode(initialToken);  // Decoding the JWT
+                            console.log("User Details:", userDetails); // Debugging
+                        } catch (error) {
+                            console.error("Invalid token:", error);
+                        }
+                    }
+            
+                    const employerId = userDetails ? userDetails.user_id : null;
+                    console.log(employerId);
+            
+                    if (!employerId) {
+                        setError("Employer ID is missing or invalid.");
+                        setLoading(false);
+                        return;
+                    }
+            
+                    const response = await axios.get(`http://localhost:8100/api/user/get-user-by-id?student_id=${employerId}`);
+                    console.log(response);
+                    const employer = response.data?.data || [];
+                    setEmployer(employer);
+            
+                } catch (err) {
+                    console.error("Error fetching Employer:", err);
+                    setError(err.message);
+                } finally {
+                    setLoading(false);
+                }
+            };
+    
+            fetchEmployer();
+        }, []);
+
+    if (loading) {
+        return <div className="text-center">Loading...</div>;
+    }
+
+    if (error) {
+        return <div className="text-center text-danger">Error: {error}</div>;
+    }
 
     return (
         <div className="min-h-screen bg-white">
@@ -161,4 +215,4 @@ const JobReview = () => {
     );
 };
 
-export default JobReview;
+export default CompanyDetails;
