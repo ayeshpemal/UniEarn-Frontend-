@@ -30,7 +30,7 @@ import EHome from "./Components/Employer/EHome/EHome";
 import EJobCreation from "./Components/Employer/EJobCreation/EJobCreation";
 import EJobUpdate from "./Components/Employer/EJobUpdate/EJobUpdate";
 import AdminStats from "./Components/Admins/AdminStats/AdminStats";
-
+import Application from './Components/Application/Application';
 
 
 function App() {
@@ -40,17 +40,17 @@ function App() {
     const noNavRoutes = ["/", "/hero", "/sign-in", "/sign-up", "/pin","/e-hero","/e-sign-in","/e-sign-up","/e-home","/e-job-create","/e-job-edit","/e-contact-us","/admins/stats"];
     const chatButton=["/", "/hero", "/sign-in", "/sign-up", "/pin","/e-hero","/e-sign-in","/e-sign-up","/e-home","/e-job-create","/e-job-edit","/e-contact-us","/admins/stats"];
     const searchBarHome=["/", "/hero", "/sign-in", "/sign-up", "/pin" ,"/company","/e-home",
-        "/profile","/activities","/job-details","/apply-job","/contact-us","/company-rating","/e-hero","/e-sign-in","/e-sign-up","/e-job-create","/e-job-edit","/e-contact-us","/admins/stats"];
+        "/profile","/activities","/job-details","/apply-job","/contact-us","/company-rating","/e-hero","/e-sign-in","/e-sign-up","/e-job-create","/e-job-edit","/e-contact-us","/admins/stats","/confirm"];
     const searchBarCompany=["/", "/hero", "/sign-in", "/sign-up" ,"/home","/profile","/e-home",
-        "/activities","/job-details","/apply-job","/contact-us","/company-rating","/e-hero","/e-sign-in","/e-sign-up","/e-job-create","/e-job-edit","/e-contact-us","/admins/stats"];
+        "/activities","/job-details","/apply-job","/contact-us","/company-rating","/e-hero","/e-sign-in","/e-sign-up","/e-job-create","/e-job-edit","/e-contact-us","/admins/stats","/confirm"];
 
     //Employer
     const eNoNavRoutes = ["/", "/home", "/hero", "/sign-in", "/sign-up", "/pin","/e-hero","/e-sign-in","/e-sign-up","/admins/stats"];
     const eChatButton=["/", "/home", "/hero", "/sign-in", "/sign-up", "/pin","/e-hero","/e-sign-in","/e-sign-up","/admins/stats"];
     const eSearchBarHome=["/", "/home", "/hero", "/sign-in", "/sign-up", "/pin" ,"/company",
-        "/profile","/activities","/job-details","/apply-job","/contact-us","/company-rating","/e-hero","/e-sign-in","/e-sign-up","/e-job-create","/e-job-edit","/e-contact-us","/admins/stats"];
+        "/profile","/activities","/job-details","/apply-job","/contact-us","/company-rating","/e-hero","/e-sign-in","/e-sign-up","/e-job-create","/e-job-edit","/e-contact-us","/admins/stats","/confirm"];
     const eSearchBarCompany=["/", "/home", "/hero", "/sign-in", "/sign-up" ,"/home","/profile","/e-home",
-        "/activities","/job-details","/apply-job","/contact-us","/company-rating","/e-hero","/e-sign-in","/e-sign-up","/e-contact-us","/admins/stats"];
+        "/activities","/job-details","/apply-job","/contact-us","/company-rating","/e-hero","/e-sign-in","/e-sign-up","/e-contact-us","/admins/stats","/confirm"];
 
 
     return (
@@ -94,6 +94,8 @@ function App() {
                 <Route path="/company" element={<Company />} />
                 <Route path="/profile" element={<StudentProfile />} />
                 <Route path="/activities" element={<Activities />} />
+                <Route path="/confirm" element={<Application />} /> 
+
                 <Route path="/job-details" element={<JobDetails />} />
                 <Route path="/apply-job" element={<ApplyJob />}/>
                 <Route path="/contact-us" element={<ContactUs/>}/>
