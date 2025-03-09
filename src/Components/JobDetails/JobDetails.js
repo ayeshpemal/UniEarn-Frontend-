@@ -266,7 +266,7 @@ const JobDetails = () => {
         );
 
         const data = await response.json();
-        if (data.code === 200) {
+        if (data.code === 201) {
           setSuccessMessage({ header: "Application Success", message: "Job application success!" });
         } else {
           setErrorMessage({ header: "Application Error", message: data.message || "Failed to apply for the job." });

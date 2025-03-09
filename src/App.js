@@ -43,7 +43,7 @@ function App() {
     const noNavRoutes = ["/", "/hero", "/sign-in", "/sign-up", "/pin","/verify","/e-hero","/e-sign-in","/e-sign-up","/e-home","/e-job-create","/e-job-edit","/e-contact-us","/admins/stats","/reset-password"];
     const chatButton=["/", "/hero", "/sign-in", "/sign-up", "/pin","/verify","/e-hero","/e-sign-in","/e-sign-up","/e-home","/e-job-create","/e-job-edit","/e-contact-us","/admins/stats","/reset-password"];
     const searchBarHome=["/", "/hero", "/sign-in", "/sign-up", "/pin" ,"/verify","/company","/e-home",
-        "/profile","/activities","/job-details","/apply-job","/contact-us","/company-rating","/e-hero","/e-sign-in","/e-sign-up","/e-job-create","/e-job-edit","/e-contact-us","/admins/stats",'/search-student',"/activities/summary","/reset-password"];
+        "/profile","/activities","/job-details","/apply-job","/contact-us","/company-rating","/e-hero","/e-sign-in","/e-sign-up","/e-job-create","/e-job-edit","/e-contact-us","/admins/stats",'/search-student',"/activities/summary","/reset-password","/home"];
     const searchBarCompany=["/", "/hero", "/sign-in", "/sign-up" ,"/home","/profile","/verify","/e-home",
         "/activities","/job-details","/apply-job","/contact-us","/company-rating","/e-hero","/e-sign-in","/e-sign-up","/e-job-create","/e-job-edit","/e-contact-us","/admins/stats",'/search-student',"/company","/activities/summary","/reset-password"];
 
