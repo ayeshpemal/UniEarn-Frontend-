@@ -31,6 +31,7 @@ import EJobCreation from "./Components/Employer/EJobCreation/EJobCreation";
 import EJobUpdate from "./Components/Employer/EJobUpdate/EJobUpdate";
 import CompanyDetails from './Components/Employer/CompanyDetails/CompanyDetails';
 import AdminStats from "./Components/Admins/AdminStats/AdminStats";
+import Application from './Components/Application/Application';
 import JobPreferences from "./Components/JobPreferences/JobPreferences";
 import SearchStudent from "./Components/SearchStudent/SearchStudent";
 import SearchEmployer from "./Components/SearchEmployer/SearchEmployer";
@@ -40,20 +41,43 @@ function App() {
     const location = useLocation();
     // Student
     // List of routes that do NOT include the Navbar
-    const noNavRoutes = ["/", "/hero", "/sign-in", "/sign-up", "/pin","/verify/","/e-hero","/e-sign-in","/e-sign-up","/e-home","/e-job-create","/e-job-edit","/e-contact-us","/admins/stats"];
-    const chatButton=["/", "/hero", "/sign-in", "/sign-up", "/pin","/verify/","/e-hero","/e-sign-in","/e-sign-up","/e-home","/e-job-create","/e-job-edit","/e-contact-us","/admins/stats"];
-    const searchBarHome=["/", "/hero", "/sign-in", "/sign-up", "/pin" ,"/verify/","/company","/e-home",
-        "/profile","/activities","/job-details","/apply-job","/contact-us","/company-rating","/e-hero","/e-sign-in","/e-sign-up","/e-job-create","/e-job-edit","/e-contact-us","/admins/stats",'/search-student',"/activities/summary"];
-    const searchBarCompany=["/", "/hero", "/sign-in", "/sign-up" ,"/home","/profile","/verify/","/e-home",
-        "/activities","/job-details","/apply-job","/contact-us","/company-rating","/e-hero","/e-sign-in","/e-sign-up","/e-job-create","/e-job-edit","/e-contact-us","/admins/stats",'/search-student',"/company","/activities/summary"];
+const noNavRoutes = [
+    "/", "/hero", "/sign-in", "/sign-up", "/pin", "/verify/", "/e-hero", "/e-sign-in", "/e-sign-up", "/e-home", "/e-job-create", "/e-job-edit", "/e-contact-us", "/admins/stats"
+];
 
-    //Employer
-    const eNoNavRoutes = ["/", "/home", "/hero", "/sign-in", "/sign-up", "/pin","/verify/","/e-hero","/e-sign-in","/e-sign-up","/admins/stats","/company","/activities","/profile","/contact-us",'/search-student',"/job-details","/activities/summary"];
-    const eChatButton=["/", "/home", "/hero", "/sign-in", "/sign-up", "/pin","/verify/","/e-hero","/e-sign-in","/e-sign-up","/admins/stats","/company","/activities","/profile","/contact-us",'/search-student',"/job-details","/activities/summary"];
-    const eSearchBarHome=["/", "/home", "/hero", "/sign-in", "/sign-up", "/pin" ,"/verify/","/company",
-        "/profile","/activities","/job-details","/apply-job","/contact-us","/company-rating","/e-hero","/e-sign-in","/e-sign-up","/e-contact-us","/admins/stats","/company","/activities",'/search-student',"/job-details","/activities/summary"];
-    const eSearchBarCompany=["/", "/home", "/hero", "/sign-in", "/sign-up" ,"/home","/profile","/verify/","/e-home",
-        "/activities","/job-details","/apply-job","/contact-us","/company-rating","/e-hero","/e-sign-in","/e-sign-up","/e-contact-us","/admins/stats","/company","/activities","/profile",'/search-student',"/job-details","/e-job-create","/e-job-edit","/activities/summary"];
+const chatButton = [
+    "/", "/hero", "/sign-in", "/sign-up", "/pin", "/verify/", "/e-hero", "/e-sign-in", "/e-sign-up", "/e-home", "/e-job-create", "/e-job-edit", "/e-contact-us", "/admins/stats"
+];
+
+const searchBarHome = [
+    "/", "/hero", "/sign-in", "/sign-up", "/pin", "/verify/", "/company", "/e-home",
+    "/profile", "/activities", "/job-details", "/apply-job", "/contact-us", "/company-rating", "/e-hero", "/e-sign-in", "/e-sign-up", "/e-job-create", "/e-job-edit", "/e-contact-us", "/admins/stats", "/confirm", "/search-student", "/activities/summary"
+];
+
+const searchBarCompany = [
+    "/", "/hero", "/sign-in", "/sign-up", "/home", "/profile", "/verify/", "/e-home",
+    "/activities", "/job-details", "/apply-job", "/contact-us", "/company-rating", "/e-hero", "/e-sign-in", "/e-sign-up", "/e-job-create", "/e-job-edit", "/e-contact-us", "/admins/stats", "/confirm", "/search-student", "/company", "/activities/summary"
+];
+
+// Employer
+const eNoNavRoutes = [
+    "/", "/home", "/hero", "/sign-in", "/sign-up", "/pin", "/verify/", "/e-hero", "/e-sign-in", "/e-sign-up", "/admins/stats", "/company", "/activities", "/profile", "/contact-us", "/search-student", "/job-details", "/activities/summary"
+];
+
+const eChatButton = [
+    "/", "/home", "/hero", "/sign-in", "/sign-up", "/pin", "/verify/", "/e-hero", "/e-sign-in", "/e-sign-up", "/admins/stats", "/company", "/activities", "/profile", "/contact-us", "/search-student", "/job-details", "/activities/summary"
+];
+
+const eSearchBarHome = [
+    "/", "/home", "/hero", "/sign-in", "/sign-up", "/pin", "/verify/", "/company",
+    "/profile", "/activities", "/job-details", "/apply-job", "/contact-us", "/company-rating", "/e-hero", "/e-sign-in", "/e-sign-up", "/e-contact-us", "/admins/stats", "/company", "/activities", "/search-student", "/job-details", "/activities/summary"
+];
+
+const eSearchBarCompany = [
+    "/", "/home", "/hero", "/sign-in", "/sign-up", "/home", "/profile", "/verify/", "/e-home",
+    "/activities", "/job-details", "/apply-job", "/contact-us", "/company-rating", "/e-hero", "/e-sign-in", "/e-sign-up", "/e-contact-us", "/admins/stats", "/company", "/activities", "/profile", "/search-student", "/job-details", "/e-job-create", "/e-job-edit", "/activities/summary"
+];
+
 
     return (
         <div className="App">
@@ -104,6 +128,8 @@ function App() {
                 <Route path="/company" element={<SearchEmployer />} />
                 <Route path="/profile" element={<StudentProfile />} />
                 <Route path="/activities" element={<Activities />} />
+                <Route path="/confirm" element={<Application />} /> 
+                <Route path="/job-details" element={<JobDetails />} />
                 <Route path="/job-details/:jobId" element={<JobDetails />} />
                 <Route path="/apply-job" element={<ApplyJob />}/>
                 <Route path="/contact-us" element={<ContactUs/>}/>
