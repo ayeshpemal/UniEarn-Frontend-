@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import {
-    GraduationCap, Menu, X, Home, ListTodo, Building2, User, Phone, LogOut
+    GraduationCap, Menu, X, Home, ListTodo, Building2, User, Phone, LogOut, Users
 } from "lucide-react";
 import LogoutPopup from "../LogoutPopup/LogoutPopup"; // Import the Logout Popup
 
@@ -30,8 +30,11 @@ const NavBar = () => {
                     <NavLink to="/home" className="hover:underline flex items-center gap-1">
                         <Home size={20} /> Home
                     </NavLink>
-                    <NavLink to="/company" className="hover:underline flex items-center gap-1">
+                    <NavLink to="/companyList" className="hover:underline flex items-center gap-1">
                         <Building2 size={18} /> Company
+                    </NavLink>
+                    <NavLink to="/search-student" className="hover:underline flex items-center gap-1">
+                        <Users size={18} /> Students
                     </NavLink>
                     <NavLink to="/activities" className="hover:underline flex items-center gap-1">
                         <ListTodo size={18} /> Activities
@@ -70,6 +73,9 @@ const NavBar = () => {
                     </NavLink>
                     <NavLink to="/company" className="hover:underline flex items-center gap-2" onClick={() => setMenuOpen(false)}>
                         <Building2 size={18} /> Company
+                    </NavLink>
+                    <NavLink to="/search-student" className="hover:underline flex items-center gap-1">
+                        <Users size={18} /> Students
                     </NavLink>
                     <NavLink to="/activities" className="hover:underline flex items-center gap-2" onClick={() => setMenuOpen(false)}>
                         <ListTodo size={18} /> Activities
