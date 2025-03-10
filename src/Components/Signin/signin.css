@@ -1,0 +1,262 @@
+/* General styling */
+body, html {
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+    box-sizing: border-box;
+    background: #f0f0f0;
+}
+
+/* Main container */
+.signin-container {
+    position: relative;
+    width: 100%;
+    height: 100vh;
+    background: url('./Background.png') no-repeat center center/cover;
+    overflow: hidden;
+}
+
+/* Full-window shadow effect */
+.signin-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6); /* Full-screen shadow */
+    z-index: 1; /* Place the shadow below the content */
+}
+
+/* Background overlay centered */
+.background-overlay {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%); /* Center both horizontally and vertically */
+    padding: 20px;
+    text-align: center;
+    width: 90%;
+    max-width: 400px;
+    border-radius: 10px;
+    z-index: 2;
+    box-shadow: dimgray;
+}
+
+/* Header - Logo, Title, and Text */
+.header {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    z-index: 3;
+}
+
+.header h1 {
+    margin-left: 120px;
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: #fff;
+}
+
+.top-left-text {
+    margin-top: 30px;
+}
+
+.top-left-text p {
+    font-size: 2rem;
+    color: #fff;
+    margin-left: 10vh;
+}
+
+.top-left-text .highlight {
+    color: #00c0ff;
+    font-size: 2rem;
+    font-weight: bold;
+}
+
+/* Login Form */
+.login-form h2 {
+    text-align: left;
+    color: #ffffff;
+    font-size: 2rem;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    font-weight: bold;
+}
+
+.login-form p {
+    text-align: left;
+    color: #ffffff;
+    font-size: 1rem;
+    margin-bottom: 20px;
+}
+
+.form-input {
+    display: block;
+    width: 100%;
+    padding: 10px;
+    margin: 10px auto;
+    border-radius: 10px;
+    font-size: 1rem;
+    background: #261046;
+    color: #ccc;
+    box-sizing: border-box;
+}
+
+.form-input::placeholder {
+    color: #999;
+}
+
+.signin-button {
+    border-radius: 10px;
+    background: linear-gradient(90deg, #501794 0.03%, #3E70A1 101.88%);
+    color: #fff;
+    padding: 10px;
+    width: 100%;
+    border: none;
+    cursor: pointer;
+    font-size: 1.2rem;
+    font-weight: bold;
+    margin-top: 10px;
+}
+
+.signin-button:hover {
+    background: linear-gradient(to right, #0056b3, #007bff);
+}
+
+/* Sign-up link */
+.signup-link {
+    text-align: center;
+    color: #ffffff;
+    margin-top: 20px;
+    font-size: 0.9rem;
+}
+
+.signup-link a {
+    color: #eb386a;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.signup-link a:hover {
+    text-decoration: underline;
+}
+
+/* Responsive Design */
+
+/* For tablets and small desktops */
+@media (max-width: 1024px) {
+    .background-overlay {
+        width: 85%;
+    }
+
+    .header h1 {
+        font-size: 1.8rem;
+    }
+
+    .top-left-text p {
+        font-size: 1.2rem;
+        margin-left: 5vh;
+    }
+
+    .form-input {
+        font-size: 1.1rem;
+    }
+
+    .signin-button {
+        font-size: 1.1rem;
+        padding: 12px;
+    }
+}
+
+/* For mobile screens */
+@media (max-width: 768px) {
+    .background-overlay {
+        width: 90%;
+        padding: 15px;
+    }
+
+    .header {
+        top: 10px;
+        left: 10px;
+    }
+
+    .header h1 {
+        font-size: 1.5rem;
+    }
+
+    .top-left-text p {
+        font-size: 1rem;
+        margin-left: 0;
+    }
+
+    .signin-button {
+        font-size: 1rem;
+        padding: 10px;
+    }
+
+    .form-input {
+        padding: 8px;
+        font-size: 1rem;
+    }
+
+    .signup-link {
+        font-size: 0.8rem;
+    }
+}
+
+/* For very small devices */
+@media (max-width: 480px) {
+    .background-overlay {
+        width: 95%;
+        padding: 12px;
+    }
+
+    .header h1 {
+        font-size: 1.2rem;
+        margin-left: 0;
+    }
+
+    .form-input {
+        padding: 8px;
+        font-size: 1rem;
+    }
+
+    .signin-button {
+        font-size: 0.9rem;
+        padding: 8px;
+    }
+
+    .signup-link {
+        font-size: 0.7rem;
+    }
+}
+
+/* For super small screens (portrait on very small devices) */
+@media (max-width: 375px) {
+    .background-overlay {
+        width: 95%;
+        padding: 10px;
+    }
+
+    .header h1 {
+        font-size: 1rem;
+    }
+
+    .form-input {
+        padding: 6px;
+        font-size: 0.9rem;
+    }
+
+    .signin-button {
+        font-size: 0.85rem;
+        padding: 6px;
+    }
+
+    .signup-link {
+        font-size: 0.6rem;
+    }
+}
