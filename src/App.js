@@ -91,7 +91,7 @@ function App() {
         "/", "/home", "/hero", "/sign-in", "/sign-up", "/home", "/profile", "/verify", "/e-home", 
         "/activities", "/job-details", "/apply-job", "/contact-us", "/company-rating", "/e-hero", 
         "/e-sign-in", "/e-sign-up", "/e-contact-us", "/admins/stats", "/company", "/activities", 
-        "/profile", "/search-student", "/job-details", "/e-job-create", "/e-job-edit", "/activities/summary", "/reset-password"
+        "/profile", "/search-student", "/job-details", "/e-job-create", "/e-job-edit", "/activities/summary", "/reset-password","/e-profile"
     ];
     
 
