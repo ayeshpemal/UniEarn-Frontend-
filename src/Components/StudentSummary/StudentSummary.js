@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { jwtDecode } from "jwt-decode";
+import axios from "axios";
 import { Pie, Bar } from "react-chartjs-2";
 import { Chart as ChartJS, ArcElement, Tooltip, Legend, BarElement, CategoryScale, LinearScale } from 'chart.js';
 
@@ -32,7 +33,7 @@ const ApplicationSummary = () => {
       }
 
       try {
-        const response = await fetch(
+        const response = await axios.get(
           `http://localhost:8100/api/v1/application/student/${userId}/summary`,
           {
             headers: {
@@ -42,15 +43,10 @@ const ApplicationSummary = () => {
           }
         );
 
-        if (!response.ok) {
-          throw new Error("Failed to fetch summary data");
-        }
-
-        const data = await response.json();
-        setSummaryData(data);
+        setSummaryData(response.data.data);
         setLoading(false);
       } catch (err) {
-        setError(err.message);
+        setError(err.response?.data?.message || "Failed to fetch summary data");
         setLoading(false);
       }
     };
@@ -76,15 +72,16 @@ const ApplicationSummary = () => {
 
   // Prepare data for Pie Chart (Status Percentages)
   const pieData = {
-    labels: ["Confirmed", "Pending"],
+    labels: ["Confirmed", "Pending", "Rejected"],
     datasets: [
       {
         data: [
           summaryData.statusPercentages.CONFIRMED,
           summaryData.statusPercentages.PENDING,
+          summaryData.statusPercentages.REJECTED,
         ],
-        backgroundColor: ["#34D399", "#F97316"], // Green for Confirmed, Orange for Pending
-        hoverBackgroundColor: ["#2DD4BF", "#F97316"],
+        backgroundColor: ["#34D399", "#F97316", "#EF4444"], // Green, Orange, Red
+        hoverBackgroundColor: ["#2DD4BF", "#F97316", "#DC2626"],
       },
     ],
   };
@@ -125,7 +122,7 @@ const ApplicationSummary = () => {
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Hero Section (Matching Activities page: h-[50vh] sm:h-[70vh]) */}
+      {/* Hero Section */}
       <div
         className="relative h-[50vh] sm:h-[70vh] bg-cover bg-center"
         style={{
@@ -154,7 +151,7 @@ const ApplicationSummary = () => {
           </h1>
 
           {/* Summary Stats */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
             <div className="bg-white border border-gray-200 p-4 rounded-lg text-center shadow-sm">
               <p className="text-lg font-semibold text-teal-500">Confirmed</p>
               <p className="text-2xl text-teal-500">{summaryData.confirmed}</p>
@@ -166,6 +163,10 @@ const ApplicationSummary = () => {
             <div className="bg-white border border-gray-200 p-4 rounded-lg text-center shadow-sm">
               <p className="text-lg font-semibold text-pink-500">Rejected</p>
               <p className="text-2xl text-pink-500">{summaryData.rejected}</p>
+            </div>
+            <div className="bg-white border border-gray-200 p-4 rounded-lg text-center shadow-sm">
+              <p className="text-lg font-semibold text-purple-500">Accepted</p>
+              <p className="text-2xl text-purple-500">{summaryData.accepted}</p>
             </div>
           </div>
 

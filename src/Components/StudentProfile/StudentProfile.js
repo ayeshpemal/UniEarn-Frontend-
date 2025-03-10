@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { ChevronDown, Star, Edit2, Camera, Save, Lock } from 'lucide-react';
-import { ChatBubbleOvalLeftEllipsisIcon } from "@heroicons/react/24/solid";
+import axios from 'axios';
 import { jwtDecode } from 'jwt-decode';
 
 // Define preference options
@@ -22,6 +22,8 @@ const ADDRESS_OPTIONS = [
 
 function App() {
     const [isEditing, setIsEditing] = useState(false);
+    const [isViewMode, setIsViewMode] = useState(false);
+    const [viewUserId, setViewUserId] = useState(null);
     const [formData, setFormData] = useState({
         userName: '',
         displayName: '',
@@ -47,6 +49,17 @@ function App() {
     });
     const [passwordUpdateError, setPasswordUpdateError] = useState('');
 
+    // Check if we're in view mode by looking for userId in URL
+    useEffect(() => {
+        const params = new URLSearchParams(window.location.search);
+        const urlUserId = params.get('userId');
+        
+        if (urlUserId) {
+            setIsViewMode(true);
+            setViewUserId(urlUserId);
+        }
+    }, []);
+
     // Fetch user data and profile picture on mount
     useEffect(() => {
         const fetchUserData = async () => {
@@ -55,27 +68,29 @@ function App() {
                 if (!token) throw new Error('No token found');
                 
                 const decodedToken = jwtDecode(token);
-                const userId = decodedToken.user_id;
+                // Decide which userId to use - viewUserId if in view mode, otherwise current user's ID
+                const userId = isViewMode ? viewUserId : decodedToken.user_id;
 
-                const userResponse = await fetch(`http://localhost:8100/api/user/get-user-by-id/${userId}`, {
-                    headers: { 'Authorization': `Bearer ${token}` },
-                });
-                if (!userResponse.ok) throw new Error('Failed to fetch user data');
+                // Use axios instead of fetch
+                const userResponse = await axios.get(
+                    `http://localhost:8100/api/user/get-user-by-id/${userId}`,
+                    { headers: { 'Authorization': `Bearer ${token}` } }
+                );
+                
+                const userData = userResponse.data.data;
 
-                const userResult = await userResponse.json();
-                const userData = userResult.data;
-
-                const profilePictureResponse = await fetch(`http://localhost:8100/api/user/${userId}/profile-picture`, {
-                    headers: { 'Authorization': `Bearer ${token}` },
-                });
                 let profilePictureUrl = 'https://images.unsplash.com/photo-1633332755192-727a05c4013d?auto=format&fit=crop&q=80';
-                if (profilePictureResponse.ok) {
-                    const profilePictureResult = await profilePictureResponse.json();
-                    if (profilePictureResult.code === 200 && profilePictureResult.data) {
-                        profilePictureUrl = profilePictureResult.data;
+                try {
+                    const profilePictureResponse = await axios.get(
+                        `http://localhost:8100/api/user/${userId}/profile-picture`,
+                        { headers: { 'Authorization': `Bearer ${token}` } }
+                    );
+                    
+                    if (profilePictureResponse.data.code === 200 && profilePictureResponse.data.data) {
+                        profilePictureUrl = profilePictureResponse.data.data;
                     }
-                } else {
-                    console.warn('Failed to fetch profile picture:', (await profilePictureResponse.json()).message);
+                } catch (error) {
+                    console.warn('Failed to fetch profile picture:', error.response?.data?.message || error.message);
                 }
 
                 const fetchedData = {
@@ -97,8 +112,11 @@ function App() {
                 console.error('Error fetching user data or profile picture:', error);
             }
         };
-        fetchUserData();
-    }, []);
+        
+        if (viewUserId || localStorage.getItem('token')) {
+            fetchUserData();
+        }
+    }, [isViewMode, viewUserId]);
 
     const handleInputChange = (field, value) => {
         setFormData(prev => ({ ...prev, [field]: value }));
@@ -155,16 +173,20 @@ function App() {
     };
 
     const hasUserDataChanges = () => {
+        if (!originalFormData) return false;
+        
         const sortedPreferences = [...formData.preferences].sort();
         const sortedOriginalPreferences = [...originalFormData.preferences].sort();
+        
         return (
             formData.displayName !== originalFormData.displayName ||
             formData.mobileNo !== originalFormData.mobileNo ||
             formData.address !== originalFormData.address ||
-            JSON.stringify(sortedPreferences) !== JSON.stringify(sortedOriginalPreferences)
+            JSON.stringify(sortedPreferences) !== JSON.stringify(sortedOriginalPreferences) ||
+            selectedProfilePictureFile !== null  // Add this line to check if a new profile picture was selected
         );
     };
-
+    
     const handleSave = async () => {
         try {
             const token = localStorage.getItem('token');
@@ -183,31 +205,34 @@ function App() {
                     companyDetails: null,
                 };
 
-                const response = await fetch(`http://localhost:8100/api/user/update/${userId}`, {
-                    method: 'PUT',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(updateData),
-                });
-
-                if (!response.ok) throw new Error('Failed to update user data');
+                await axios.put(
+                    `http://localhost:8100/api/user/update/${userId}`,
+                    updateData,
+                    {
+                        headers: {
+                            'Authorization': `Bearer ${token}`,
+                            'Content-Type': 'application/json',
+                        }
+                    }
+                );
             }
 
             if (selectedProfilePictureFile) {
                 const formDataForUpload = new FormData();
                 formDataForUpload.append('file', selectedProfilePictureFile);
 
-                const response = await fetch(`http://localhost:8100/api/user/${userId}/profile-picture`, {
-                    method: 'PUT',
-                    headers: { 'Authorization': `Bearer ${token}` },
-                    body: formDataForUpload,
-                });
+                const response = await axios.put(
+                    `http://localhost:8100/api/user/${userId}/profile-picture`,
+                    formDataForUpload,
+                    {
+                        headers: {
+                            'Authorization': `Bearer ${token}`,
+                            'Content-Type': 'multipart/form-data'
+                        }
+                    }
+                );
 
-                if (!response.ok) throw new Error('Failed to update profile picture');
-                const result = await response.json();
-                const newProfilePictureUrl = result.data || formData.profilePicture;
+                const newProfilePictureUrl = response.data.data || formData.profilePicture;
                 setFormData(prev => ({ ...prev, profilePicture: newProfilePictureUrl }));
                 setSelectedProfilePictureFile(null);
             }
@@ -239,26 +264,23 @@ function App() {
                 newPassword: passwordUpdateData.newPassword,
             };
 
-            const response = await fetch(`http://localhost:8100/api/user/update-password/${userId}`, {
-                method: 'PUT',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(updateData),
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.message || 'Failed to update password');
-            }
+            await axios.put(
+                `http://localhost:8100/api/user/update-password/${userId}`,
+                updateData,
+                {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+                    }
+                }
+            );
 
             setPasswordUpdateData({ oldPassword: '', newPassword: '', confirmNewPassword: '' });
             setPasswordUpdateError('');
             setIsUpdatingPassword(false);
             alert('Password updated successfully!');
         } catch (error) {
-            setPasswordUpdateError(error.message || 'An error occurred while updating the password');
+            setPasswordUpdateError(error.response?.data?.message || 'An error occurred while updating the password');
         }
     };
 
@@ -274,7 +296,7 @@ function App() {
                 <div className="absolute inset-0 bg-black bg-opacity-50">
                     <div className="container mx-auto h-full flex flex-col justify-center px-4 sm:px-6 lg:px-8">
                         <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-white">
-                            Welcome
+                            {isViewMode ? 'Profile' : 'Welcome'}
                             <br />
                             <span className="text-[#6B7AFF]">{formData.displayName}</span>
                         </h1>
@@ -324,33 +346,35 @@ function App() {
                                 <span className="text-gray-600 ml-2 text-sm">{formData.rating}/5</span>
                             </div>
                         </div>
-                        <div className="flex space-x-3">
-                            {isEditing && (
+                        {!isViewMode && (
+                            <div className="flex space-x-3">
+                                {isEditing && (
+                                    <button
+                                        onClick={handleSave}
+                                        disabled={!hasUserDataChanges()}
+                                        className={`px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors text-sm sm:text-base ${
+                                            !hasUserDataChanges() ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-500 hover:bg-green-600 text-white'
+                                        }`}
+                                    >
+                                        <Save size={18} />
+                                        <span>Save</span>
+                                    </button>
+                                )}
                                 <button
-                                    onClick={handleSave}
-                                    disabled={!hasUserDataChanges()}
-                                    className={`px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors text-sm sm:text-base ${
-                                        !hasUserDataChanges() ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-500 hover:bg-green-600 text-white'
-                                    }`}
+                                    onClick={() => {
+                                        if (isEditing) {
+                                            setFormData(originalFormData);
+                                            setSelectedProfilePictureFile(null);
+                                        }
+                                        setIsEditing(!isEditing);
+                                    }}
+                                    className="px-4 py-2 bg-blue-500 text-white rounded-lg flex items-center space-x-2 hover:bg-blue-600 transition-colors text-sm sm:text-base"
                                 >
-                                    <Save size={18} />
-                                    <span>Save</span>
+                                    <Edit2 size={18} />
+                                    <span>{isEditing ? 'Cancel' : 'Edit'}</span>
                                 </button>
-                            )}
-                            <button
-                                onClick={() => {
-                                    if (isEditing) {
-                                        setFormData(originalFormData);
-                                        setSelectedProfilePictureFile(null);
-                                    }
-                                    setIsEditing(!isEditing);
-                                }}
-                                className="px-4 py-2 bg-blue-500 text-white rounded-lg flex items-center space-x-2 hover:bg-blue-600 transition-colors text-sm sm:text-base"
-                            >
-                                <Edit2 size={18} />
-                                <span>{isEditing ? 'Cancel' : 'Edit'}</span>
-                            </button>
-                        </div>
+                            </div>
+                        )}
                     </div>
 
                     {/* Profile Form */}
@@ -376,118 +400,126 @@ function App() {
                             value={formData.gender}
                             disabled={true}
                         />
-                        <ProfileField
-                            label="Mobile No"
-                            value={formData.mobileNo}
-                            disabled={!isEditing}
-                            onChange={(value) => handleInputChange('mobileNo', value)}
-                        />
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">Address</label>
-                            {isEditing ? (
-                                <select
-                                    value={formData.address}
-                                    onChange={(e) => handleInputChange('address', e.target.value)}
-                                    className="w-full p-2 sm:p-3 border rounded-lg bg-gray-50 text-sm sm:text-base"
-                                >
-                                    <option value="">Select an address</option>
-                                    {ADDRESS_OPTIONS.map(address => (
-                                        <option key={address} value={address}>
-                                            {address}
-                                        </option>
-                                    ))}
-                                </select>
-                            ) : (
-                                <input
-                                    type="text"
-                                    value={formData.address}
-                                    disabled={true}
-                                    className="w-full p-2 sm:p-3 border rounded-lg bg-gray-50 text-sm sm:text-base"
+                        
+                        {/* Only show these fields if not in view mode */}
+                        {!isViewMode && (
+                            <>
+                                <ProfileField
+                                    label="Mobile No"
+                                    value={formData.mobileNo}
+                                    disabled={!isEditing}
+                                    onChange={(value) => handleInputChange('mobileNo', value)}
                                 />
-                            )}
-                        </div>
-                        <div className="col-span-1 sm:col-span-2">
-                            <label className="block text-sm font-medium text-gray-700 mb-2">Preferences</label>
-                            {isEditing ? (
-                                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-40 overflow-y-auto p-2 border rounded-lg bg-gray-50">
-                                    {PREFERENCE_OPTIONS.map(preference => (
-                                        <div key={preference} className="flex items-center space-x-1">
-                                            <input
-                                                type="checkbox"
-                                                id={preference}
-                                                checked={formData.preferences.includes(preference)}
-                                                onChange={() => togglePreference(preference)}
-                                            />
-                                            <label htmlFor={preference} className="text-sm">{preference}</label>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">Address</label>
+                                    {isEditing ? (
+                                        <select
+                                            value={formData.address}
+                                            onChange={(e) => handleInputChange('address', e.target.value)}
+                                            className="w-full p-2 sm:p-3 border rounded-lg bg-gray-50 text-sm sm:text-base"
+                                        >
+                                            <option value="">Select an address</option>
+                                            {ADDRESS_OPTIONS.map(address => (
+                                                <option key={address} value={address}>
+                                                    {address}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    ) : (
+                                        <input
+                                            type="text"
+                                            value={formData.address}
+                                            disabled={true}
+                                            className="w-full p-2 sm:p-3 border rounded-lg bg-gray-50 text-sm sm:text-base"
+                                        />
+                                    )}
+                                </div>
+                                <div className="col-span-1 sm:col-span-2">
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">Preferences</label>
+                                    {isEditing ? (
+                                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-40 overflow-y-auto p-2 border rounded-lg bg-gray-50">
+                                            {PREFERENCE_OPTIONS.map(preference => (
+                                                <div key={preference} className="flex items-center space-x-1">
+                                                    <input
+                                                        type="checkbox"
+                                                        id={preference}
+                                                        checked={formData.preferences.includes(preference)}
+                                                        onChange={() => togglePreference(preference)}
+                                                    />
+                                                    <label htmlFor={preference} className="text-sm">{preference}</label>
+                                                </div>
+                                            ))}
                                         </div>
-                                    ))}
+                                    ) : (
+                                        <div className="w-full p-3 border rounded-lg bg-gray-50 text-sm">
+                                            {formData.preferences.length > 0 ? formData.preferences.join(', ') : 'None selected'}
+                                        </div>
+                                    )}
                                 </div>
-                            ) : (
-                                <div className="w-full p-3 border rounded-lg bg-gray-50 text-sm">
-                                    {formData.preferences.length > 0 ? formData.preferences.join(', ') : 'None selected'}
-                                </div>
-                            )}
-                        </div>
+                            </>
+                        )}
                     </div>
                 </div>
 
-                {/* Update Password Section */}
-                <div className="bg-white rounded-3xl shadow-lg p-4 sm:p-6 md:p-8 mb-6 sm:mb-12">
-                    <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 flex items-center space-x-2">
-                        <Lock size={24} />
-                        <span>Update Password</span>
-                    </h2>
-                    <button
-                        onClick={() => setIsUpdatingPassword(!isUpdatingPassword)}
-                        className="px-4 py-2 bg-blue-500 text-white rounded-lg flex items-center space-x-2 hover:bg-blue-600 transition-colors text-sm sm:text-base mb-4"
-                    >
-                        <ChevronDown size={18} className={isUpdatingPassword ? 'rotate-180' : ''} />
-                        <span>{isUpdatingPassword ? 'Hide' : 'Update Password'}</span>
-                    </button>
-                    {isUpdatingPassword && (
-                        <div className="grid grid-cols-1 gap-4 sm:gap-6">
-                            <div>
-                                <ProfileField
-                                    label="Current Password"
-                                    value={passwordUpdateData.oldPassword}
-                                    type="password"
-                                    onChange={(value) => handlePasswordUpdateChange('oldPassword', value)}
-                                />
+                {/* Update Password Section - Only show if not in view mode */}
+                {!isViewMode && (
+                    <div className="bg-white rounded-3xl shadow-lg p-4 sm:p-6 md:p-8 mb-6 sm:mb-12">
+                        <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 flex items-center space-x-2">
+                            <Lock size={24} />
+                            <span>Update Password</span>
+                        </h2>
+                        <button
+                            onClick={() => setIsUpdatingPassword(!isUpdatingPassword)}
+                            className="px-4 py-2 bg-blue-500 text-white rounded-lg flex items-center space-x-2 hover:bg-blue-600 transition-colors text-sm sm:text-base mb-4"
+                        >
+                            <ChevronDown size={18} className={isUpdatingPassword ? 'rotate-180' : ''} />
+                            <span>{isUpdatingPassword ? 'Hide' : 'Update Password'}</span>
+                        </button>
+                        {isUpdatingPassword && (
+                            <div className="grid grid-cols-1 gap-4 sm:gap-6">
+                                <div>
+                                    <ProfileField
+                                        label="Current Password"
+                                        value={passwordUpdateData.oldPassword}
+                                        type="password"
+                                        onChange={(value) => handlePasswordUpdateChange('oldPassword', value)}
+                                    />
+                                </div>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                                    <ProfileField
+                                        label="New Password"
+                                        value={passwordUpdateData.newPassword}
+                                        type="password"
+                                        onChange={(value) => handlePasswordUpdateChange('newPassword', value)}
+                                    />
+                                    <ProfileField
+                                        label="Confirm New Password"
+                                        value={passwordUpdateData.confirmNewPassword}
+                                        type="password"
+                                        onChange={(value) => handlePasswordUpdateChange('confirmNewPassword', value)}
+                                    />
+                                </div>
+                                {passwordUpdateError && (
+                                    <p className="text-red-500 text-sm mt-1 col-span-1 sm:col-span-2">{passwordUpdateError}</p>
+                                )}
+                                <div className="col-span-1 sm:col-span-2">
+                                    <button
+                                        onClick={handleUpdatePassword}
+                                        disabled={!!passwordUpdateError || !passwordUpdateData.newPassword || !passwordUpdateData.confirmNewPassword || !passwordUpdateData.oldPassword}
+                                        className={`px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors text-sm sm:text-base ${
+                                            passwordUpdateError || !passwordUpdateData.newPassword || !passwordUpdateData.confirmNewPassword || !passwordUpdateData.oldPassword
+                                                ? 'bg-gray-400 cursor-not-allowed'
+                                                : 'bg-green-500 hover:bg-green-600 text-white'
+                                        }`}
+                                    >
+                                        <Save size={18} />
+                                        <span>Update Password</span>
+                                    </button>
+                                </div>
                             </div>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-                                <ProfileField
-                                    label="New Password"
-                                    value={passwordUpdateData.newPassword}
-                                    type="password"
-                                    onChange={(value) => handlePasswordUpdateChange('newPassword', value)}
-                                />
-                                <ProfileField
-                                    label="Confirm New Password"
-                                    value={passwordUpdateData.confirmNewPassword}
-                                    type="password"
-                                    onChange={(value) => handlePasswordUpdateChange('confirmNewPassword', value)}
-                                />
-                            </div>
-                            {passwordUpdateError && (
-                                <p className="text-red-500 text-sm mt-1 col-span-1 sm:col-span-2">{passwordUpdateError}</p>
-                            )}
-                            <div className="col-span-1 sm:col-span-2">
-                                <button
-                                    onClick={handleUpdatePassword}
-                                    disabled={!!passwordUpdateError || !passwordUpdateData.newPassword || !passwordUpdateData.confirmNewPassword || !passwordUpdateData.oldPassword}
-                                    className={`px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors text-sm sm:text-base ${
-                                        passwordUpdateError || !passwordUpdateData.newPassword || !passwordUpdateData.confirmNewPassword || !passwordUpdateData.oldPassword
-                                            ? 'bg-gray-400 cursor-not-allowed'
-                                            : 'bg-green-500 hover:bg-green-600 text-white'
-                                    }`}
-                                >
-                                    <Save size={18} />
-                                    <span>Update Password</span>
-                                </button>
-                            </div>
-                        </div>
-                    )}
-                </div>
+                        )}
+                    </div>
+                )}
 
                 {/* Company Feedback Section */}
                 <div>
@@ -523,13 +555,14 @@ function App() {
     );
 }
 
-function ProfileField({ label, value, type = 'text', onChange = null }) {
+function ProfileField({ label, value, type = 'text', disabled = false, onChange = null }) {
     return (
         <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">{label}</label>
             <input
                 type={type}
                 value={value}
+                disabled={disabled}
                 onChange={onChange ? (e) => onChange(e.target.value) : undefined}
                 className="w-full p-2 sm:p-3 border rounded-lg bg-gray-50 text-sm sm:text-base"
             />
