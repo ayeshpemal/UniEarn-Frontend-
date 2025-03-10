@@ -1,6 +1,5 @@
-// JobPreferences.js
-import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import React, { useState } from 'react';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 
 const JOB_CATEGORIES = [
   "CASHIER", "SALESMEN", "RETAIL", "TUTORING", "CATERING", "EVENT_BASED",
@@ -13,8 +12,11 @@ const JobPreferences = () => {
   const [selectedPreferences, setSelectedPreferences] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const { userid } = useParams();
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  
+  // Get userid from query parameter
+  const userid = searchParams.get('userId');
 
   // Handle checkbox change
   const handlePreferenceChange = (category) => {

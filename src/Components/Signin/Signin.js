@@ -14,6 +14,10 @@ const Signin = () => {
     const [showErrorPopup, setShowErrorPopup] = useState(false);
     const [errorMessage, setErrorMessage] = useState("");
     const [isResendSuccess, setIsResendSuccess] = useState(false);
+    const [showForgotPasswordPopup, setShowForgotPasswordPopup] = useState(false);
+    const [forgotPasswordEmail, setForgotPasswordEmail] = useState("");
+    const [forgotPasswordMessage, setForgotPasswordMessage] = useState("");
+    const [isForgotPasswordSuccess, setIsForgotPasswordSuccess] = useState(false);
 
     const verification = async (e) => {
         e.preventDefault();
@@ -91,6 +95,41 @@ const Signin = () => {
         }
     };
 
+    const handleForgotPassword = async () => {
+        if (!forgotPasswordEmail) {
+            setForgotPasswordMessage("Please enter your email address.");
+            setIsForgotPasswordSuccess(false);
+            return;
+        }
+
+        try {
+            // Encode the email address to handle special characters like '@'
+            const encodedEmail = encodeURIComponent(forgotPasswordEmail);
+            console.log("Encoded email:", encodedEmail); // Debug: Check the encoded email
+            console.log("API URL:", `http://localhost:8100/api/auth/forgot-password?email=${encodedEmail}`); // Debug: Check the full URL
+
+            const response = await axios.post(
+                `http://localhost:8100/api/auth/forgot-password?email=${encodedEmail}`,
+                {
+                    headers: { "Content-Type": "application/json" },
+                }
+            );
+
+            console.log("API Response:", response); // Debug: Log the response
+
+            if (response.status === 200) {
+                setForgotPasswordMessage("Password reset email sent successfully. Please check your inbox.");
+                setIsForgotPasswordSuccess(true);
+            }
+        } catch (error) {
+            console.error("Error during forgot password request:", error); // Debug: Log the error
+            setForgotPasswordMessage(
+                error.response?.data?.message || "Failed to send password reset email. Please try again."
+            );
+            setIsForgotPasswordSuccess(false);
+        }
+    };
+
     const onNavigateToSignUpPage = () => {
         navigate("/sign-up");
     };
@@ -142,7 +181,12 @@ const Signin = () => {
                             Sign Up
                         </span>
                         <br />
-                        <span className="text-blue-500 cursor-pointer">Forgot Password</span>
+                        <span
+                            className="text-blue-500 cursor-pointer"
+                            onClick={() => setShowForgotPasswordPopup(true)}
+                        >
+                            Forgot Password
+                        </span>
                     </div>
                 </div>
             </div>
@@ -177,6 +221,70 @@ const Signin = () => {
                             <button
                                 className="bg-gray-500 text-white py-2 px-6 rounded-lg hover:bg-gray-600 transition"
                                 onClick={() => setShowErrorPopup(false)}
+                                aria-label="Close"
+                            >
+                                Close
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Forgot Password Popup */}
+            {showForgotPasswordPopup && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <div className="bg-white rounded-2xl p-6 shadow-lg w-11/12 max-w-md text-center relative">
+                        <button
+                            className="absolute top-2 right-2 text-gray-600 hover:text-red-500"
+                            onClick={() => {
+                                setShowForgotPasswordPopup(false);
+                                setForgotPasswordEmail("");
+                                setForgotPasswordMessage("");
+                                setIsForgotPasswordSuccess(false);
+                            }}
+                            aria-label="Close"
+                        >
+                            <X size={20} />
+                        </button>
+                        <h2 className="text-lg font-bold mb-4 text-gray-800">
+                            Forgot Password
+                        </h2>
+                        <p className="text-gray-600 mb-4">
+                            Enter your email to receive a password reset link.
+                        </p>
+                        <input
+                            type="email"
+                            placeholder="Email Address"
+                            className="w-full px-4 py-3 border rounded-lg mb-4"
+                            value={forgotPasswordEmail}
+                            onChange={(e) => setForgotPasswordEmail(e.target.value)}
+                            required
+                        />
+                        {forgotPasswordMessage && (
+                            <p
+                                className={`text-sm mb-4 ${
+                                    isForgotPasswordSuccess ? "text-green-600" : "text-red-600"
+                                }`}
+                            >
+                                {forgotPasswordMessage}
+                            </p>
+                        )}
+                        <div className="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-4">
+                            <button
+                                className="bg-blue-500 text-white py-2 px-6 rounded-lg hover:bg-blue-600 transition"
+                                onClick={handleForgotPassword}
+                                aria-label="Send Email"
+                            >
+                                Send Email
+                            </button>
+                            <button
+                                className="bg-gray-500 text-white py-2 px-6 rounded-lg hover:bg-gray-600 transition"
+                                onClick={() => {
+                                    setShowForgotPasswordPopup(false);
+                                    setForgotPasswordEmail("");
+                                    setForgotPasswordMessage("");
+                                    setIsForgotPasswordSuccess(false);
+                                }}
                                 aria-label="Close"
                             >
                                 Close

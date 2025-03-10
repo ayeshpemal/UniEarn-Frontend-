@@ -5,7 +5,7 @@ import {useNavigate} from "react-router-dom"; // Import the background image
 const EHero = () => {
     const navigate=useNavigate();
     const onNavigateToESignin=() =>{
-        navigate("/e-sign-in")
+        navigate("/sign-in")
     }
     const onNavigateToESignup = () => {
         navigate("/e-sign-up")
