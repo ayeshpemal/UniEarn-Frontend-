@@ -1,6 +1,7 @@
 import React from "react";
 import { Pie } from "react-chartjs-2";
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
+import axios from "axios";
 
 // Register ChartJS components
 ChartJS.register(ArcElement, Tooltip, Legend);
@@ -15,7 +16,7 @@ const AdminStats = ({ statsData }) => {
       {
         data: Object.values(statsData.data.jobsByCategory || {}).length > 0
           ? Object.values(statsData.data.jobsByCategory)
-          : [1], // Default value to render a single slice
+          : [1],
         backgroundColor: ["#FF6384", "#36A2EB", "#FFCE56", "#4BC0C0", "#9966FF"],
         borderWidth: 2,
         borderColor: "#fff",
@@ -32,7 +33,7 @@ const AdminStats = ({ statsData }) => {
       {
         data: Object.values(statsData.data.jobsByLocation || {}).length > 0
           ? Object.values(statsData.data.jobsByLocation)
-          : [1], // Default value to render a single slice
+          : [1],
         backgroundColor: [
           "#FF6384",
           "#36A2EB",
@@ -199,26 +200,50 @@ const AdminStats = ({ statsData }) => {
   );
 };
 
-// App.jsx with proper API integration example
+// Updated App.jsx with initial date range set to 1 month back
 const App = () => {
   const [statsData, setStatsData] = React.useState(null);
   const [loading, setLoading] = React.useState(true);
 
-  React.useEffect(() => {
-    const fetchStats = async () => {
-      try {
-        const response = await fetch("http://localhost:8100/api/admin/stats");
-        const data = await response.json();
-        setStatsData(data);
-        setLoading(false);
-      } catch (error) {
-        console.error("Error fetching stats:", error);
-        setLoading(false);
-      }
-    };
+  // Set initial dates: current date and 1 month back
+  const currentDate = new Date();
+  const oneMonthBack = new Date();
+  oneMonthBack.setMonth(currentDate.getMonth() - 1);
 
+  const [startDate, setStartDate] = React.useState(oneMonthBack.toISOString().split("T")[0]);
+  const [endDate, setEndDate] = React.useState(currentDate.toISOString().split("T")[0]);
+
+  const fetchStats = async () => {
+    try {
+      setLoading(true);
+      const response = await axios.post(
+        "http://localhost:8100/api/admin/stats",
+        {
+          startDate: startDate ? new Date(startDate).toISOString() : null,
+          endDate: endDate ? new Date(endDate).toISOString() : null,
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      setStatsData(response.data);
+      setLoading(false);
+    } catch (error) {
+      console.error("Error fetching stats:", error);
+      setLoading(false);
+    }
+  };
+
+  React.useEffect(() => {
     fetchStats();
   }, []);
+
+  const handleFilterSubmit = (e) => {
+    e.preventDefault();
+    fetchStats();
+  };
 
   if (loading) {
     return (
@@ -237,7 +262,42 @@ const App = () => {
   }
 
   return (
-    <div>
+    <div className="min-h-screen bg-gray-50">
+      {/* Date Filter Section */}
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div className="bg-white shadow-lg rounded-xl p-6 mb-8">
+          <h2 className="text-2xl font-bold text-gray-800 mb-4">Filter by Date Range</h2>
+          <form onSubmit={handleFilterSubmit} className="flex flex-col sm:flex-row gap-4 items-center">
+            <div className="flex-1">
+              <label className="block text-gray-700 font-semibold mb-2">Start Date:</label>
+              <input
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-600"
+              />
+            </div>
+            <div className="flex-1">
+              <label className="block text-gray-700 font-semibold mb-2">End Date:</label>
+              <input
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-600"
+              />
+            </div>
+            <div className="mt-6 sm:mt-0">
+              <button
+                type="submit"
+                className="w-full sm:w-auto bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 transition duration-300"
+              >
+                Apply Filter
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+      {/* Existing Dashboard */}
       <AdminStats statsData={statsData} />
     </div>
   );

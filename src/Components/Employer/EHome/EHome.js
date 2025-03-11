@@ -8,7 +8,7 @@ const EHome = () => {
   const [error, setError] = useState(null);
   const [currentPage, setCurrentPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
-  const jobsPerPage = 10; // Updated to 10 as requested
+  const jobsPerPage = 10;
 
   useEffect(() => {
     const fetchJobs = async () => {
@@ -110,9 +110,9 @@ const EHome = () => {
   const renderJobCard = (job) => (
     <div
       key={job.jobId}
-      className="bg-white rounded-lg shadow-md p-4 sm:p-6 hover:shadow-lg transition-shadow duration-300 flex flex-col sm:flex-row justify-between items-start gap-4 relative"
+      className="bg-white rounded-lg shadow-md p-4 sm:p-6 hover:shadow-lg transition-shadow duration-300 flex flex-col justify-between items-start gap-4 relative"
     >
-      <div className="flex-1 w-full sm:w-auto">
+      <div className="flex-1 w-full">
         <h3 className="text-lg sm:text-xl font-semibold text-gray-900">{job.jobTitle || 'Job Title Not Available'}</h3>
         <p className="text-gray-600 mt-2">{job.jobDescription || 'Job description not available'}</p>
         <p className="text-gray-600 mt-2">Location: {formatLocation(job.jobLocation)}</p>
@@ -141,14 +141,6 @@ const EHome = () => {
           )}
         </div>
       </div>
-      <div className="flex flex-col items-center gap-2 w-full sm:w-20">
-        <img
-          src="/job-logo.png"
-          alt={`${job.jobCategory} Logo`}
-          className="w-20 h-20 rounded-full object-cover"
-          onError={(e) => (e.target.src = '/path-to-default-logo.png')}
-        />
-      </div>
       {job.jobStatus && (
         <button
           onClick={() => handleDeleteJob(job.jobId)}
@@ -167,7 +159,9 @@ const EHome = () => {
         {activeJobs.length === 0 ? (
           <p className="text-gray-500 text-center">No live jobs available.</p>
         ) : (
-          <div className="grid gap-6">{activeJobs.map(renderJobCard)}</div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {activeJobs.map(renderJobCard)}
+          </div>
         )}
 
         {totalPages > 1 && jobs.length > 0 && (
@@ -201,7 +195,9 @@ const EHome = () => {
         {inactiveJobs.length > 0 && (
           <div className="mt-12">
             <h2 className="text-2xl sm:text-3xl font-bold mb-6 text-gray-800 text-center">Recent Jobs</h2>
-            <div className="grid gap-6">{inactiveJobs.map(renderJobCard)}</div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {inactiveJobs.map(renderJobCard)}
+            </div>
           </div>
         )}
       </section>

@@ -61,6 +61,8 @@ const JobDetails = () => {
         }
       );
 
+      console.log("Raw Job Response:", JSON.stringify(response.data, null, 2)); // Debug
+
       if (response.data.code === 200) {
         const jobData = response.data.data;
         if (!jobData.activeStatus) {
@@ -69,14 +71,21 @@ const JobDetails = () => {
           return;
         }
         setJob(jobData);
-        if (jobData.employer.profilePictureUrl) {
+
+        // Always fetch profile picture using employer.userId
+        if (jobData.employer?.userId) {
+          console.log(`Fetching profile picture for userId: ${jobData.employer.userId}`);
           fetchProfilePicture(jobData.employer.userId, token);
+        } else {
+          console.warn("No employer.userId found in job data");
+          setProfilePictureUrl(DEFAULT_PROFILE_PICTURE);
         }
       } else {
         setError(response.data.message || "Failed to Fetch Job Details");
       }
     } catch (err) {
       setError("Error Fetching Job Details: " + err.message);
+      console.error("Fetch job error:", err);
     } finally {
       setLoading(false);
     }
@@ -85,6 +94,7 @@ const JobDetails = () => {
   const fetchProfilePicture = async (userId, token) => {
     try {
       if (!userId) {
+        console.warn("No userId provided for profile picture fetch");
         setProfilePictureUrl(DEFAULT_PROFILE_PICTURE);
         return;
       }
@@ -98,9 +108,12 @@ const JobDetails = () => {
         }
       );
 
+      console.log(`Profile Picture Response for user ${userId}:`, response.data); // Debug
+
       if (response.data.code === 200 && response.data.data) {
-        setProfilePictureUrl(response.data.data);
+        setProfilePictureUrl(response.data.data); // Set S3 URL
       } else {
+        console.warn("Invalid profile picture response:", response.data);
         setProfilePictureUrl(DEFAULT_PROFILE_PICTURE);
       }
     } catch (err) {
@@ -120,7 +133,6 @@ const JobDetails = () => {
       const decodedToken = jwtDecode(token);
       const userId = decodedToken.user_id;
 
-      // Fetch user data
       const userResponse = await axios.get(
         `http://localhost:8100/api/user/get-user-by-id/${userId}`,
         {
@@ -137,7 +149,6 @@ const JobDetails = () => {
         return;
       }
 
-      // Fetch application status (handle error gracefully)
       const jobId = searchParams.get("jobId");
       if (jobId) {
         try {
@@ -606,7 +617,10 @@ const JobDetails = () => {
                 src={profilePictureUrl}
                 alt="Company Logo"
                 className="rounded-full w-full h-full object-cover"
-                onError={() => setProfilePictureUrl(DEFAULT_PROFILE_PICTURE)}
+                onError={(e) => {
+                  console.log(`Image failed to load: ${profilePictureUrl}`);
+                  e.target.src = DEFAULT_PROFILE_PICTURE;
+                }}
               />
             </div>
           </div>

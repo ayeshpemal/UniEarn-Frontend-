@@ -14,16 +14,14 @@ export function Home() {
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [searchError, setSearchError] = useState(null); // For search-specific errors
+  const [searchError, setSearchError] = useState(null);
   const [currentPage, setCurrentPage] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
 
-  // Search-related state
-  const [selectedLocation, setSelectedLocation] = useState("COLOMBO"); // Default to first option
-  const [selectedJob, setSelectedJob] = useState("CASHIER"); // Default to first option
+  const [selectedLocation, setSelectedLocation] = useState("COLOMBO");
+  const [selectedJob, setSelectedJob] = useState("CASHIER");
   const [searchTerm, setSearchTerm] = useState("");
 
-  // Fetch preferred jobs on initial load
   useEffect(() => {
     const fetchJobs = async () => {
       try {
@@ -41,13 +39,16 @@ export function Home() {
         }
 
         const response = await axios.get(
-          `http://localhost:8100/api/v1/jobs/studentpreferedjobs?student_id=${userId}&page=${currentPage}`
+          `http://localhost:8100/api/v1/jobs/studentpreferedjobs?student_id=${userId}&page=${currentPage}`,
+          { headers: { Authorization: `Bearer ${initialToken}` } }
         );
         const jobsList = response.data?.data?.jobList || [];
         setJobs(jobsList);
-        setTotalPages(Math.ceil(response.data?.data?.dataCount / 10) || 1); // Assuming 10 jobs per page
+        setTotalPages(Math.ceil(response.data?.data?.dataCount / 10) || 1);
+
       } catch (err) {
         setError(err.message);
+        console.error("Fetch jobs error:", err);
       } finally {
         setLoading(false);
       }
@@ -56,38 +57,30 @@ export function Home() {
     fetchJobs();
   }, [currentPage]);
 
-  // Search jobs function
   const searchJobs = async () => {
     setLoading(true);
-    setSearchError(null); // Reset search error
+    setSearchError(null);
     try {
+      const token = localStorage.getItem('token');
       const response = await axios.get(
         `http://localhost:8100/api/v1/jobs/search?location=${selectedLocation}&categories=${selectedJob}&keyword=${searchTerm}&page=${currentPage}`,
-        { headers: { "Content-Type": "application/json" } }
+        { headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` } }
       );
       const searchResults = response.data?.data?.jobList || [];
       setJobs(searchResults);
-      setTotalPages(Math.ceil(response.data?.data?.dataCount / 10) || 1); // Assuming 10 jobs per page
+      setTotalPages(Math.ceil(response.data?.data?.dataCount / 10) || 1);
+
     } catch (error) {
       setSearchError(error.response?.data?.message || "Search failed. Please try again.");
+      console.error("Search error:", error);
     } finally {
       setLoading(false);
     }
   };
 
   const handleSearch = () => {
-    setCurrentPage(0); // Reset to first page on new search
+    setCurrentPage(0);
     searchJobs();
-  };
-
-  // Fetch profile picture if not provided
-  const getProfilePictureUrl = async (userId) => {
-    try {
-      const response = await axios.get(`http://localhost:8100/api/user/${userId}/profile-picture`);
-      return response.data?.url || "/job-logo.png"; // Adjust based on actual response structure
-    } catch (error) {
-      return "/job-logo.png"; // Fallback on error
-    }
   };
 
   if (loading) {
@@ -100,7 +93,6 @@ export function Home() {
 
   return (
     <div className="bg-gray-100 min-h-screen">
-      {/* Hero Section */}
       <header
         className="relative flex flex-col justify-center items-center text-white h-[70vh] bg-cover bg-center px-4 sm:px-6"
         style={{ backgroundImage: 'url("https://images.unsplash.com/photo-1559136555-9303baea8ebd?auto=format&fit=crop&q=80")' }}
@@ -126,7 +118,6 @@ export function Home() {
         </div>
       </header>
 
-      {/* Job Listings */}
       <div className="max-w-6xl mx-auto bg-white rounded-lg shadow-md p-4 sm:p-6 mt-6">
         <h2 className="text-xl sm:text-2xl font-bold mb-4">Jobs For You</h2>
 
@@ -173,24 +164,11 @@ export function Home() {
                     View Job
                   </button>
                 </div>
-                <div className="flex justify-center mt-4">
-                  <img
-                    src={
-                      job.employer.profilePictureUrl
-                        ? `http://localhost:8100/api/user/${job.employer.userId}/profile-picture`
-                        : "/job-logo.png"
-                    }
-                    alt="Company Logo"
-                    className="w-16 h-16 sm:w-20 sm:h-20 rounded-full object-cover"
-                    onError={(e) => (e.target.src = "/job-logo.png")} // Fallback if fetch fails
-                  />
-                </div>
               </div>
             ))}
           </div>
         )}
 
-        {/* Pagination */}
         {totalPages > 1 && (
           <div className="flex justify-center mt-6 space-x-2">
             <button
