@@ -65,7 +65,7 @@ const JobDetails = () => {
 
       if (response.data.code === 200) {
         const jobData = response.data.data;
-        if (!jobData.activeStatus) {
+        if (jobData.jobStatus != "PENDING") {
           setError("Job Not Active");
           setLoading(false);
           return;
