@@ -11,6 +11,14 @@ const ApplicationSummary = () => {
   const [summaryData, setSummaryData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [startDate, setStartDate] = useState(() => {
+    const date = new Date();
+    date.setMonth(date.getMonth() - 1);
+    return date.toISOString().slice(0, 10); // Only date, no time
+  });
+  const [endDate, setEndDate] = useState(() => {
+    return new Date().toISOString().slice(0, 10); // Only date, no time
+  });
 
   useEffect(() => {
     const fetchSummaryData = async () => {
@@ -33,8 +41,13 @@ const ApplicationSummary = () => {
       }
 
       try {
-        const response = await axios.get(
-          `http://localhost:8100/api/v1/application/student/${userId}/summary`,
+        const response = await axios.post(
+          `http://localhost:8100/api/v1/application/student/summary`,
+          {
+            studentId: userId,
+            startDate: new Date(startDate).toISOString(),
+            endDate: new Date(endDate).toISOString()
+          },
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -43,7 +56,7 @@ const ApplicationSummary = () => {
           }
         );
 
-        setSummaryData(response.data.data);
+        setSummaryData(response.data.data); // Updated to match new response structure
         setLoading(false);
       } catch (err) {
         setError(err.response?.data?.message || "Failed to fetch summary data");
@@ -52,7 +65,7 @@ const ApplicationSummary = () => {
     };
 
     fetchSummaryData();
-  }, []);
+  }, [startDate, endDate]);
 
   if (loading) {
     return (
@@ -72,16 +85,18 @@ const ApplicationSummary = () => {
 
   // Prepare data for Pie Chart (Status Percentages)
   const pieData = {
-    labels: ["Confirmed", "Pending", "Rejected"],
+    labels: ["Confirmed", "Pending", "Rejected", "Accepted", "Inactive"],
     datasets: [
       {
         data: [
-          summaryData.statusPercentages.CONFIRMED,
-          summaryData.statusPercentages.PENDING,
-          summaryData.statusPercentages.REJECTED,
+          summaryData.statusPercentages.CONFIRMED || 0,
+          summaryData.statusPercentages.PENDING || 0,
+          summaryData.statusPercentages.REJECTED || 0,
+          summaryData.statusPercentages.ACCEPTED || 0,
+          summaryData.statusPercentages.INACTIVE || 0,
         ],
-        backgroundColor: ["#34D399", "#F97316", "#EF4444"], // Green, Orange, Red
-        hoverBackgroundColor: ["#2DD4BF", "#F97316", "#DC2626"],
+        backgroundColor: ["#34D399", "#F97316", "#EF4444", "#A855F7", "#6B7280"], // Added Purple for Accepted, Gray for Inactive
+        hoverBackgroundColor: ["#2DD4BF", "#F97316", "#DC2626", "#9333EA", "#4B5563"],
       },
     ],
   };
@@ -150,8 +165,41 @@ const ApplicationSummary = () => {
             Application Summary
           </h1>
 
+          {/* Date Filter Section */}
+          <div className="mb-8">
+            <h2 className="text-xl font-semibold text-gray-700 mb-4">Filter by Date Range</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Start Date
+                </label>
+                <input
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  End Date
+                </label>
+                <input
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                  className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+            </div>
+          </div>
+
           {/* Summary Stats */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
+            <div className="bg-white border border-gray-200 p-4 rounded-lg text-center shadow-sm">
+              <p className="text-lg font-semibold text-gray-500">Inactive</p>
+              <p className="text-2xl text-gray-500">{summaryData.inactive}</p>
+            </div>
             <div className="bg-white border border-gray-200 p-4 rounded-lg text-center shadow-sm">
               <p className="text-lg font-semibold text-teal-500">Confirmed</p>
               <p className="text-2xl text-teal-500">{summaryData.confirmed}</p>
