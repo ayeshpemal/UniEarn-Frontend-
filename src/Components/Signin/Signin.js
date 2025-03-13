@@ -45,13 +45,13 @@ const Signin = () => {
                 // Navigate based on role
                 switch (role) {
                     case "STUDENT":
-                        navigate("/home");
+                        window.location.href = `/home`;
                         break;
                     case "EMPLOYER":
-                        navigate("/e-home");
+                        window.location.href = `/e-home`;
                         break;
                     case "ADMIN":
-                        navigate("/admin");
+                        window.location.href = `/admin`;
                         break;
                     default:
                         alert("Unknown role. Please contact support.");

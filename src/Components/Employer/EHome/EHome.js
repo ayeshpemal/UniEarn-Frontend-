@@ -8,7 +8,7 @@ const EHome = () => {
   const [error, setError] = useState(null);
   const [currentPage, setCurrentPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
-  const jobsPerPage = 10; // Updated to 10 as requested
+  const jobsPerPage = 10;
 
   useEffect(() => {
     const fetchJobs = async () => {
@@ -104,15 +104,17 @@ const EHome = () => {
   if (loading) return <div className="flex justify-center items-center h-screen">Loading...</div>;
   if (error) return <div className="text-red-500 text-center p-4">{error}</div>;
 
-  const activeJobs = jobs.filter(job => job.jobStatus === true);
-  const inactiveJobs = jobs.filter(job => job.jobStatus === false);
+  const pendingJobs = jobs.filter(job => job.jobStatus === 'PENDING');
+  const ongoingJobs = jobs.filter(job => job.jobStatus === 'ON_GOING');
+  const finishedJobs = jobs.filter(job => job.jobStatus === 'FINISH');
+  const cancelledJobs = jobs.filter(job => job.jobStatus === 'CANCEL');
 
   const renderJobCard = (job) => (
     <div
       key={job.jobId}
-      className="bg-white rounded-lg shadow-md p-4 sm:p-6 hover:shadow-lg transition-shadow duration-300 flex flex-col sm:flex-row justify-between items-start gap-4 relative"
+      className="bg-white rounded-lg shadow-md p-4 sm:p-6 hover:shadow-lg transition-shadow duration-300 flex flex-col justify-between items-start gap-4 relative"
     >
-      <div className="flex-1 w-full sm:w-auto">
+      <div className="flex-1 w-full">
         <h3 className="text-lg sm:text-xl font-semibold text-gray-900">{job.jobTitle || 'Job Title Not Available'}</h3>
         <p className="text-gray-600 mt-2">{job.jobDescription || 'Job description not available'}</p>
         <p className="text-gray-600 mt-2">Location: {formatLocation(job.jobLocation)}</p>
@@ -120,36 +122,35 @@ const EHome = () => {
         <p className="text-gray-600 mt-2">Working Hours: {formatTime(job.startTime)} to {formatTime(job.endTime)}</p>
         <p className="text-gray-600 mt-2">Required Workers: {job.requiredWorkers || 'Not specified'}</p>
         <p className="text-gray-600 mt-2">Gender: {job.requiredGender?.length > 0 ? job.requiredGender.join(', ') : 'Not specified'}</p>
-        <p className={`mt-2 ${job.jobStatus ? 'text-green-600' : 'text-red-600'}`}>
-          Status: {job.jobStatus ? 'Active' : 'Inactive'}
+        <p className={`mt-2 ${
+          job.jobStatus === 'PENDING' ? 'text-yellow-600' : 
+          job.jobStatus === 'ON_GOING' ? 'text-green-600' : 
+          job.jobStatus === 'FINISH' ? 'text-blue-600' : 
+          'text-red-600'
+        }`}>
+          Status: {job.jobStatus}
         </p>
         <p className="text-green-600 font-bold mt-2">Rs. {job.jobPayment || '0.00'}</p>
-        <div className="mt-4 flex flex-col sm:flex-row gap-2">
-          <button
-            onClick={() => handleViewStudents(job.jobId)}
-            className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors w-full sm:w-auto"
-          >
-            View Students
-          </button>
-          {job.jobStatus && (
+        {job.jobStatus !== 'CANCEL' && (
+          <div className="mt-4 flex flex-col sm:flex-row gap-2">
             <button
-              onClick={() => handleEditJob(job.jobId)}
-              className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors w-full sm:w-auto"
+              onClick={() => handleViewStudents(job.jobId)}
+              className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors w-full sm:w-auto"
             >
-              Edit Job
+              View Students
             </button>
-          )}
-        </div>
+            {job.jobStatus === 'PENDING' && (
+              <button
+                onClick={() => handleEditJob(job.jobId)}
+                className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors w-full sm:w-auto"
+              >
+                Edit Job
+              </button>
+            )}
+          </div>
+        )}
       </div>
-      <div className="flex flex-col items-center gap-2 w-full sm:w-20">
-        <img
-          src="/job-logo.png"
-          alt={`${job.jobCategory} Logo`}
-          className="w-20 h-20 rounded-full object-cover"
-          onError={(e) => (e.target.src = '/path-to-default-logo.png')}
-        />
-      </div>
-      {job.jobStatus && (
+      {job.jobStatus === 'PENDING' && (
         <button
           onClick={() => handleDeleteJob(job.jobId)}
           className="absolute bottom-4 right-4 bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors"
@@ -160,14 +161,29 @@ const EHome = () => {
     </div>
   );
 
+  const renderSection = (title, jobList) => (
+    jobList.length > 0 && (
+      <div className="mt-12">
+        <h2 className="text-2xl sm:text-3xl font-bold mb-6 text-gray-800 text-center">{title}</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {jobList.map(renderJobCard)}
+        </div>
+      </div>
+    )
+  );
+
   return (
     <div className="min-h-screen bg-gray-50">
       <section className="container mx-auto p-4 sm:p-6 md:p-8 lg:p-10">
-        <h2 className="text-2xl sm:text-3xl font-bold mb-6 text-gray-800 text-center">Live Jobs</h2>
-        {activeJobs.length === 0 ? (
-          <p className="text-gray-500 text-center">No live jobs available.</p>
+        {jobs.length === 0 ? (
+          <p className="text-gray-500 text-center">No jobs available.</p>
         ) : (
-          <div className="grid gap-6">{activeJobs.map(renderJobCard)}</div>
+          <>
+            {renderSection('Pending Jobs', pendingJobs)}
+            {renderSection('Ongoing Jobs', ongoingJobs)}
+            {renderSection('Finished Jobs', finishedJobs)}
+            {renderSection('Cancelled Jobs', cancelledJobs)}
+          </>
         )}
 
         {totalPages > 1 && jobs.length > 0 && (
@@ -195,13 +211,6 @@ const EHome = () => {
             >
               Next
             </button>
-          </div>
-        )}
-
-        {inactiveJobs.length > 0 && (
-          <div className="mt-12">
-            <h2 className="text-2xl sm:text-3xl font-bold mb-6 text-gray-800 text-center">Recent Jobs</h2>
-            <div className="grid gap-6">{inactiveJobs.map(renderJobCard)}</div>
           </div>
         )}
       </section>

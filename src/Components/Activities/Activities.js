@@ -1,11 +1,17 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
+import axios from "axios";
 
 const Activities = () => {
   const navigate = useNavigate();
-  const [pendingActivities, setPendingActivities] = useState([]);
-  const [confirmedActivities, setConfirmedActivities] = useState([]);
+  const [activities, setActivities] = useState({
+    inactive: [],
+    pending: [],
+    accepted: [],
+    rejected: [],
+    confirmed: []
+  });
   const [currentPage, setCurrentPage] = useState(0);
   const [totalCount, setTotalCount] = useState(0);
   const itemsPerPage = 5;
@@ -25,17 +31,26 @@ const Activities = () => {
       const decodedToken = jwtDecode(token);
       const userId = decodedToken.user_id;
 
-      const response = await fetch(
-        `http://localhost:8100/api/v1/jobs/get-jobs-by-user?user_id=${userId}&page=${currentPage}`
+      const response = await axios.get(
+        `http://localhost:8100/api/v1/jobs/get-jobs-by-user?user_id=${userId}&page=${currentPage}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
       );
-      const data = await response.json();
 
-      if (data.code === 200) {
-        const jobs = data.data.jobList;
-        setTotalCount(data.data.dataCount);
+      if (response.data.code === 200) {
+        const jobs = response.data.data.jobList;
+        setTotalCount(response.data.data.dataCount);
 
-        setPendingActivities(jobs.filter(job => job.applicationStatus === "PENDING"));
-        setConfirmedActivities(jobs.filter(job => job.applicationStatus === "CONFIRMED"));
+        setActivities({
+          inactive: jobs.filter(job => job.applicationStatus === "INACTIVE"),
+          pending: jobs.filter(job => job.applicationStatus === "PENDING"),
+          accepted: jobs.filter(job => job.applicationStatus === "ACCEPTED"),
+          rejected: jobs.filter(job => job.applicationStatus === "REJECTED"),
+          confirmed: jobs.filter(job => job.applicationStatus === "CONFIRMED")
+        });
       }
     } catch (error) {
       console.error("Error fetching activities:", error);
@@ -145,7 +160,6 @@ const Activities = () => {
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Hero Section (Original size: h-[50vh] sm:h-[70vh]) */}
       <div
         className="relative h-[50vh] sm:h-[70vh] bg-cover bg-center"
         style={{
@@ -166,15 +180,15 @@ const Activities = () => {
         </div>
       </div>
 
-      {/* Activities Tables */}
       <div className="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
-        {pendingActivities.length > 0 && renderTable(pendingActivities, "Pending Activities")}
-        {confirmedActivities.length > 0 && renderTable(confirmedActivities, "Confirmed Activities")}
+        {activities.inactive.length > 0 && renderTable(activities.inactive, "Inactive Activities")}
+        {activities.pending.length > 0 && renderTable(activities.pending, "Pending Activities")}
+        {activities.accepted.length > 0 && renderTable(activities.accepted, "Accepted Activities")}
+        {activities.rejected.length > 0 && renderTable(activities.rejected, "Rejected Activities")}
+        {activities.confirmed.length > 0 && renderTable(activities.confirmed, "Confirmed Activities")}
 
-        {/* Pagination */}
         {totalCount > itemsPerPage && renderPagination()}
 
-        {/* Summary Button */}
         <div className="text-center mt-8">
           <button
             onClick={onNavigateToSummary}
