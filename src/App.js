@@ -39,6 +39,8 @@ import SearchEmployer from "./Components/SearchEmployer/SearchEmployer";
 import StudentSummary from "./Components/StudentSummary/StudentSummary";
 import ResetPassword from "./Components/ResetPassword/ResetPassword";
 import NotFound from "./Components/NotFound/NotFound";
+import ANavBar from "./Components/Admins/ANavBar/ANavBar";
+import Footer from './Components/Footer/Footer';
 
 
 function App() {
@@ -177,7 +179,8 @@ function App() {
             {!isPublicRoute && <ChatButton />}
             {!isPublicRoute && isAuthenticated && (
                 userRole === 'STUDENT' ? <NavBar /> : 
-                userRole === 'EMPLOYER' ? <ENavBar /> : null
+                userRole === 'EMPLOYER' ? <ENavBar /> :
+                userRole === 'ADMIN' ? <ANavBar /> : null
             )}
 
             {/* Render HeroSections only on valid routes */}
@@ -185,6 +188,8 @@ function App() {
             {isValidRoute && !eSearchBarCompany.includes(location.pathname) && <EHeroSectionCompany />}
             {isValidRoute && !searchBarHome.includes(location.pathname) && <HeroSectionHome />}
             {isValidRoute && !searchBarCompany.includes(location.pathname) && <HeroSectionCompany />}
+
+            {isValidRoute && !publicRoutes && <Footer />}
 
             <Routes>
                 {/* Public Routes */}
