@@ -18,7 +18,7 @@ import HeroSectionHome from "./Components/HeroSection/HeroSectionHome";
 import HeroSectionCompany from "./Components/HeroSection/HeroSectionCompany";
 import ContactUs from "./Components/ContactUs/ContactUs";
 import LogoutPopup from "./Components/LogoutPopup/LogoutPopup";
-import Admins from "./Components/Admins/Admins";
+import Admins from "./Components/Admins/AHome/Admins";
 import ESignin from "./Components/Employer/ESignin/ESignin";
 import EHero from "./Components/Employer/EHero/EHero";
 import EChatButton from "./Components/Employer/EChatButton/EChatButton";
@@ -41,7 +41,9 @@ import ResetPassword from "./Components/ResetPassword/ResetPassword";
 import NotFound from "./Components/NotFound/NotFound";
 import ANavBar from "./Components/Admins/ANavBar/ANavBar";
 import Footer from './Components/Footer/Footer';
-
+import AProfile from './Components/Admins/AProfile/AProfile';
+import ASearchEmployer from './Components/Admins/ASearchEmployer/ASearchEmployer';
+import ASearchStudent from './Components/Admins/ASearchStudent/ASearchStudent';
 
 function App() {
     const location = useLocation();
@@ -87,7 +89,8 @@ function App() {
         "/", "/home", "/hero", "/sign-in", "/sign-up", "/home", "/profile", "/verify", "/e-home", 
         "/activities", "/job-details", "/apply-job", "/contact-us", "/company-rating", "/e-hero", 
         "/e-sign-in", "/e-sign-up", "/e-contact-us", "/admins/stats", "/company", "/activities", 
-        "/profile", "/search-student", "/job-details", "/e-job-create", "/e-job-edit", "/activities/summary", "/reset-password"
+        "/profile", "/search-student", "/job-details", "/e-job-create", "/e-job-edit", "/activities/summary", 
+        "/reset-password"
     ];
 
     // Define all valid routes explicitly
@@ -204,8 +207,11 @@ function App() {
                 <Route path="/" element={<Admins />} />
 
                 {/* Protected Routes */}
-                <Route path="/admins" element={<ProtectedRoute><Admins /></ProtectedRoute>} />
-                <Route path="/admins/stats" element={<ProtectedRoute><AdminStats /></ProtectedRoute>} />
+                <Route path="/a-home" element={<ProtectedRoute><Admins /></ProtectedRoute>} />
+                <Route path="/admin/stats" element={<ProtectedRoute><AdminStats /></ProtectedRoute>} />
+                <Route path="/a-profile" element={<ProtectedRoute><AProfile /></ProtectedRoute>} />
+                <Route path="/a-company" element={<ProtectedRoute><ASearchEmployer /></ProtectedRoute>} />
+                <Route path="/a-student" element={<ProtectedRoute><ASearchStudent /></ProtectedRoute>} />
                 
                 {/* Employer Protected Routes */}
                 <Route path="/e-home" element={<ProtectedRoute><EHome /></ProtectedRoute>} />
@@ -234,6 +240,8 @@ function App() {
                 {/* Catch-all Route for Not Found */}
                 <Route path="*" element={<NotFound />} />
             </Routes>
+
+            {!isPublicRoute && isAuthenticated && <Footer />}
         </div>
     );
 }
