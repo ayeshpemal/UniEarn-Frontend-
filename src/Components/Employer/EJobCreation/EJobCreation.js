@@ -178,16 +178,16 @@ export default function JobCreationForm() {
       return;
     }
 
-    // Format the data for the API, converting startTime and endTime to strings
+    // Format the data for the API
     const formattedData = {
       ...formData,
       jobLocations: formData.jobLocations.map(loc => ({
         ...loc,
-        startDate: new Date(loc.startDate).toISOString(),
-        endDate: new Date(loc.endDate).toISOString()
+        startDate: `${loc.startDate}T00:00:00`, // Fixed time 00:00:00
+        endDate: `${loc.endDate}T06:00:00`      // Fixed time 06:00:00
       })),
-      startTime: formatTimeForAPI(formData.startTime), // "HH:mm:ss"
-      endTime: formatTimeForAPI(formData.endTime),     // "HH:mm:ss"
+      startTime: formatTimeForAPI(formData.startTime), // Keep original dynamic time
+      endTime: formatTimeForAPI(formData.endTime),     // Keep original dynamic time
       employer: Number(formData.employer)
     };
 
