@@ -90,7 +90,7 @@ function App() {
         "/activities", "/job-details", "/apply-job", "/contact-us", "/company-rating", "/e-hero", 
         "/e-sign-in", "/e-sign-up", "/e-contact-us", "/admins/stats", "/company", "/activities", 
         "/profile", "/search-student", "/job-details", "/e-job-create", "/e-job-edit", "/activities/summary", 
-        "/reset-password"
+        "/reset-password","/e-profile"
     ];
 
     // Define all valid routes explicitly
