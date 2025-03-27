@@ -1,3 +1,4 @@
+
 import React from "react";
 import bgImage from "./bg.png";
 import {useNavigate} from "react-router-dom"; // Import the background image
