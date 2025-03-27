@@ -130,7 +130,10 @@ const Signin = () => {
             className="min-h-screen flex items-center justify-center bg-cover bg-center relative"
             style={{ backgroundImage: "url('/Background.png')" }}
         >
-            <header className="absolute top-4 left-4 sm:top-10 sm:left-10 z-10 text-white">
+            {/* Dark Overlay */}
+            <div className="absolute inset-0 bg-black bg-opacity-50 z-10"></div>
+
+            <header className="absolute top-4 left-4 sm:top-10 sm:left-10 z-20 text-white">
                 <div className="flex items-center space-x-2">
                     <GraduationCap size={40} className="sm:w-12 sm:h-12 text-white" />
                     <span className="text-2xl sm:text-4xl font-bold">Uni Earn</span>
@@ -141,7 +144,7 @@ const Signin = () => {
                 </div>
             </header>
 
-            <div className="bg-white bg-opacity-10 backdrop-blur-md rounded-2xl p-8 w-full max-w-md mx-4">
+            <div className="relative z-20 bg-white bg-opacity-10 backdrop-blur-md rounded-2xl p-8 w-full max-w-md mx-4">
                 <div className="text-white text-center">
                     <h2 className="text-2xl sm:text-3xl font-bold mb-2">SIGN IN</h2>
                     <p className="mb-6 text-gray-300">Sign in with your user name</p>
@@ -149,7 +152,7 @@ const Signin = () => {
                         <input
                             type="text"
                             placeholder="User Name"
-                            className="w-full px-4 py-3 bg-gray-800 text-white rounded-lg border border-gray-700 focus:outline-none focus:border-blue-500"
+                            className="w-full px-4 py-3 bg-[#261046] text-white rounded-lg border border-gray-700 focus:outline-none focus:border-blue-500"
                             name="userName"
                             required
                             onChange={handleInputChange}
@@ -157,7 +160,7 @@ const Signin = () => {
                         <input
                             type="password"
                             placeholder="Password"
-                            className="w-full px-4 py-3 bg-gray-800 text-white rounded-lg border border-gray-700 focus:outline-none focus:border-blue-500"
+                            className="w-full px-4 py-3 bg-[#261046] text-white rounded-lg border border-gray-700 focus:outline-none focus:border-blue-500"
                             name="password"
                             required
                             onChange={handleInputChange}
@@ -276,7 +279,7 @@ const Signin = () => {
                                     setIsForgotPasswordSuccess(false);
                                 }}
                             >
-                               Close
+                                Close
                             </button>
                         </div>
                     </div>

@@ -41,10 +41,8 @@ const EmployerSignUp = () => {
         "OTHER",
     ];
 
-    // Handle Input Change
     const handleInputChange = (e) => {
         const { name, value } = e.target;
-
         setFormData((prev) => {
             if (name === "contactNumbers") {
                 return {
@@ -60,7 +58,6 @@ const EmployerSignUp = () => {
         });
     };
 
-    // Handle Checkbox Change
     const handleCheckboxChange = (e) => {
         const { value, checked } = e.target;
         setFormData((prevData) => ({
@@ -71,10 +68,8 @@ const EmployerSignUp = () => {
         }));
     };
 
-    // Handle Submit
     const handleSubmit = async (e) => {
         e.preventDefault();
-
         console.log(formData);
 
         if (formData.password !== formData.confirmPassword) {
@@ -87,9 +82,7 @@ const EmployerSignUp = () => {
             const response = await axios.post(
                 "http://localhost:8100/api/user/register",
                 formData,
-                {
-                    headers: { "Content-Type": "application/json" },
-                }
+                { headers: { "Content-Type": "application/json" } }
             );
             console.log("API Response:", response);
 
@@ -113,30 +106,38 @@ const EmployerSignUp = () => {
     };
 
     return (
-        <div className="relative w-full h-screen bg-cover bg-center signin-container">
-            <header className="absolute top-10 left-10 z-10 text-white">
-                <h1 className="text-4xl font-bold">SIGN UP TO YOUR</h1>
-                <p className="text-4xl font-bold text-blue-500">ADVENTURE!</p>
+        <div
+            className="relative w-full min-h-screen bg-cover bg-center flex items-center justify-center"
+            style={{ backgroundImage: "url('./Background.png')" }}
+        >
+            {/* Dark Overlay */}
+            <div className="absolute inset-0 bg-black bg-opacity-50 z-10"></div>
+
+            {/* Header */}
+            <header className="absolute top-4 left-4 sm:top-6 sm:left-6 z-20 text-white">
+                <h1 className="text-xl sm:text-4xl font-bold">SIGN UP TO YOUR</h1>
+                <p className="text-xl sm:text-4xl font-bold text-blue-500">ADVENTURE!</p>
             </header>
 
             {/* Change Role Button */}
             <button
                 onClick={handleChangeRole}
-                className="absolute top-10 right-10 bg-blue-500 text-white py-2 px-4 rounded-lg font-bold hover:opacity-90 z-50"
+                className="absolute top-4 right-4 sm:top-6 sm:right-6 bg-blue-500 text-white py-2 px-4 rounded-lg font-bold hover:opacity-90 z-20"
             >
                 Change Role
             </button>
 
-            <div className="relative z-20 flex flex-col items-center justify-center h-full">
-                <div className="bg-opacity-90 rounded-lg p-8 w-11/12 max-w-4xl">
-                    <h2 className="text-white text-3xl font-bold mb-6 text-center">SIGN UP</h2>
+            {/* Signup Form Container */}
+            <div className="relative z-20 w-full max-w-5xl mx-4 sm:mx-6 lg:mx-8 pt-24 sm:pt-32 pb-8">
+                <div className="rounded-lg p-6 sm:p-8">
+                    <h2 className="text-white text-2xl sm:text-3xl font-bold mb-6 text-center">SIGN UP</h2>
                     <form className="grid grid-cols-1 md:grid-cols-2 gap-4" onSubmit={handleSubmit}>
                         {/* Company Name */}
                         <div>
                             <input
                                 type="text"
                                 placeholder="Company/Employer Name"
-                                className="form-input w-full px-4 py-3 rounded-lg"
+                                className="w-full px-4 py-3 rounded-lg bg-[#261046] text-[#A4A4A4] text-base placeholder-[#A4A4A4] focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 name="companyName"
                                 required
                                 onChange={handleInputChange}
@@ -148,7 +149,7 @@ const EmployerSignUp = () => {
                             <input
                                 type="text"
                                 placeholder="Description"
-                                className="form-input w-full px-4 py-3 rounded-lg"
+                                className="w-full px-4 py-3 rounded-lg bg-[#261046] text-[#A4A4A4] text-base placeholder-[#A4A4A4] focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 name="companyDetails"
                                 required
                                 onChange={handleInputChange}
@@ -159,7 +160,7 @@ const EmployerSignUp = () => {
                         {/* Location */}
                         <div>
                             <select
-                                className="form-input w-full px-4 py-3 rounded-lg"
+                                className="w-full px-4 py-3 rounded-lg bg-[#261046] text-[#A4A4A4] text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 name="location"
                                 required
                                 onChange={handleInputChange}
@@ -199,7 +200,7 @@ const EmployerSignUp = () => {
                             <input
                                 type="email"
                                 placeholder="Email"
-                                className="form-input w-full px-4 py-3 rounded-lg"
+                                className="w-full px-4 py-3 rounded-lg bg-[#261046] text-[#A4A4A4] text-base placeholder-[#A4A4A4] focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 name="email"
                                 required
                                 onChange={handleInputChange}
@@ -212,7 +213,7 @@ const EmployerSignUp = () => {
                             <input
                                 type="text"
                                 placeholder="Mobile No"
-                                className="form-input w-full px-4 py-3 rounded-lg"
+                                className="w-full px-4 py-3 rounded-lg bg-[#261046] text-[#A4A4A4] text-base placeholder-[#A4A4A4] focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 name="contactNumbers"
                                 required
                                 onChange={handleInputChange}
@@ -225,7 +226,7 @@ const EmployerSignUp = () => {
                             <input
                                 type="text"
                                 placeholder="User Name"
-                                className="form-input w-full px-4 py-3 rounded-lg"
+                                className="w-full px-4 py-3 rounded-lg bg-[#261046] text-[#A4A4A4] text-base placeholder-[#A4A4A4] focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 name="userName"
                                 required
                                 onChange={handleInputChange}
@@ -234,9 +235,9 @@ const EmployerSignUp = () => {
                         </div>
 
                         {/* Job Categories (Checkboxes) */}
-                        <div className="col-span-2">
+                        <div className="col-span-1 md:col-span-2">
                             <label className="text-white font-bold mb-2 block">Select Job Categories In Your Company:</label>
-                            <div className="grid grid-cols-3 gap-2 px-4 py-3 rounded-lg bg-[#261046] text-white">
+                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 px-4 py-3 rounded-lg bg-[#261046] text-white">
                                 {jobCategoriesList.map((category) => (
                                     <label key={category} className="flex items-center space-x-2">
                                         <input
@@ -245,9 +246,9 @@ const EmployerSignUp = () => {
                                             value={category}
                                             checked={formData.categories.includes(category)}
                                             onChange={handleCheckboxChange}
-                                            className="form-checkbox bg-gray-700 border-gray-600"
+                                            className="form-checkbox bg-gray-700 border-gray-600 h-4 w-4"
                                         />
-                                        <span className="text-white">{category.replace(/_/g, " ")}</span>
+                                        <span className="text-white text-sm sm:text-base">{category.replace(/_/g, " ")}</span>
                                     </label>
                                 ))}
                             </div>
@@ -258,7 +259,7 @@ const EmployerSignUp = () => {
                             <input
                                 type="password"
                                 placeholder="Password"
-                                className="form-input w-full px-4 py-3 rounded-lg"
+                                className="w-full px-4 py-3 rounded-lg bg-[#261046] text-[#A4A4A4] text-base placeholder-[#A4A4A4] focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 name="password"
                                 required
                                 onChange={handleInputChange}
@@ -271,7 +272,7 @@ const EmployerSignUp = () => {
                             <input
                                 type="password"
                                 placeholder="Confirm Password"
-                                className="form-input w-full px-4 py-3 rounded-lg"
+                                className="w-full px-4 py-3 rounded-lg bg-[#261046] text-[#A4A4A4] text-base placeholder-[#A4A4A4] focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 name="confirmPassword"
                                 required
                                 onChange={handleInputChange}
@@ -280,19 +281,28 @@ const EmployerSignUp = () => {
                         </div>
 
                         {/* Submit Button */}
-                        <div className="col-span-2 mt-6 text-center">
-                            <button type="submit" className="bg-gradient-to-r from-purple-500 to-blue-500 text-white py-3 px-6 rounded-lg font-bold hover:opacity-90">
+                        <div className="col-span-1 md:col-span-2 mt-6 text-center">
+                            <button type="submit" className="bg-gradient-to-r from-purple-500 to-blue-500 text-white py-3 px-6 rounded-lg font-bold hover:opacity-90 w-full sm:w-auto">
                                 Submit
                             </button>
                         </div>
                     </form>
+
+                    {/* Sign In Link */}
+                    <div className="mt-6 text-center">
+                        <p className="text-gray-200">
+                            Already have an account?{" "}
+                            <span className="text-red-400 font-bold cursor-pointer" onClick={() => navigate("/sign-in")}>
+                                Sign In
+                            </span>
+                        </p>
+                    </div>
                 </div>
 
                 {/* Email Verification Popup */}
                 {showVerificationPopup && (
-                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-                        <div className="bg-white rounded-2xl p-6 shadow-lg w-auto text-center relative">
-                            {/* Close Button */}
+                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                        <div className="bg-white rounded-2xl p-6 shadow-lg w-11/12 sm:w-auto max-w-md text-center relative">
                             <button
                                 className="absolute top-2 right-2 text-gray-600 hover:text-red-500"
                                 onClick={() => setShowVerificationPopup(false)}
