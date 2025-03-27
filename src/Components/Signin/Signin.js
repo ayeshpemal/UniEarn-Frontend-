@@ -48,7 +48,7 @@ const Signin = () => {
                         window.location.href = `/e-home`;
                         break;
                     case "ADMIN":
-                        window.location.href = `/admin`;
+                        window.location.href = `/a-home`;
                         break;
                     default:
                         alert("Unknown role. Please contact support.");
