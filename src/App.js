@@ -44,6 +44,7 @@ import Footer from './Components/Footer/Footer';
 import AProfile from './Components/Admins/AProfile/AProfile';
 import ASearchEmployer from './Components/Admins/ASearchEmployer/ASearchEmployer';
 import ASearchStudent from './Components/Admins/ASearchStudent/ASearchStudent';
+import Landing from './Components/Landing/Landing';
 
 function App() {
     const location = useLocation();
@@ -204,7 +205,7 @@ function App() {
                 <Route path="/e-hero" element={<EHero />} />
                 <Route path="/verify" element={<JobPreferences />} />
                 <Route path="/reset-password" element={<ResetPassword />} />
-                <Route path="/" element={<Admins />} />
+                <Route path="/" element={<Landing />} />
 
                 {/* Protected Routes */}
                 <Route path="/a-home" element={<ProtectedRoute><Admins /></ProtectedRoute>} />
