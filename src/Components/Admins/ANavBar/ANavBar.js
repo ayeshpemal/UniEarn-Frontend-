@@ -74,7 +74,7 @@ const ANavBar = () => {
                     <NavLink to="/a-company" className="hover:underline flex items-center gap-2" onClick={() => setMenuOpen(false)}>
                         <Building2 size={18} /> Company
                     </NavLink>
-                    <NavLink to="/a-student" className="hover:underline flex items-center gap-1">
+                    <NavLink to="/a-student" className="hover:underline flex items-center gap-1" onClick={() => setMenuOpen(false)}>
                         <Users size={18} /> Students
                     </NavLink>
                     <NavLink to="/activities" className="hover:underline flex items-center gap-2" onClick={() => setMenuOpen(false)}>
