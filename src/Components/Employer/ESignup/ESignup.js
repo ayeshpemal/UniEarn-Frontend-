@@ -49,7 +49,7 @@ const EmployerSignUp = () => {
             if (name === "contactNumbers") {
                 return {
                     ...prev,
-                    contactNumbers: value.split(",").map((num) => num.trim()), // Convert CSV input to arraya(07612333,12143214134)
+                    contactNumbers: value.split(",").map((num) => num.trim()),
                 };
             } else {
                 return {
@@ -68,7 +68,6 @@ const EmployerSignUp = () => {
             categories: checked
                 ? [...(prevData.categories || []), value]
                 : (prevData.categories || []).filter((cat) => cat !== value),
-
         }));
     };
 
@@ -109,12 +108,24 @@ const EmployerSignUp = () => {
         navigate("/sign-in");
     };
 
+    const handleChangeRole = () => {
+        navigate("/");
+    };
+
     return (
         <div className="relative w-full h-screen bg-cover bg-center signin-container">
             <header className="absolute top-10 left-10 z-10 text-white">
                 <h1 className="text-4xl font-bold">SIGN UP TO YOUR</h1>
                 <p className="text-4xl font-bold text-blue-500">ADVENTURE!</p>
             </header>
+
+            {/* Change Role Button */}
+            <button
+                onClick={handleChangeRole}
+                className="absolute top-10 right-10 bg-blue-500 text-white py-2 px-4 rounded-lg font-bold hover:opacity-90 z-50"
+            >
+                Change Role
+            </button>
 
             <div className="relative z-20 flex flex-col items-center justify-center h-full">
                 <div className="bg-opacity-90 rounded-lg p-8 w-11/12 max-w-4xl">
@@ -226,7 +237,6 @@ const EmployerSignUp = () => {
                         <div className="col-span-2">
                             <label className="text-white font-bold mb-2 block">Select Job Categories In Your Company:</label>
                             <div className="grid grid-cols-3 gap-2 px-4 py-3 rounded-lg bg-[#261046] text-white">
-
                                 {jobCategoriesList.map((category) => (
                                     <label key={category} className="flex items-center space-x-2">
                                         <input
@@ -242,7 +252,6 @@ const EmployerSignUp = () => {
                                 ))}
                             </div>
                         </div>
-
 
                         {/* Password */}
                         <div>
@@ -272,15 +281,15 @@ const EmployerSignUp = () => {
 
                         {/* Submit Button */}
                         <div className="col-span-2 mt-6 text-center">
-                            <button type="submit" className="bg-blue-500 text-white py-3 px-6 rounded-lg font-bold hover:opacity-90">
+                            <button type="submit" className="bg-gradient-to-r from-purple-500 to-blue-500 text-white py-3 px-6 rounded-lg font-bold hover:opacity-90">
                                 Submit
                             </button>
                         </div>
                     </form>
                 </div>
 
- {/* Email Verification Popup */}
- {showVerificationPopup && (
+                {/* Email Verification Popup */}
+                {showVerificationPopup && (
                     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
                         <div className="bg-white rounded-2xl p-6 shadow-lg w-auto text-center relative">
                             {/* Close Button */}
@@ -301,9 +310,7 @@ const EmployerSignUp = () => {
                         </div>
                     </div>
                 )}
-
             </div>
-
         </div>
     );
 };

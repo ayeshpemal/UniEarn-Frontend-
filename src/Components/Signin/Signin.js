@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import "./signin.css";
 import { useNavigate } from "react-router-dom";
 import { GraduationCap, X } from "lucide-react";
 import axios from "axios";
@@ -35,14 +34,12 @@ const Signin = () => {
             localStorage.setItem("token", token);
 
             if (response.status === 200) {
-                // Decode the token to get the role
                 const decoded = jwtDecode(token);
-                console.log("Decoded token:", decoded); // Debug: Check token structure
+                console.log("Decoded token:", decoded);
                 const role = decoded.role;
 
                 alert("Login Successful!");
 
-                // Navigate based on role
                 switch (role) {
                     case "STUDENT":
                         window.location.href = `/home`;
@@ -55,7 +52,7 @@ const Signin = () => {
                         break;
                     default:
                         alert("Unknown role. Please contact support.");
-                        navigate("/"); // Redirect to a default page or handle differently
+                        navigate("/");
                         break;
                 }
             }
@@ -103,11 +100,7 @@ const Signin = () => {
         }
 
         try {
-            // Encode the email address to handle special characters like '@'
             const encodedEmail = encodeURIComponent(forgotPasswordEmail);
-            console.log("Encoded email:", encodedEmail); // Debug: Check the encoded email
-            console.log("API URL:", `http://localhost:8100/api/auth/forgot-password?email=${encodedEmail}`); // Debug: Check the full URL
-
             const response = await axios.post(
                 `http://localhost:8100/api/auth/forgot-password?email=${encodedEmail}`,
                 {
@@ -115,14 +108,12 @@ const Signin = () => {
                 }
             );
 
-            console.log("API Response:", response); // Debug: Log the response
-
             if (response.status === 200) {
                 setForgotPasswordMessage("Password reset email sent successfully. Please check your inbox.");
                 setIsForgotPasswordSuccess(true);
             }
         } catch (error) {
-            console.error("Error during forgot password request:", error); // Debug: Log the error
+            console.error("Error during forgot password request:", error);
             setForgotPasswordMessage(
                 error.response?.data?.message || "Failed to send password reset email. Please try again."
             );
@@ -135,30 +126,30 @@ const Signin = () => {
     };
 
     return (
-        <div className="signin-container min-h-screen flex items-center justify-center">
-            {/* Top-Left Logo, Title, and Text */}
-            <header className="absolute top-4 sm:top-10 left-4 sm:left-10 z-10 text-white">
+        <div 
+            className="min-h-screen flex items-center justify-center bg-cover bg-center relative"
+            style={{ backgroundImage: "url('/Background.png')" }}
+        >
+            <header className="absolute top-4 left-4 sm:top-10 sm:left-10 z-10 text-white">
                 <div className="flex items-center space-x-2">
-                    <GraduationCap size={40} className="sm:size-50 text-white" />
+                    <GraduationCap size={40} className="sm:w-12 sm:h-12 text-white" />
                     <span className="text-2xl sm:text-4xl font-bold">Uni Earn</span>
                 </div>
                 <div className="mt-2 sm:mt-4">
                     <p className="text-lg sm:text-2xl">SIGN IN TO YOUR</p>
-                    <p className="text-lg sm:text-2xl font-bold text-blue-500 highlight">ADVENTURE!</p>
+                    <p className="text-lg sm:text-2xl font-bold text-blue-500">ADVENTURE!</p>
                 </div>
             </header>
 
-            {/* Background Overlay */}
-            <div className="background-overlay w-full max-w-md mx-4 sm:mx-6 lg:mx-8 py-8">
-                {/* Login Form */}
-                <div className="login-form">
-                    <h2 className="text-2xl sm:text-3xl">SIGN IN</h2>
-                    <p className="mb-6">Sign in with your user name</p>
+            <div className="bg-white bg-opacity-10 backdrop-blur-md rounded-2xl p-8 w-full max-w-md mx-4">
+                <div className="text-white text-center">
+                    <h2 className="text-2xl sm:text-3xl font-bold mb-2">SIGN IN</h2>
+                    <p className="mb-6 text-gray-300">Sign in with your user name</p>
                     <form onSubmit={verification} className="space-y-4">
                         <input
                             type="text"
                             placeholder="User Name"
-                            className="form-input w-full px-4 py-3"
+                            className="w-full px-4 py-3 bg-gray-800 text-white rounded-lg border border-gray-700 focus:outline-none focus:border-blue-500"
                             name="userName"
                             required
                             onChange={handleInputChange}
@@ -166,23 +157,29 @@ const Signin = () => {
                         <input
                             type="password"
                             placeholder="Password"
-                            className="form-input w-full px-4 py-3"
+                            className="w-full px-4 py-3 bg-gray-800 text-white rounded-lg border border-gray-700 focus:outline-none focus:border-blue-500"
                             name="password"
                             required
                             onChange={handleInputChange}
                         />
-                        <button type="submit" className="signin-button w-full py-3 px-6">
+                        <button 
+                            type="submit" 
+                            className="w-full py-3 bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                        >
                             Sign In
                         </button>
                     </form>
-                    <div className="signup-link mt-6">
-                        Don’t have an account ?{" "}
-                        <span className="text-red-400 font-bold cursor-pointer" onClick={onNavigateToSignUpPage}>
+                    <div className="mt-6 text-gray-300">
+                        Don’t have an account?{" "}
+                        <span 
+                            className="text-red-400 font-bold cursor-pointer hover:underline" 
+                            onClick={onNavigateToSignUpPage}
+                        >
                             Sign Up
                         </span>
                         <br />
                         <span
-                            className="text-blue-500 cursor-pointer"
+                            className="text-blue-500 cursor-pointer hover:underline"
                             onClick={() => setShowForgotPasswordPopup(true)}
                         >
                             Forgot Password
@@ -191,14 +188,12 @@ const Signin = () => {
                 </div>
             </div>
 
-            {/* Error/Success Popup for 403 Error */}
             {showErrorPopup && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                    <div className="bg-white rounded-2xl p-6 shadow-lg w-11/12 max-w-md text-center relative">
+                    <div className="bg-white rounded-2xl p-6 w-11/12 max-w-md text-center relative">
                         <button
                             className="absolute top-2 right-2 text-gray-600 hover:text-red-500"
                             onClick={() => setShowErrorPopup(false)}
-                            aria-label="Close"
                         >
                             <X size={20} />
                         </button>
@@ -210,18 +205,16 @@ const Signin = () => {
                             {isResendSuccess ? "Success" : "Error"}
                         </h2>
                         <p className="text-gray-600 mb-4">{errorMessage}</p>
-                        <div className="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-4">
+                        <div className="flex flex-col sm:flex-row justify-center gap-4">
                             <button
-                                className="bg-blue-500 text-white py-2 px-6 rounded-lg hover:bg-blue-600 transition"
+                                className="bg-blue-500 text-white py-2 px-6 rounded-lg hover:bg-blue-600 transition-colors"
                                 onClick={handleResendEmail}
-                                aria-label="Resend Email"
                             >
                                 Resend Email
                             </button>
                             <button
-                                className="bg-gray-500 text-white py-2 px-6 rounded-lg hover:bg-gray-600 transition"
+                                className="bg-gray-500 text-white py-2 px-6 rounded-lg hover:bg-gray-600 transition-colors"
                                 onClick={() => setShowErrorPopup(false)}
-                                aria-label="Close"
                             >
                                 Close
                             </button>
@@ -230,10 +223,9 @@ const Signin = () => {
                 </div>
             )}
 
-            {/* Forgot Password Popup */}
             {showForgotPasswordPopup && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                    <div className="bg-white rounded-2xl p-6 shadow-lg w-11/12 max-w-md text-center relative">
+                    <div className="bg-white rounded-2xl p-6 w-11/12 max-w-md text-center relative">
                         <button
                             className="absolute top-2 right-2 text-gray-600 hover:text-red-500"
                             onClick={() => {
@@ -242,7 +234,6 @@ const Signin = () => {
                                 setForgotPasswordMessage("");
                                 setIsForgotPasswordSuccess(false);
                             }}
-                            aria-label="Close"
                         >
                             <X size={20} />
                         </button>
@@ -255,7 +246,7 @@ const Signin = () => {
                         <input
                             type="email"
                             placeholder="Email Address"
-                            className="w-full px-4 py-3 border rounded-lg mb-4"
+                            className="w-full px-4 py-3 border rounded-lg mb-4 focus:outline-none focus:border-blue-500"
                             value={forgotPasswordEmail}
                             onChange={(e) => setForgotPasswordEmail(e.target.value)}
                             required
@@ -269,25 +260,23 @@ const Signin = () => {
                                 {forgotPasswordMessage}
                             </p>
                         )}
-                        <div className="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-4">
+                        <div className="flex flex-col sm:flex-row justify-center gap-4">
                             <button
-                                className="bg-blue-500 text-white py-2 px-6 rounded-lg hover:bg-blue-600 transition"
+                                className="bg-blue-500 text-white py-2 px-6 rounded-lg hover:bg-blue-600 transition-colors"
                                 onClick={handleForgotPassword}
-                                aria-label="Send Email"
                             >
                                 Send Email
                             </button>
                             <button
-                                className="bg-gray-500 text-white py-2 px-6 rounded-lg hover:bg-gray-600 transition"
+                                className="bg-gray-500 text-white py-2 px-6 rounded-lg hover:bg-gray-600 transition-colors"
                                 onClick={() => {
                                     setShowForgotPasswordPopup(false);
                                     setForgotPasswordEmail("");
                                     setForgotPasswordMessage("");
                                     setIsForgotPasswordSuccess(false);
                                 }}
-                                aria-label="Close"
                             >
-                                Close
+                               Close
                             </button>
                         </div>
                     </div>
