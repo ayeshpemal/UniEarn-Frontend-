@@ -15,8 +15,8 @@ const HeroSectionStudent = ({ onSearchResults }) => {
         <div className="absolute inset-0 bg-black bg-opacity-50" />
         <div className="relative z-10 text-center">
           <h1 className="text-4xl md:text-6xl font-bold text-white">
-            Connect with <br />
-            <span className="text-blue-400">Friends</span>
+            Find <br />
+            <span className="text-blue-400">Students</span>
           </h1>
           <ASearchStudentBar onSearchResults={onSearchResults} />
         </div>
@@ -102,7 +102,7 @@ const StudentsPage = () => {
       <HeroSectionStudent onSearchResults={setSearchResults} />
 
       {/* Students List */}
-      <section className="container mx-auto px-4 py-8">
+      <section className="container mx-auto px-4 py-8 max-w-6xl">
         {searchResults?.students ? ( // Check if students exists
           (() => {
             const filteredStudents = searchResults.students.filter(
@@ -110,7 +110,7 @@ const StudentsPage = () => {
             );
             if (filteredStudents.length > 0) {
               return (
-                <div>
+                <div className="w-full">
                   <h2 className="text-2xl font-semibold mb-6 text-gray-800">
                     Found {filteredStudents.length} Student(s)
                   </h2>
@@ -119,10 +119,10 @@ const StudentsPage = () => {
                       <Link 
                       to={`/profile?userId=${student.userId}`}
                       key={student.userId}
+                      className="w-full"
                       >
                         <div
-                          key={student.userId}
-                          className="bg-white rounded-lg shadow-md p-4 flex flex-col items-center text-center"
+                          className="bg-white rounded-lg shadow-md p-4 flex flex-col items-center text-center w-full"
                         >
                           <img
                             src={profilePictureUrls[student.userId] || defaultProfilePicture}

@@ -1,6 +1,7 @@
 import axios from "axios";
 import React, { useState, useEffect } from "react";
 import { jwtDecode } from "jwt-decode";
+import { Link } from "react-router-dom";
 import ASearchEmployerBar from "../ASearchEmployerBar/ASearchEmployerBar"; // Assuming this is the correct import path
 
 // Hero Section Component
@@ -101,7 +102,7 @@ const EmployersPage = () => {
       <HeroSectionEmployer onSearchResults={setSearchResults} />
 
       {/* Employers List */}
-      <section className="container mx-auto px-4 py-8">
+      <section className="container mx-auto px-4 py-8 max-w-6xl">
         {searchResults ? (
           (() => {
             const filteredEmployers = searchResults.employers.filter(
@@ -109,26 +110,32 @@ const EmployersPage = () => {
             );
             if (filteredEmployers.length > 0) {
               return (
-                <div>
+                <div className="w-full">
                   <h2 className="text-2xl font-semibold mb-6 text-gray-800">
                     Found {filteredEmployers.length} Employer(s)
                   </h2>
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                     {filteredEmployers.map((employer) => (
-                      <div
-                        key={employer.userId}
-                        className="bg-white rounded-lg shadow-md p-4 flex flex-col items-center text-center"
+                      <Link 
+                      to={`/e-profile?userId=${employer.userId}`}
+                      key={employer.userId}
+                      className="w-full"
                       >
-                        <img
-                          src={profilePictureUrls[employer.userId] || defaultProfilePicture}
-                          alt={employer.companyName}
-                          className="w-24 h-24 rounded-full object-cover mb-4"
-                          onError={(e) => (e.target.src = defaultProfilePicture)}
-                        />
-                        <h3 className="text-lg font-medium text-gray-900">{employer.companyName}</h3>
-                        <p className="text-sm text-gray-600 mb-2">{employer.companyDetails}</p>
-                        <p className="text-sm text-gray-600 mb-4">{employer.location}</p>
-                      </div>
+                        <div
+                          key={employer.userId}
+                          className="bg-white rounded-lg shadow-md p-4 flex flex-col items-center text-center w-full"
+                        >
+                          <img
+                            src={profilePictureUrls[employer.userId] || defaultProfilePicture}
+                            alt={employer.companyName}
+                            className="w-24 h-24 rounded-full object-cover mb-4"
+                            onError={(e) => (e.target.src = defaultProfilePicture)}
+                          />
+                          <h3 className="text-lg font-medium text-gray-900">{employer.companyName}</h3>
+                          <p className="text-sm text-gray-600 mb-2">{employer.companyDetails}</p>
+                          <p className="text-sm text-gray-600 mb-4">{employer.location}</p>
+                        </div>
+                      </Link>
                     ))}
                   </div>
                 </div>
