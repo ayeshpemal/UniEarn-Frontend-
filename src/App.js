@@ -193,8 +193,6 @@ function App() {
             {isValidRoute && !searchBarHome.includes(location.pathname) && <HeroSectionHome />}
             {isValidRoute && !searchBarCompany.includes(location.pathname) && <HeroSectionCompany />}
 
-            {isValidRoute && !publicRoutes && <Footer />}
-
             <Routes>
                 {/* Public Routes */}
                 <Route path="/hero" element={<Hero />} />

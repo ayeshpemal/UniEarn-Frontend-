@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import "./Signup.css";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { X } from "lucide-react";
@@ -21,7 +20,7 @@ const Signup = () => {
 
     const [formData, setFormData] = useState({
         userName: "",
-        displayName: "", // Still in state but not shown in UI
+        displayName: "",
         email: "",
         password: "",
         confirmPassword: "",
@@ -30,8 +29,8 @@ const Signup = () => {
         gender: "",
         location: "",
         contactNumbers: [],
-        skills:[],
-        preferences:[],
+        skills: [],
+        preferences: [],
     });
 
     const handleInputChange = (e) => {
@@ -60,7 +59,6 @@ const Signup = () => {
             return;
         }
 
-        // Set displayName to match userName before submitting
         const submitData = {
             ...formData,
             displayName: formData.userName
@@ -115,12 +113,23 @@ const Signup = () => {
         }
     };
 
+    const handleChangeRole = () => {
+        navigate("/");
+    };
+
     return (
         <div className="relative w-full min-h-screen bg-cover bg-center signin-container flex items-center justify-center">
+            {/* Header and Change Role Button */}
             <header className="absolute top-4 sm:top-10 left-4 sm:left-10 z-10 text-white">
                 <h1 className="text-2xl sm:text-4xl font-bold">SIGN UP TO YOUR</h1>
                 <p className="text-2xl sm:text-4xl font-bold text-blue-500">ADVENTURE!</p>
             </header>
+            <button
+                onClick={handleChangeRole}
+                className="absolute top-4 right-4 sm:top-10 sm:right-10 bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 transition z-10"
+            >
+                Change Role
+            </button>
 
             <div className="relative z-20 w-full max-w-5xl mx-4 sm:mx-6 lg:mx-8 py-8">
                 <div className="rounded-lg p-6 sm:p-8">

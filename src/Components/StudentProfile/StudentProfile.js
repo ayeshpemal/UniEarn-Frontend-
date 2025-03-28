@@ -24,6 +24,7 @@ function App() {
     const [isEditing, setIsEditing] = useState(false);
     const [isViewMode, setIsViewMode] = useState(false);
     const [viewUserId, setViewUserId] = useState(null);
+    const [isLoading, setIsLoading] = useState(true);
     const [formData, setFormData] = useState({
         userName: '',
         displayName: '',
@@ -49,7 +50,7 @@ function App() {
     });
     const [passwordUpdateError, setPasswordUpdateError] = useState('');
 
-    // Check if we're in view mode by looking for userId in URL
+    // Check view mode and set initial state
     useEffect(() => {
         const params = new URLSearchParams(window.location.search);
         const urlUserId = params.get('userId');
@@ -57,21 +58,29 @@ function App() {
         if (urlUserId) {
             setIsViewMode(true);
             setViewUserId(urlUserId);
+        } else {
+            setIsViewMode(false);
+            setViewUserId(null);
         }
+        // Only set loading to false after initial state is determined
+        setIsLoading(false);
     }, []);
 
-    // Fetch user data and profile picture on mount
+    // Fetch user data only when not loading and view mode is determined
     useEffect(() => {
         const fetchUserData = async () => {
             try {
                 const token = localStorage.getItem('token');
                 if (!token) throw new Error('No token found');
                 
-                const decodedToken = jwtDecode(token);
-                // Decide which userId to use - viewUserId if in view mode, otherwise current user's ID
-                const userId = isViewMode ? viewUserId : decodedToken.user_id;
+                let userId;
+                if (isViewMode && viewUserId) {
+                    userId = viewUserId;
+                } else {
+                    const decodedToken = jwtDecode(token);
+                    userId = decodedToken.user_id;
+                }
 
-                // Use axios instead of fetch
                 const userResponse = await axios.get(
                     `http://localhost:8100/api/user/get-user-by-id/${userId}`,
                     { headers: { 'Authorization': `Bearer ${token}` } }
@@ -110,13 +119,15 @@ function App() {
                 setOriginalFormData(fetchedData);
             } catch (error) {
                 console.error('Error fetching user data or profile picture:', error);
+            } finally {
+                setIsLoading(false);
             }
         };
-        
-        if (viewUserId || localStorage.getItem('token')) {
+
+        if (!isLoading && localStorage.getItem('token')) {
             fetchUserData();
         }
-    }, [isViewMode, viewUserId]);
+    }, [isLoading, isViewMode, viewUserId]);
 
     const handleInputChange = (field, value) => {
         setFormData(prev => ({ ...prev, [field]: value }));
@@ -157,7 +168,7 @@ function App() {
     };
 
     const handleProfilePictureClick = () => {
-        if (isEditing) fileInputRef.current?.click();
+        if (isEditing && !isViewMode) fileInputRef.current?.click();
     };
 
     const handleFileChange = (event) => {
@@ -183,7 +194,7 @@ function App() {
             formData.mobileNo !== originalFormData.mobileNo ||
             formData.address !== originalFormData.address ||
             JSON.stringify(sortedPreferences) !== JSON.stringify(sortedOriginalPreferences) ||
-            selectedProfilePictureFile !== null  // Add this line to check if a new profile picture was selected
+            selectedProfilePictureFile !== null
         );
     };
     
@@ -284,6 +295,14 @@ function App() {
         }
     };
 
+    if (isLoading) {
+        return (
+            <div className="min-h-screen bg-white flex items-center justify-center">
+                <div>Loading...</div>
+            </div>
+        );
+    }
+
     return (
         <div className="min-h-screen bg-white">
             {/* Hero Section */}
@@ -320,10 +339,10 @@ function App() {
                             <img
                                 src={formData.profilePicture}
                                 alt="Profile"
-                                className={`w-24 h-24 sm:w-32 sm:h-32 rounded-full object-cover ${isEditing ? 'cursor-pointer' : ''}`}
-                                onClick={handleProfilePictureClick}
+                                className={`w-24 h-24 sm:w-32 sm:h-32 rounded-full object-cover ${isEditing && !isViewMode ? 'cursor-pointer' : ''}`}
+                                onClick={isViewMode ? undefined : handleProfilePictureClick}
                             />
-                            {isEditing && (
+                            {isEditing && !isViewMode && (
                                 <div
                                     className="absolute inset-0 bg-black bg-opacity-50 rounded-full flex items-center justify-center cursor-pointer"
                                     onClick={handleProfilePictureClick}
@@ -387,7 +406,7 @@ function App() {
                         <ProfileField
                             label="Display Name"
                             value={formData.displayName}
-                            disabled={!isEditing}
+                            disabled={!isEditing || isViewMode}
                             onChange={(value) => handleInputChange('displayName', value)}
                         />
                         <ProfileField
