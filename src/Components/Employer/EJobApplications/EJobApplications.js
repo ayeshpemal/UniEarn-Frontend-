@@ -291,7 +291,7 @@ const Application = () => {
 
   const updateApplicationStatus = async (applicationId) => {
     try {
-      const response = await axios.post(
+      const response = await axios.put(
         `http://localhost:8100/api/employers/applications/select/${applicationId}`,
         null,
         {

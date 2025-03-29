@@ -14,6 +14,10 @@ const ChatButton = () => {
     const [currentPage, setCurrentPage] = useState(0);
     const [totalNotifications, setTotalNotifications] = useState(0);
     const itemsPerPage = 10;
+    const [totalUpdateNotifications, setTotalUpdateNotifications] = useState(0);
+    const [totalJobNotifications, setTotalJobNotifications] = useState(0);
+    const [currentUpdatePage, setCurrentUpdatePage] = useState(0);
+    const [currentJobPage, setCurrentJobPage] = useState(0);
 
     useEffect(() => {
         const token = localStorage.getItem("token");
@@ -47,7 +51,7 @@ const ChatButton = () => {
                 // Fetch update notifications for all users (load immediately on mount)
                 console.log("Fetching update notifications for userId:", userId);
                 const updateResponse = await fetch(
-                    `http://localhost:8100/api/v1/updateNotification/get-update-notifications/${userId}?page=0&size=10`,
+                    `http://localhost:8100/api/v1/updateNotification/get-update-notifications/${userId}?page=${currentUpdatePage}&size=${itemsPerPage}`,
                     {
                         headers: {
                             Authorization: `Bearer ${token}`,
@@ -62,6 +66,7 @@ const ChatButton = () => {
                         .map((notif) => ({ ...notif, type: "update" }))
                         .sort((a, b) => new Date(b.sentDate) - new Date(a.sentDate));
                     setUpdateNotifications(sortedUpdateNotifications);
+                    setTotalUpdateNotifications(updateData.data.totalNotifications || 0);
                     const unreadUpdateCount = sortedUpdateNotifications.filter(
                         (notif) => !notif.isRead
                     ).length;
@@ -75,7 +80,7 @@ const ChatButton = () => {
                 if (role !== "EMPLOYER") {
                     console.log("Fetching job notifications for userId:", userId);
                     const jobResponse = await fetch(
-                        `http://localhost:8100/api/v1/Notification/get-job-notifications/${userId}?page=${currentPage}&size=${itemsPerPage}`,
+                        `http://localhost:8100/api/v1/Notification/get-job-notifications/${userId}?page=${currentJobPage}&size=${itemsPerPage}`,
                         {
                             headers: {
                                 Authorization: `Bearer ${token}`,
@@ -90,7 +95,7 @@ const ChatButton = () => {
                             .map((notif) => ({ ...notif, type: "job" }))
                             .sort((a, b) => new Date(b.sentDate) - new Date(a.sentDate));
                         setJobNotifications(sortedJobNotifications);
-                        setTotalNotifications(jobData.data.totalNotifications);
+                        setTotalJobNotifications(jobData.data.totalNotifications || 0);
                         const unreadJobCount = sortedJobNotifications.filter(
                             (notif) => !notif.isRead
                         ).length;
@@ -151,7 +156,7 @@ const ChatButton = () => {
         console.log("Current state - Job:", jobNotifications, "Update:", updateNotifications, "System:", systemNotifications);
 
         return () => disconnectWebSocket();
-    }, [currentPage]);
+    }, [currentUpdatePage, currentJobPage]);
 
     const toggleNotifications = () => {
         setShowNotifications(!showNotifications);
@@ -258,39 +263,59 @@ const ChatButton = () => {
         }
     };
 
-    const handlePageChange = (page) => {
-        setCurrentPage(page);
+    const handlePageChange = (page, type) => {
+        if (type === "update") {
+            setCurrentUpdatePage(page);
+        } else if (type === "job") {
+            setCurrentJobPage(page);
+        }
     };
 
-    const totalPages = Math.ceil(totalNotifications / itemsPerPage);
-
-    const renderPagination = () => (
-        <div className="mt-4 flex justify-center gap-2">
-            <button
-                onClick={() => handlePageChange(currentPage - 1)}
-                disabled={currentPage === 0}
-                className="px-3 py-1 bg-blue-500 text-white rounded disabled:bg-gray-300 hover:bg-blue-600 transition"
-            >
-                Prev
-            </button>
-            {Array.from({ length: totalPages }, (_, i) => (
+    const renderPagination = (type) => {
+        const currentPage = type === "update" ? currentUpdatePage : currentJobPage;
+        const totalItems = type === "update" ? totalUpdateNotifications : totalJobNotifications;
+        const totalPages = Math.ceil(totalItems / itemsPerPage);
+        
+        if (totalPages <= 1) return null; // Don't show pagination if only one page
+        
+        return (
+            <div className="mt-3 sm:mt-4 flex justify-center gap-1 sm:gap-2">
                 <button
-                    key={i}
-                    onClick={() => handlePageChange(i)}
-                    className={`px-3 py-1 ${currentPage === i ? "bg-blue-700" : "bg-blue-500"} text-white rounded hover:bg-blue-600 transition`}
+                    onClick={() => handlePageChange(currentPage - 1, type)}
+                    disabled={currentPage === 0}
+                    className="px-2 sm:px-3 py-1 text-xs sm:text-sm bg-blue-500 text-white rounded-md disabled:bg-gray-300 hover:bg-blue-600 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-300"
                 >
-                    {i + 1}
+                    Prev
                 </button>
-            ))}
-            <button
-                onClick={() => handlePageChange(currentPage + 1)}
-                disabled={currentPage === totalPages - 1}
-                className="px-3 py-1 bg-blue-500 text-white rounded disabled:bg-gray-300 hover:bg-blue-600 transition"
-            >
-                Next
-            </button>
-        </div>
-    );
+                {Array.from({ length: Math.min(totalPages, 3) }, (_, i) => {
+                    const pageNum = i + Math.max(0, currentPage - 1);
+                    if (pageNum < totalPages) {
+                        return (
+                            <button
+                                key={pageNum}
+                                onClick={() => handlePageChange(pageNum, type)}
+                                className={`px-2 sm:px-3 py-1 text-xs sm:text-sm ${
+                                    currentPage === pageNum 
+                                        ? "bg-blue-700 shadow-inner" 
+                                        : "bg-blue-500"
+                                } text-white rounded-md hover:bg-blue-600 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-300`}
+                            >
+                                {pageNum + 1}
+                            </button>
+                        );
+                    }
+                    return null;
+                })}
+                <button
+                    onClick={() => handlePageChange(currentPage + 1, type)}
+                    disabled={currentPage === totalPages - 1}
+                    className="px-2 sm:px-3 py-1 text-xs sm:text-sm bg-blue-500 text-white rounded-md disabled:bg-gray-300 hover:bg-blue-600 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-300"
+                >
+                    Next
+                </button>
+            </div>
+        );
+    };
 
     return (
         <div className="fixed bottom-6 right-6 z-50">
@@ -409,44 +434,7 @@ const ChatButton = () => {
                         )}
                     </div>
 
-                    {activeTab === "updates" && totalNotifications > itemsPerPage && (
-                        <div className="mt-3 sm:mt-4 flex justify-center gap-1 sm:gap-2">
-                            <button
-                                onClick={() => handlePageChange(currentPage - 1)}
-                                disabled={currentPage === 0}
-                                className="px-2 sm:px-3 py-1 text-xs sm:text-sm bg-blue-500 text-white rounded-md disabled:bg-gray-300 hover:bg-blue-600 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-300"
-                            >
-                                Prev
-                            </button>
-                            {Array.from({ length: Math.min(totalPages, 3) }, (_, i) => {
-                                // Show at most 3 buttons on mobile, 5 on larger screens
-                                const pageNum = i + Math.max(0, currentPage - 1);
-                                if (pageNum < totalPages) {
-                                    return (
-                                        <button
-                                            key={pageNum}
-                                            onClick={() => handlePageChange(pageNum)}
-                                            className={`px-2 sm:px-3 py-1 text-xs sm:text-sm ${
-                                                currentPage === pageNum 
-                                                    ? "bg-blue-700 shadow-inner" 
-                                                    : "bg-blue-500"
-                                            } text-white rounded-md hover:bg-blue-600 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-300`}
-                                        >
-                                            {pageNum + 1}
-                                        </button>
-                                    );
-                                }
-                                return null;
-                            })}
-                            <button
-                                onClick={() => handlePageChange(currentPage + 1)}
-                                disabled={currentPage === totalPages - 1}
-                                className="px-2 sm:px-3 py-1 text-xs sm:text-sm bg-blue-500 text-white rounded-md disabled:bg-gray-300 hover:bg-blue-600 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-300"
-                            >
-                                Next
-                            </button>
-                        </div>
-                    )}
+                    {activeTab === "updates" && renderPagination("update")}
                 </div>
             )}
         </div>
