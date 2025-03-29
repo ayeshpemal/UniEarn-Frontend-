@@ -21,6 +21,7 @@ export function Home() {
   const [selectedLocation, setSelectedLocation] = useState("COLOMBO");
   const [selectedJob, setSelectedJob] = useState("CASHIER");
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedDate, setSelectedDate] = useState("");
 
   useEffect(() => {
     const fetchJobs = async () => {
@@ -63,7 +64,7 @@ export function Home() {
     try {
       const token = localStorage.getItem('token');
       const response = await axios.get(
-        `http://localhost:8100/api/v1/jobs/search?location=${selectedLocation}&categories=${selectedJob}&keyword=${searchTerm}&page=${currentPage}`,
+        `http://localhost:8100/api/v1/jobs/search?location=${selectedLocation}&categories=${selectedJob}&keyword=${searchTerm}${selectedDate ? `&startDate=${selectedDate}` : ''}&page=${currentPage}`,
         { headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` } }
       );
       const searchResults = response.data?.data?.jobList || [];
@@ -81,6 +82,11 @@ export function Home() {
   const handleSearch = () => {
     setCurrentPage(0);
     searchJobs();
+  };
+
+  const handleJobCategoryChange = (selectedCategories) => {
+    // Convert array to comma-separated string for API
+    setSelectedJob(Array.isArray(selectedCategories) ? selectedCategories.join(',') : selectedCategories);
   };
 
   if (loading) {
@@ -107,9 +113,11 @@ export function Home() {
             selectedLocation={selectedLocation}
             setSelectedLocation={setSelectedLocation}
             selectedJob={selectedJob}
-            setSelectedJob={setSelectedJob}
+            setSelectedJob={handleJobCategoryChange}  // Use the new handler
             searchTerm={searchTerm}
             setSearchTerm={setSearchTerm}
+            selectedDate={selectedDate}
+            setSelectedDate={setSelectedDate}
             handleSearch={handleSearch}
           />
           {searchError && (
