@@ -45,6 +45,7 @@ import AProfile from './Components/Admins/AProfile/AProfile';
 import ASearchEmployer from './Components/Admins/ASearchEmployer/ASearchEmployer';
 import ASearchStudent from './Components/Admins/ASearchStudent/ASearchStudent';
 import Landing from './Components/Landing/Landing';
+import EJobApplications from './Components/Employer/EJobApplications/EJobApplications';
 
 function App() {
     const location = useLocation();
@@ -218,6 +219,7 @@ function App() {
                 <Route path="/e-job-edit" element={<ProtectedRoute><EJobUpdate /></ProtectedRoute>} />
                 <Route path="/e-profile" element={<ProtectedRoute><CompanyDetails /></ProtectedRoute>} />
                 <Route path="/e-contact-us" element={<ProtectedRoute><ContactUs /></ProtectedRoute>} />
+                <Route path="e-job-details" element={<ProtectedRoute><EJobApplications /></ProtectedRoute>} />
 
                 {/* Student Protected Routes */}
                 <Route path="/home" element={<ProtectedRoute><Home /></ProtectedRoute>} />
