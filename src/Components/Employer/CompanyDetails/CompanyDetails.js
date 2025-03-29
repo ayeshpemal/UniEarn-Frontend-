@@ -187,7 +187,6 @@ function App() {
         const sortedOriginalCategories = [...originalFormData.categories].sort();
         
         return (
-            formData.companyName !== originalFormData.companyName ||
             formData.contactNumbers !== originalFormData.contactNumbers ||
             formData.location !== originalFormData.location ||
             formData.companyDetails !== originalFormData.companyDetails ||
@@ -204,7 +203,6 @@ function App() {
 
             if (hasUserDataChanges()) {
                 const updateData = {
-                    companyName: formData.companyName,
                     location: formData.location,
                     contactNumbers: [formData.contactNumbers],
                     categories: formData.categories,
@@ -245,7 +243,6 @@ function App() {
 
             setOriginalFormData({
                 ...originalFormData,
-                companyName: formData.companyName,
                 contactNumbers: formData.contactNumbers,
                 location: formData.location,
                 categories: [...formData.categories],
@@ -402,8 +399,7 @@ function App() {
                         <ProfileField
                             label="Company Name"
                             value={formData.companyName}
-                            disabled={!isEditing || isViewMode}
-                            onChange={(value) => handleInputChange('companyName', value)}
+                            disabled={true}
                         />
                         <ProfileField
                             label="Mobile No"
@@ -440,7 +436,7 @@ function App() {
                                 <ProfileField
                                     label="Email"
                                     value={formData.email}
-                                    disabled={!isEditing}
+                                    disabled={true} // Always disabled regardless of edit mode
                                     onChange={(value) => handleInputChange('email', value)}
                                 />
                                 <div>
