@@ -49,20 +49,49 @@ function App() {
     });
     const [passwordUpdateError, setPasswordUpdateError] = useState('');
 
+    // Add these new state variables for rating functionality
+    const [isRatingMode, setIsRatingMode] = useState(false);
+    const [applicationId, setApplicationId] = useState(null);
+    const [ratingData, setRatingData] = useState({
+        rating: 0,
+        comment: '',
+    });
+    const [isSubmittingRating, setIsSubmittingRating] = useState(false);
+    const [ratingError, setRatingError] = useState('');
+    const [ratingSuccess, setRatingSuccess] = useState('');
+
+    // Add a ref for the rating section
+    const ratingRef = useRef(null);
+
     // Check view mode and set initial state
     useEffect(() => {
         const params = new URLSearchParams(window.location.search);
         const urlUserId = params.get('userId');
+        const urlApplicationId = params.get('applicationId');
         
         if (urlUserId) {
             setIsViewMode(true);
             setViewUserId(urlUserId);
+            
+            if (urlApplicationId) {
+                setIsRatingMode(true);
+                setApplicationId(urlApplicationId);
+            }
         } else {
             setIsViewMode(false);
             setViewUserId(null);
         }
         setIsLoading(false);
     }, []);
+
+    // Add useEffect to scroll to rating section when in rating mode
+    useEffect(() => {
+        if (isViewMode && isRatingMode && ratingRef.current && !isLoading) {
+            setTimeout(() => {
+                ratingRef.current.scrollIntoView({ behavior: 'smooth' });
+            }, 500); // Small delay to ensure DOM is fully rendered
+        }
+    }, [isRatingMode, isViewMode, isLoading]);
 
     // Fetch user data only when not loading and view mode is determined
     useEffect(() => {
@@ -285,6 +314,55 @@ function App() {
             alert('Password updated successfully!');
         } catch (error) {
             setPasswordUpdateError(error.response?.data?.message || 'An error occurred while updating the password');
+        }
+    };
+
+    // Add handler for rating star clicks
+    const handleRatingClick = (value) => {
+        setRatingData(prev => ({ ...prev, rating: value }));
+    };
+
+    // Add handler for rating comment change
+    const handleRatingCommentChange = (value) => {
+        setRatingData(prev => ({ ...prev, comment: value }));
+    };
+
+    // Add function to submit the rating
+    const handleSubmitRating = async () => {
+        if (ratingData.rating === 0) {
+            setRatingError('Please select a rating');
+            return;
+        }
+
+        try {
+            setIsSubmittingRating(true);
+            const token = localStorage.getItem('token');
+            if (!token) throw new Error('No token found');
+
+            await axios.post(
+                `http://localhost:8100/api/rating/add-company`,
+                {
+                    applicationId: applicationId,
+                    companyId: viewUserId,
+                    rating: ratingData.rating,
+                    feedback: ratingData.comment
+                },
+                {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+                    }
+                }
+            );
+
+            setRatingSuccess('Rating submitted successfully!');
+            setRatingError('');
+            // Refresh company data to show updated rating
+            window.location.href = `/company-profile?userId=${viewUserId}`;
+        } catch (error) {
+            setRatingError(error.response?.data?.message || 'Failed to submit rating');
+        } finally {
+            setIsSubmittingRating(false);
         }
     };
 
@@ -523,6 +601,68 @@ function App() {
                                 </div>
                             </div>
                         )}
+                    </div>
+                )}
+
+                {/* Rating Section - Only show if in rating mode */}
+                {isViewMode && isRatingMode && (
+                    <div ref={ratingRef} className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-12 scroll-mt-20">
+                        <div className="bg-white rounded-3xl shadow-lg p-4 sm:p-6 md:p-8 mb-6 sm:mb-12">
+                            <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 flex items-center space-x-2">
+                                <Star size={24} />
+                                <span>Rate this Company</span>
+                            </h2>
+                            <div className="grid grid-cols-1 gap-4 sm:gap-6">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">Rating</label>
+                                    <div className="flex items-center space-x-2">
+                                        {[1, 2, 3, 4, 5].map((rating) => (
+                                            <Star
+                                                key={rating}
+                                                size={30}
+                                                className={`cursor-pointer ${
+                                                    rating <= ratingData.rating ? 'text-yellow-400 fill-current' : 'text-gray-300'
+                                                }`}
+                                                onClick={() => handleRatingClick(rating)}
+                                            />
+                                        ))}
+                                        <span className="ml-2 text-gray-600">
+                                            {ratingData.rating > 0 ? `${ratingData.rating} out of 5` : 'Select rating'}
+                                        </span>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">Feedback (Optional)</label>
+                                    <textarea
+                                        value={ratingData.comment}
+                                        onChange={(e) => handleRatingCommentChange(e.target.value)}
+                                        className="w-full p-2 sm:p-3 border rounded-lg bg-gray-50 text-sm sm:text-base"
+                                        rows={4}
+                                        placeholder="Share your feedback about this company"
+                                    ></textarea>
+                                </div>
+
+                                {ratingError && (
+                                    <div className="text-red-500 text-sm">{ratingError}</div>
+                                )}
+
+                                {ratingSuccess && (
+                                    <div className="text-green-500 text-sm">{ratingSuccess}</div>
+                                )}
+
+                                <div>
+                                    <button
+                                        onClick={handleSubmitRating}
+                                        disabled={isSubmittingRating}
+                                        className={`px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors
+                                            ${isSubmittingRating ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-500 hover:bg-blue-600 text-white'}`}
+                                    >
+                                        <Star size={18} />
+                                        <span>{isSubmittingRating ? 'Submitting...' : 'Submit Rating'}</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 )}
 
