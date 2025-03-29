@@ -231,7 +231,30 @@ const ChatButton = () => {
 
         if (notification.job) {
             setShowNotifications(false);
-            window.location.href = `/job-details?jobId=${notification.job}`;
+            
+            // Get role from JWT token
+            const token = localStorage.getItem("token");
+            if (token) {
+                try {
+                    const decodedToken = jwtDecode(token);
+                    const role = decodedToken.role || "";
+                    
+                    // Redirect based on user role
+                    if (role === "EMPLOYER") {
+                        window.location.href = `/e-job-details?jobId=${notification.job}`;
+                    } else {
+                        // Default path for STUDENT or any other role
+                        window.location.href = `/job-details?jobId=${notification.job}`;
+                    }
+                } catch (error) {
+                    console.error("Error decoding token for redirection:", error);
+                    // Fallback to default path if token decoding fails
+                    window.location.href = `/job-details?jobId=${notification.job}`;
+                }
+            } else {
+                // Fallback if no token exists
+                window.location.href = `/job-details?jobId=${notification.job}`;
+            }
         }
     };
 
@@ -273,80 +296,157 @@ const ChatButton = () => {
         <div className="fixed bottom-6 right-6 z-50">
             <button
                 onClick={toggleNotifications}
-                className="bg-green-500 text-white p-4 rounded-full shadow-lg flex items-center justify-center hover:bg-green-600 transition relative"
+                className="bg-gradient-to-r from-green-500 to-green-600 text-white p-4 rounded-full shadow-xl flex items-center justify-center hover:from-green-600 hover:to-green-700 transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-opacity-50 relative"
             >
                 <BellIcon className="w-8 h-8" />
                 {messageCount > 0 && (
-                    <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs w-6 h-6 rounded-full flex items-center justify-center">
+                    <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs w-6 h-6 rounded-full flex items-center justify-center shadow-md animate-pulse">
                         {messageCount}
                     </span>
                 )}
             </button>
 
             {showNotifications && (
-                <div className="absolute bottom-16 right-0 w-96 bg-white rounded-lg shadow-xl p-4 max-h-[80vh] overflow-y-auto border border-gray-200">
-                    <div className="flex justify-between mb-4">
+                <div className="absolute bottom-16 right-0 w-96 bg-white rounded-xl shadow-2xl p-4 max-h-[80vh] overflow-y-auto border border-gray-200 transition-all duration-300 ease-in-out backdrop-filter backdrop-blur-sm bg-opacity-95">
+                    <div className="flex justify-between mb-4 bg-gray-50 rounded-lg p-1">
                         <button
                             onClick={() => handleTabClick("updates")}
-                            className={`px-4 py-2 text-sm font-semibold ${activeTab === "updates" ? "bg-blue-500 text-white" : "bg-gray-100 text-gray-700"} rounded-l-lg`}
+                            className={`px-4 py-2 text-sm font-semibold transition-all duration-200 ${
+                                activeTab === "updates"
+                                    ? "bg-blue-500 text-white shadow-md"
+                                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                            } rounded-lg w-1/2`}
                         >
                             Updates
                         </button>
                         <button
                             onClick={() => handleTabClick("system")}
-                            className={`px-4 py-2 text-sm font-semibold ${activeTab === "system" ? "bg-blue-500 text-white" : "bg-gray-100 text-gray-700"} rounded-r-lg`}
+                            className={`px-4 py-2 text-sm font-semibold transition-all duration-200 ${
+                                activeTab === "system"
+                                    ? "bg-blue-500 text-white shadow-md"
+                                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                            } rounded-lg w-1/2`}
                         >
                             System
                         </button>
                     </div>
 
-                    <div className="space-y-2">
+                    <div className="space-y-2 divide-y divide-gray-100">
                         {activeTab === "updates" ? (
                             (jobNotifications.length > 0 || updateNotifications.length > 0 ? (
                                 [...jobNotifications, ...updateNotifications]
                                     .sort((a, b) => new Date(b.sentDate) - new Date(a.sentDate))
                                     .map((notif) => (
                                         <div
-                                            key={`${notif.type}-${notif.id}`} // Unique key combining type and id
-                                            className={`border-b py-2 cursor-pointer hover:bg-gray-100 transition ${notif.isRead ? "bg-gray-50" : "bg-white"}`}
+                                            key={`${notif.type}-${notif.id}`}
+                                            className={`py-3 px-2 cursor-pointer rounded-lg transition-all duration-200 ${
+                                                notif.isRead 
+                                                    ? "bg-gray-50 hover:bg-gray-100" 
+                                                    : "bg-blue-50 hover:bg-blue-100 border-l-4 border-blue-500"
+                                            }`}
                                             onClick={() => handleNotificationClick(notif)}
                                         >
-                                            <p className={`text-sm ${notif.isRead ? "text-gray-500" : "text-gray-800 font-medium"}`}>
+                                            <p className={`text-sm mb-1 ${
+                                                notif.isRead ? "text-gray-500" : "text-gray-800 font-medium"
+                                            }`}>
                                                 {notif.message}
                                             </p>
-                                            <small className="text-xs text-gray-400">
-                                                {new Date(notif.sentDate).toLocaleString()}
-                                            </small>
+                                            <div className="flex items-center">
+                                                <small className="text-xs text-gray-400">
+                                                    {new Date(notif.sentDate).toLocaleString()}
+                                                </small>
+                                                {!notif.isRead && (
+                                                    <span className="ml-auto h-2 w-2 bg-blue-500 rounded-full"></span>
+                                                )}
+                                            </div>
                                         </div>
                                     ))
                             ) : (
-                                <p className="text-gray-500 text-sm">No updates</p>
+                                <div className="flex flex-col items-center justify-center py-8 text-center">
+                                    <p className="text-gray-500 text-sm mb-2">No updates available</p>
+                                    <svg className="w-12 h-12 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path>
+                                    </svg>
+                                </div>
                             ))
                         ) : (
                             systemNotifications.length === 0 ? (
-                                <p className="text-gray-500 text-sm">No system notifications</p>
+                                <div className="flex flex-col items-center justify-center py-8 text-center">
+                                    <p className="text-gray-500 text-sm mb-2">No system notifications</p>
+                                    <svg className="w-12 h-12 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                                    </svg>
+                                </div>
                             ) : (
                                 systemNotifications
                                     .sort((a, b) => new Date(b.sentDate) - new Date(a.sentDate))
                                     .map((notif) => (
                                         <div
-                                            key={`${notif.type}-${notif.id}`} // Unique key combining type and id
-                                            className={`border-b py-2 cursor-pointer hover:bg-gray-100 transition ${notif.isRead ? "bg-gray-50" : "bg-white"}`}
+                                            key={`${notif.type}-${notif.id}`}
+                                            className={`py-3 px-2 cursor-pointer rounded-lg transition-all duration-200 ${
+                                                notif.isRead 
+                                                    ? "bg-gray-50 hover:bg-gray-100" 
+                                                    : "bg-yellow-50 hover:bg-yellow-100 border-l-4 border-yellow-500"
+                                            }`}
                                             onClick={() => handleNotificationClick(notif)}
                                         >
-                                            <p className={`text-sm ${notif.isRead ? "text-gray-500" : "text-gray-800 font-medium"}`}>
+                                            <p className={`text-sm mb-1 ${
+                                                notif.isRead ? "text-gray-500" : "text-gray-800 font-medium"
+                                            }`}>
                                                 {notif.message}
                                             </p>
-                                            <small className="text-xs text-gray-400">
-                                                {new Date(notif.sentDate).toLocaleString()}
-                                            </small>
+                                            <div className="flex items-center">
+                                                <small className="text-xs text-gray-400">
+                                                    {new Date(notif.sentDate).toLocaleString()}
+                                                </small>
+                                                {!notif.isRead && (
+                                                    <span className="ml-auto h-2 w-2 bg-yellow-500 rounded-full"></span>
+                                                )}
+                                            </div>
                                         </div>
                                     ))
                             )
                         )}
                     </div>
 
-                    {activeTab === "updates" && totalNotifications > itemsPerPage && renderPagination()}
+                    {activeTab === "updates" && totalNotifications > itemsPerPage && (
+                        <div className="mt-4 flex justify-center gap-2">
+                            <button
+                                onClick={() => handlePageChange(currentPage - 1)}
+                                disabled={currentPage === 0}
+                                className="px-3 py-1 bg-blue-500 text-white rounded-md disabled:bg-gray-300 hover:bg-blue-600 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-300"
+                            >
+                                Prev
+                            </button>
+                            {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
+                                // Show at most 5 page buttons
+                                const pageNum = i + Math.max(0, currentPage - 2);
+                                if (pageNum < totalPages) {
+                                    return (
+                                        <button
+                                            key={pageNum}
+                                            onClick={() => handlePageChange(pageNum)}
+                                            className={`px-3 py-1 ${
+                                                currentPage === pageNum 
+                                                    ? "bg-blue-700 shadow-inner" 
+                                                    : "bg-blue-500"
+                                            } text-white rounded-md hover:bg-blue-600 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-300`}
+                                        >
+                                            {pageNum + 1}
+                                        </button>
+                                    );
+                                }
+                                return null;
+                            })}
+                            <button
+                                onClick={() => handlePageChange(currentPage + 1)}
+                                disabled={currentPage === totalPages - 1}
+                                className="px-3 py-1 bg-blue-500 text-white rounded-md disabled:bg-gray-300 hover:bg-blue-600 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-300"
+                            >
+                                Next
+                            </button>
+                        </div>
+                    )}
                 </div>
             )}
         </div>
