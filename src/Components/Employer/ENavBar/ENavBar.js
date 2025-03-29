@@ -65,11 +65,8 @@ const ENavBar = () => {
                     <NavLink to="/e-home" className="hover:underline flex items-center gap-2" onClick={() => setMenuOpen(false)}>
                         <Home size={24} /> Home
                     </NavLink>
-                    <NavLink to="/e-company" className="hover:underline flex items-center gap-2" onClick={() => setMenuOpen(false)}>
-                        <Building2 size={18} /> Company
-                    </NavLink>
-                    <NavLink to="/e-activities" className="hover:underline flex items-center gap-2" onClick={() => setMenuOpen(false)}>
-                        <ListTodo size={18} /> Activities
+                    <NavLink to="/e-job-create" className="hover:underline flex items-center gap-2" onClick={() => setMenuOpen(false)}>
+                        <ListTodo size={18} /> Create Job
                     </NavLink>
                     <NavLink to="/e-profile" className="hover:underline flex items-center gap-2" onClick={() => setMenuOpen(false)}>
                         <User size={24} /> Profile

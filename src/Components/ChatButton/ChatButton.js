@@ -298,20 +298,20 @@ const ChatButton = () => {
                 onClick={toggleNotifications}
                 className="bg-gradient-to-r from-green-500 to-green-600 text-white p-4 rounded-full shadow-xl flex items-center justify-center hover:from-green-600 hover:to-green-700 transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-opacity-50 relative"
             >
-                <BellIcon className="w-8 h-8" />
+                <BellIcon className="w-6 h-6 md:w-8 md:h-8" />
                 {messageCount > 0 && (
-                    <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs w-6 h-6 rounded-full flex items-center justify-center shadow-md animate-pulse">
+                    <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs w-5 h-5 md:w-6 md:h-6 rounded-full flex items-center justify-center shadow-md animate-pulse">
                         {messageCount}
                     </span>
                 )}
             </button>
 
             {showNotifications && (
-                <div className="absolute bottom-16 right-0 w-96 bg-white rounded-xl shadow-2xl p-4 max-h-[80vh] overflow-y-auto border border-gray-200 transition-all duration-300 ease-in-out backdrop-filter backdrop-blur-sm bg-opacity-95">
-                    <div className="flex justify-between mb-4 bg-gray-50 rounded-lg p-1">
+                <div className="absolute bottom-16 right-0 w-[90vw] max-w-[360px] sm:w-96 bg-white rounded-xl shadow-2xl p-3 sm:p-4 max-h-[80vh] overflow-y-auto border border-gray-200 transition-all duration-300 ease-in-out backdrop-filter backdrop-blur-sm bg-opacity-95">
+                    <div className="flex justify-between mb-3 bg-gray-50 rounded-lg p-1">
                         <button
                             onClick={() => handleTabClick("updates")}
-                            className={`px-4 py-2 text-sm font-semibold transition-all duration-200 ${
+                            className={`px-3 py-2 text-xs sm:text-sm font-semibold transition-all duration-200 ${
                                 activeTab === "updates"
                                     ? "bg-blue-500 text-white shadow-md"
                                     : "bg-gray-100 text-gray-700 hover:bg-gray-200"
@@ -321,7 +321,7 @@ const ChatButton = () => {
                         </button>
                         <button
                             onClick={() => handleTabClick("system")}
-                            className={`px-4 py-2 text-sm font-semibold transition-all duration-200 ${
+                            className={`px-3 py-2 text-xs sm:text-sm font-semibold transition-all duration-200 ${
                                 activeTab === "system"
                                     ? "bg-blue-500 text-white shadow-md"
                                     : "bg-gray-100 text-gray-700 hover:bg-gray-200"
@@ -339,20 +339,20 @@ const ChatButton = () => {
                                     .map((notif) => (
                                         <div
                                             key={`${notif.type}-${notif.id}`}
-                                            className={`py-3 px-2 cursor-pointer rounded-lg transition-all duration-200 ${
+                                            className={`py-2 sm:py-3 px-2 cursor-pointer rounded-lg transition-all duration-200 ${
                                                 notif.isRead 
                                                     ? "bg-gray-50 hover:bg-gray-100" 
                                                     : "bg-blue-50 hover:bg-blue-100 border-l-4 border-blue-500"
                                             }`}
                                             onClick={() => handleNotificationClick(notif)}
                                         >
-                                            <p className={`text-sm mb-1 ${
+                                            <p className={`text-xs sm:text-sm mb-1 ${
                                                 notif.isRead ? "text-gray-500" : "text-gray-800 font-medium"
                                             }`}>
                                                 {notif.message}
                                             </p>
                                             <div className="flex items-center">
-                                                <small className="text-xs text-gray-400">
+                                                <small className="text-[10px] sm:text-xs text-gray-400">
                                                     {new Date(notif.sentDate).toLocaleString()}
                                                 </small>
                                                 {!notif.isRead && (
@@ -362,18 +362,18 @@ const ChatButton = () => {
                                         </div>
                                     ))
                             ) : (
-                                <div className="flex flex-col items-center justify-center py-8 text-center">
-                                    <p className="text-gray-500 text-sm mb-2">No updates available</p>
-                                    <svg className="w-12 h-12 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <div className="flex flex-col items-center justify-center py-6 sm:py-8 text-center">
+                                    <p className="text-gray-500 text-xs sm:text-sm mb-2">No updates available</p>
+                                    <svg className="w-8 h-8 sm:w-12 sm:h-12 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path>
                                     </svg>
                                 </div>
                             ))
                         ) : (
                             systemNotifications.length === 0 ? (
-                                <div className="flex flex-col items-center justify-center py-8 text-center">
-                                    <p className="text-gray-500 text-sm mb-2">No system notifications</p>
-                                    <svg className="w-12 h-12 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <div className="flex flex-col items-center justify-center py-6 sm:py-8 text-center">
+                                    <p className="text-gray-500 text-xs sm:text-sm mb-2">No system notifications</p>
+                                    <svg className="w-8 h-8 sm:w-12 sm:h-12 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
                                     </svg>
                                 </div>
@@ -383,20 +383,20 @@ const ChatButton = () => {
                                     .map((notif) => (
                                         <div
                                             key={`${notif.type}-${notif.id}`}
-                                            className={`py-3 px-2 cursor-pointer rounded-lg transition-all duration-200 ${
+                                            className={`py-2 sm:py-3 px-2 cursor-pointer rounded-lg transition-all duration-200 ${
                                                 notif.isRead 
                                                     ? "bg-gray-50 hover:bg-gray-100" 
                                                     : "bg-yellow-50 hover:bg-yellow-100 border-l-4 border-yellow-500"
                                             }`}
                                             onClick={() => handleNotificationClick(notif)}
                                         >
-                                            <p className={`text-sm mb-1 ${
+                                            <p className={`text-xs sm:text-sm mb-1 ${
                                                 notif.isRead ? "text-gray-500" : "text-gray-800 font-medium"
                                             }`}>
                                                 {notif.message}
                                             </p>
                                             <div className="flex items-center">
-                                                <small className="text-xs text-gray-400">
+                                                <small className="text-[10px] sm:text-xs text-gray-400">
                                                     {new Date(notif.sentDate).toLocaleString()}
                                                 </small>
                                                 {!notif.isRead && (
@@ -410,23 +410,23 @@ const ChatButton = () => {
                     </div>
 
                     {activeTab === "updates" && totalNotifications > itemsPerPage && (
-                        <div className="mt-4 flex justify-center gap-2">
+                        <div className="mt-3 sm:mt-4 flex justify-center gap-1 sm:gap-2">
                             <button
                                 onClick={() => handlePageChange(currentPage - 1)}
                                 disabled={currentPage === 0}
-                                className="px-3 py-1 bg-blue-500 text-white rounded-md disabled:bg-gray-300 hover:bg-blue-600 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-300"
+                                className="px-2 sm:px-3 py-1 text-xs sm:text-sm bg-blue-500 text-white rounded-md disabled:bg-gray-300 hover:bg-blue-600 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-300"
                             >
                                 Prev
                             </button>
-                            {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
-                                // Show at most 5 page buttons
-                                const pageNum = i + Math.max(0, currentPage - 2);
+                            {Array.from({ length: Math.min(totalPages, 3) }, (_, i) => {
+                                // Show at most 3 buttons on mobile, 5 on larger screens
+                                const pageNum = i + Math.max(0, currentPage - 1);
                                 if (pageNum < totalPages) {
                                     return (
                                         <button
                                             key={pageNum}
                                             onClick={() => handlePageChange(pageNum)}
-                                            className={`px-3 py-1 ${
+                                            className={`px-2 sm:px-3 py-1 text-xs sm:text-sm ${
                                                 currentPage === pageNum 
                                                     ? "bg-blue-700 shadow-inner" 
                                                     : "bg-blue-500"
@@ -441,7 +441,7 @@ const ChatButton = () => {
                             <button
                                 onClick={() => handlePageChange(currentPage + 1)}
                                 disabled={currentPage === totalPages - 1}
-                                className="px-3 py-1 bg-blue-500 text-white rounded-md disabled:bg-gray-300 hover:bg-blue-600 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-300"
+                                className="px-2 sm:px-3 py-1 text-xs sm:text-sm bg-blue-500 text-white rounded-md disabled:bg-gray-300 hover:bg-blue-600 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-300"
                             >
                                 Next
                             </button>
