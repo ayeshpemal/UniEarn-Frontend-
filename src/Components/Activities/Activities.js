@@ -10,7 +10,11 @@ const Activities = () => {
     pending: [],
     accepted: [],
     rejected: [],
-    confirmed: []
+    confirmed: {
+      PENDING: [],
+      ON_GOING: [],
+      FINISH: []
+    }
   });
   const [currentPage, setCurrentPage] = useState(0);
   const [totalCount, setTotalCount] = useState(0);
@@ -47,12 +51,19 @@ const Activities = () => {
         const jobs = response.data.data.jobList;
         setTotalCount(response.data.data.dataCount);
 
+        // Filter confirmed jobs by jobStatus
+        const confirmedJobs = jobs.filter(job => job.applicationStatus === "CONFIRMED");
+        
         setActivities({
           inactive: jobs.filter(job => job.applicationStatus === "INACTIVE"),
           pending: jobs.filter(job => job.applicationStatus === "PENDING"),
           accepted: jobs.filter(job => job.applicationStatus === "ACCEPTED"),
           rejected: jobs.filter(job => job.applicationStatus === "REJECTED"),
-          confirmed: jobs.filter(job => job.applicationStatus === "CONFIRMED")
+          confirmed: {
+            PENDING: confirmedJobs.filter(job => job.jobStatus === "PENDING"),
+            ON_GOING: confirmedJobs.filter(job => job.jobStatus === "ON_GOING"),
+            FINISH: confirmedJobs.filter(job => job.jobStatus === "FINISH")
+          }
         });
       }
     } catch (error) {
@@ -97,6 +108,9 @@ const Activities = () => {
       case "accepted": return "bg-green-500";
       case "rejected": return "bg-red-500";
       case "confirmed": return "bg-blue-500";
+      case "confirmed-pending": return "bg-blue-400";
+      case "confirmed-ongoing": return "bg-blue-600";
+      case "confirmed-finish": return "bg-blue-800";
       case "all": return "bg-purple-500";
       default: return "bg-gray-500";
     }
@@ -213,65 +227,180 @@ const Activities = () => {
     </div>
   );
 
-  // Navigation tabs for filtering activities
+  // Navigation tabs for filtering activities with improved hierarchy
   const renderStatusTabs = () => {
-    const tabs = [
+    // Main tabs
+    const mainTabs = [
       { id: 'all', label: 'All Activities', icon: 'M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10' },
       { id: 'inactive', label: 'Inactive', icon: 'M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636' },
       { id: 'pending', label: 'Pending', icon: 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z' },
       { id: 'accepted', label: 'Accepted', icon: 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' },
       { id: 'rejected', label: 'Rejected', icon: 'M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z' },
-      { id: 'confirmed', label: 'Confirmed', icon: 'M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z' }
+      { id: 'confirmed', label: 'All Confirmed', icon: 'M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z' },
+    ];
+
+    // Sub tabs for confirmed activities
+    const confirmedSubTabs = [
+      { id: 'confirmed-pending', label: 'Pending', icon: 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z' },
+      { id: 'confirmed-ongoing', label: 'Ongoing', icon: 'M13 10V3L4 14h7v7l9-11h-7z' },
+      { id: 'confirmed-finish', label: 'Finished', icon: 'M5 13l4 4L19 7' }
     ];
 
     return (
-      <div className="w-full max-w-6xl mx-auto mt-8 overflow-x-auto pb-3">
-        <div className="flex space-x-2">
-          {tabs.map(tab => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center px-4 py-2 rounded-full transition-all duration-300 shadow-sm whitespace-nowrap ${
-                activeTab === tab.id 
-                ? `${getStatusBgColor(tab.id)} text-white font-semibold shadow-md` 
-                : 'bg-white text-gray-700 hover:bg-gray-100'
-              }`}
-            >
-              <svg className="w-5 h-5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d={tab.icon}></path>
-              </svg>
-              {tab.label}
-              {tab.id !== 'all' && activities[tab.id]?.length > 0 && (
-                <span className={`ml-2 text-xs font-bold px-2 py-0.5 rounded-full ${activeTab === tab.id ? 'bg-white text-gray-800' : 'bg-gray-100 text-gray-600'}`}>
-                  {activities[tab.id].length}
-                </span>
-              )}
-            </button>
-          ))}
+      <div className="w-full max-w-6xl mx-auto mt-8 px-4 sm:px-0">
+        {/* Main tabs - Improved horizontal scrolling on mobile */}
+        <div className="flex gap-2 overflow-x-auto pb-3 snap-x">
+          {mainTabs.map(tab => {
+            let count = 0;
+            if (tab.id === 'confirmed') {
+              count = Object.values(activities.confirmed).flat().length;
+            } else if (tab.id !== 'all') {
+              count = activities[tab.id]?.length || 0;
+            }
+
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex-shrink-0 snap-start flex items-center px-4 py-2 rounded-full transition-all duration-300 shadow-sm whitespace-nowrap ${
+                  (activeTab === tab.id || (tab.id === 'confirmed' && activeTab.startsWith('confirmed')))
+                  ? `${getStatusBgColor(tab.id)} text-white font-semibold shadow-md` 
+                  : 'bg-white text-gray-700 hover:bg-gray-100'
+                }`}
+              >
+                <svg className="w-5 h-5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d={tab.icon}></path>
+                </svg>
+                {tab.label}
+                {tab.id !== 'all' && count > 0 && (
+                  <span className={`ml-2 text-xs font-bold px-2 py-0.5 rounded-full ${
+                    (activeTab === tab.id || (tab.id === 'confirmed' && activeTab.startsWith('confirmed'))) 
+                    ? 'bg-white text-gray-800' 
+                    : 'bg-gray-100 text-gray-600'
+                  }`}>
+                    {count}
+                  </span>
+                )}
+              </button>
+            );
+          })}
         </div>
+        
+        {/* Sub tabs for confirmed activities - Improved for mobile */}
+        {(activeTab === 'confirmed' || activeTab.startsWith('confirmed-')) && (
+          <div className="mt-2 mx-1 sm:ml-8 pb-3 relative">
+            {/* Vertical line with proper spacing */}
+            <div className="absolute top-1 left-3 bottom-3 w-0.5 bg-blue-200 hidden sm:block"></div>
+            
+            {/* Wrapper with proper padding on mobile and desktop */}
+            <div className="flex flex-wrap gap-2 sm:pl-8 pl-0">
+              {confirmedSubTabs.map(tab => {
+                let count = 0;
+                if (tab.id === 'confirmed-pending') {
+                  count = activities.confirmed.PENDING.length;
+                } else if (tab.id === 'confirmed-ongoing') {
+                  count = activities.confirmed.ON_GOING.length;
+                } else if (tab.id === 'confirmed-finish') {
+                  count = activities.confirmed.FINISH.length;
+                }
+
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`flex items-center px-3 py-1.5 rounded-full transition-all duration-300 shadow-sm whitespace-nowrap text-sm ${
+                      activeTab === tab.id
+                      ? `${getStatusBgColor(tab.id)} text-white font-semibold shadow-md` 
+                      : 'bg-white text-gray-700 hover:bg-gray-100'
+                    }`}
+                  >
+                    <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d={tab.icon}></path>
+                    </svg>
+                    {tab.label}
+                    {count > 0 && (
+                      <span className={`ml-2 text-xs font-bold px-2 py-0.5 rounded-full ${
+                        activeTab === tab.id 
+                        ? 'bg-white text-gray-800' 
+                        : 'bg-gray-100 text-gray-600'
+                      }`}>
+                        {count}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </div>
     );
   };
 
+  // Updated to handle subgroups in confirmed activities
   const getFilteredActivities = () => {
     if (activeTab === 'all') {
-      return [
+      const result = [
         ...(activities.inactive.length > 0 ? [{ title: "Inactive Activities", items: activities.inactive }] : []),
         ...(activities.pending.length > 0 ? [{ title: "Pending Activities", items: activities.pending }] : []),
         ...(activities.accepted.length > 0 ? [{ title: "Accepted Activities", items: activities.accepted }] : []),
         ...(activities.rejected.length > 0 ? [{ title: "Rejected Activities", items: activities.rejected }] : []),
-        ...(activities.confirmed.length > 0 ? [{ title: "Confirmed Activities", items: activities.confirmed }] : [])
       ];
+      
+      // Add confirmed subgroups
+      if (activities.confirmed.PENDING.length > 0) {
+        result.push({ title: "Confirmed - Pending Jobs", items: activities.confirmed.PENDING });
+      }
+      
+      if (activities.confirmed.ON_GOING.length > 0) {
+        result.push({ title: "Confirmed - Ongoing Jobs", items: activities.confirmed.ON_GOING });
+      }
+      
+      if (activities.confirmed.FINISH.length > 0) {
+        result.push({ title: "Confirmed - Finished Jobs", items: activities.confirmed.FINISH });
+      }
+      
+      return result;
+    } else if (activeTab === 'confirmed') {
+      const result = [];
+      
+      if (activities.confirmed.PENDING.length > 0) {
+        result.push({ title: "Confirmed - Pending Jobs", items: activities.confirmed.PENDING });
+      }
+      
+      if (activities.confirmed.ON_GOING.length > 0) {
+        result.push({ title: "Confirmed - Ongoing Jobs", items: activities.confirmed.ON_GOING });
+      }
+      
+      if (activities.confirmed.FINISH.length > 0) {
+        result.push({ title: "Confirmed - Finished Jobs", items: activities.confirmed.FINISH });
+      }
+      
+      return result;
     } else {
       const statusMapping = {
         inactive: "Inactive Activities",
         pending: "Pending Activities",
         accepted: "Accepted Activities",
         rejected: "Rejected Activities",
-        confirmed: "Confirmed Activities"
+        "confirmed-pending": "Confirmed - Pending Jobs",
+        "confirmed-ongoing": "Confirmed - Ongoing Jobs",
+        "confirmed-finish": "Confirmed - Finished Jobs"
       };
       
-      return activities[activeTab]?.length > 0 ? [{ title: statusMapping[activeTab], items: activities[activeTab] }] : [];
+      if (activeTab === "confirmed-pending") {
+        return activities.confirmed.PENDING.length > 0 ? 
+          [{ title: statusMapping[activeTab], items: activities.confirmed.PENDING }] : [];
+      } else if (activeTab === "confirmed-ongoing") {
+        return activities.confirmed.ON_GOING.length > 0 ? 
+          [{ title: statusMapping[activeTab], items: activities.confirmed.ON_GOING }] : [];
+      } else if (activeTab === "confirmed-finish") {
+        return activities.confirmed.FINISH.length > 0 ? 
+          [{ title: statusMapping[activeTab], items: activities.confirmed.FINISH }] : [];
+      } else {
+        return activities[activeTab]?.length > 0 ? 
+          [{ title: statusMapping[activeTab], items: activities[activeTab] }] : [];
+      }
     }
   };
 

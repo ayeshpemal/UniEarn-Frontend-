@@ -65,11 +65,58 @@ const JobDetails = () => {
 
       if (response.data.code === 200) {
         const jobData = response.data.data;
-        if (jobData.jobStatus != "PENDING") {
-          setError("Job Not Active");
+        
+        // Get user ID for application check
+        let userId = null;
+        try {
+          const decodedToken = jwtDecode(token);
+          userId = decodedToken.user_id;
+        } catch (err) {
+          console.warn("Error decoding token:", err.message);
+        }
+
+        // Check if the job status is CANCEL, immediately reject
+        if (jobData.jobStatus === "CANCEL") {
+          setError("Job Has Been Cancelled");
           setLoading(false);
           return;
         }
+        
+        // For non-PENDING jobs, check if the user has applied
+        if (jobData.jobStatus !== "PENDING" && userId) {
+          try {
+            const applicationResponse = await axios.get(
+              `http://localhost:8100/api/v1/application/has-applied?studentId=${userId}&jobId=${jobId}`,
+              {
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                },
+              }
+            );
+            
+            // Allow access if the user has applied, regardless of job status
+            if (applicationResponse.data.code === 200 && 
+                applicationResponse.data.data && 
+                applicationResponse.data.data.hasApplied) {
+              // Set application status
+              setApplicationStatus(applicationResponse.data.data);
+            } else if (jobData.jobStatus !== "PENDING") {
+              // If job not PENDING and user has not applied, show appropriate message
+              setError(`This job is currently ${jobData.jobStatus}`);
+              setLoading(false);
+              return;
+            }
+          } catch (err) {
+            console.warn("Error checking application status:", err.message);
+            // If we can't check application status and job is not PENDING, default to error
+            if (jobData.jobStatus !== "PENDING") {
+              setError(`Job Not Active (${jobData.jobStatus})`);
+              setLoading(false);
+              return;
+            }
+          }
+        }
+        
         setJob(jobData);
 
         // Always fetch profile picture using employer.userId
@@ -447,11 +494,32 @@ const JobDetails = () => {
   };
 
   if (loading) {
-    return <div className="min-h-screen bg-gray-100 flex items-center justify-center"><p className="text-lg">Loading...</p></div>;
+    return (
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <div className="animate-pulse flex flex-col items-center">
+          <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+          <p className="mt-4 text-lg font-medium text-gray-700">Loading job details...</p>
+        </div>
+      </div>
+    );
   }
 
   if (error) {
-    return <div className="min-h-screen bg-gray-100 flex items-center justify-center"><p className="text-lg text-red-600">{error}</p></div>;
+    return (
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <div className="bg-white p-8 rounded-lg shadow-lg max-w-md w-full text-center">
+          <div className="text-red-500 text-5xl mb-4">⚠️</div>
+          <p className="text-xl font-semibold text-red-600 mb-2">Error</p>
+          <p className="text-gray-600">{error}</p>
+          <button 
+            className="mt-6 bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700 transition duration-200"
+            onClick={() => navigate(-1)}
+          >
+            Go Back
+          </button>
+        </div>
+      </div>
+    );
   }
 
   if (!job) return null;
@@ -461,8 +529,11 @@ const JobDetails = () => {
       return (
         <button
           onClick={handleApplyClick}
-          className="bg-blue-600 text-white px-4 sm:px-6 py-2 rounded-lg mt-4 w-full sm:w-auto"
+          className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition duration-200 transform hover:scale-105 flex items-center justify-center w-full sm:w-auto"
         >
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
           Apply Now
         </button>
       );
@@ -474,38 +545,50 @@ const JobDetails = () => {
     if (isTeamJob) {
       if (status === "INACTIVE" && !applicationStatus.memberStatus) {
         return (
-          <>
+          <div className="flex flex-col sm:flex-row gap-3 w-full">
             <button
-              className="bg-gray-400 text-white px-4 sm:px-6 py-2 rounded-lg mt-4 w-full sm:w-auto cursor-not-allowed"
+              className="bg-gray-400 text-white px-6 py-3 rounded-lg font-medium opacity-75 w-full sm:w-auto cursor-not-allowed flex items-center justify-center"
               disabled
             >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+              </svg>
               Applied
             </button>
             <button
               onClick={handleConfirmGroup}
-              className="bg-green-600 text-white px-4 sm:px-6 py-2 rounded-lg mt-4 ml-0 sm:ml-4 w-full sm:w-auto"
+              className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-medium transition duration-200 w-full sm:w-auto flex items-center justify-center"
             >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
               Confirm Group
             </button>
-          </>
+          </div>
         );
       }
       if (status === "PENDING" || (status === "INACTIVE" && applicationStatus.memberStatus)) {
         return (
           <button
-            className="bg-gray-400 text-white px-4 sm:px-6 py-2 rounded-lg mt-4 w-full sm:w-auto cursor-not-allowed"
+            className="bg-yellow-500 text-white px-6 py-3 rounded-lg font-medium opacity-90 w-full sm:w-auto cursor-not-allowed flex items-center justify-center"
             disabled
           >
-            Applied
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            Applied - Pending
           </button>
         );
       }
       if (status === "CONFIRMED") {
         return (
           <button
-            className="bg-green-600 text-white px-4 sm:px-6 py-2 rounded-lg mt-4 w-full sm:w-auto cursor-not-allowed"
+            className="bg-green-600 text-white px-6 py-3 rounded-lg font-medium w-full sm:w-auto cursor-not-allowed flex items-center justify-center"
             disabled
           >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
             CONFIRMED
           </button>
         );
@@ -513,66 +596,87 @@ const JobDetails = () => {
       if (status === "REJECTED") {
         return (
           <button
-            className="bg-red-600 text-white px-4 sm:px-6 py-2 rounded-lg mt-4 w-full sm:w-auto cursor-not-allowed"
+            className="bg-red-600 text-white px-6 py-3 rounded-lg font-medium w-full sm:w-auto cursor-not-allowed flex items-center justify-center"
             disabled
           >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
             REJECTED
           </button>
         );
       }
       if (status === "ACCEPTED" && applicationStatus.isTeamLeader) {
         return (
-          <>
+          <div className="flex flex-col sm:flex-row gap-3 w-full">
             <button
-              className="bg-gray-400 text-white px-4 sm:px-6 py-2 rounded-lg mt-4 w-full sm:w-auto cursor-not-allowed"
+              className="bg-yellow-500 text-white px-6 py-3 rounded-lg font-medium opacity-90 w-full sm:w-auto cursor-not-allowed flex items-center justify-center"
               disabled
             >
-              Applied
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              ACCEPTED
             </button>
             <button
               onClick={handleConfirmJob}
-              className="bg-green-600 text-white px-4 sm:px-6 py-2 rounded-lg mt-4 ml-0 sm:ml-4 w-full sm:w-auto"
+              className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-medium transition duration-200 w-full sm:w-auto flex items-center justify-center"
             >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
               Confirm Job
             </button>
-          </>
+          </div>
         );
       }
     } else {
       if (status === "PENDING") {
         return (
           <button
-            className="bg-gray-400 text-white px-4 sm:px-6 py-2 rounded-lg mt-4 w-full sm:w-auto cursor-not-allowed"
+            className="bg-yellow-500 text-white px-6 py-3 rounded-lg font-medium opacity-90 w-full sm:w-auto cursor-not-allowed flex items-center justify-center"
             disabled
           >
-            Applied
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            Application Pending
           </button>
         );
       }
       if (status === "ACCEPTED") {
         return (
-          <>
+          <div className="flex flex-col sm:flex-row gap-3 w-full">
             <button
-              className="bg-gray-400 text-white px-4 sm:px-6 py-2 rounded-lg mt-4 w-full sm:w-auto cursor-not-allowed"
+              className="bg-yellow-500 text-white px-6 py-3 rounded-lg font-medium opacity-90 w-full sm:w-auto cursor-not-allowed flex items-center justify-center"
               disabled
             >
-              Applied
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              ACCEPTED
             </button>
             <button
               onClick={handleConfirmJob}
-              className="bg-green-600 text-white px-4 sm:px-6 py-2 rounded-lg mt-4 ml-0 sm:ml-4 w-full sm:w-auto"
+              className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-medium transition duration-200 w-full sm:w-auto flex items-center justify-center"
             >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
               Confirm Job
             </button>
-          </>
+          </div>
         );
       }
       if (status === "CONFIRMED") {
         return (
           <button
-            className="bg-green-600 text-white px-4 sm:px-6 py-2 rounded-lg mt-4 w-full sm:w-auto cursor-not-allowed"
+            className="bg-green-600 text-white px-6 py-3 rounded-lg font-medium w-full sm:w-auto cursor-not-allowed flex items-center justify-center"
             disabled
           >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
             CONFIRMED
           </button>
         );
@@ -580,9 +684,12 @@ const JobDetails = () => {
       if (status === "REJECTED") {
         return (
           <button
-            className="bg-red-600 text-white px-4 sm:px-6 py-2 rounded-lg mt-4 w-full sm:w-auto cursor-not-allowed"
+            className="bg-red-600 text-white px-6 py-3 rounded-lg font-medium w-full sm:w-auto cursor-not-allowed flex items-center justify-center"
             disabled
           >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
             REJECTED
           </button>
         );
@@ -592,6 +699,7 @@ const JobDetails = () => {
 
   return (
     <div className="bg-gray-100 min-h-screen">
+      {/* Hero section remains unchanged */}
       <div
         className="relative h-[60vh] bg-cover bg-center"
         style={{
@@ -611,100 +719,171 @@ const JobDetails = () => {
         </div>
       </div>
 
+      {/* Improved Job Details Section */}
       <section className="max-w-4xl mx-auto p-4 sm:p-6 relative -mt-6 z-10">
-        <h2 className="text-xl sm:text-2xl font-bold mb-4 text-center">Job Details</h2>
-        <div className="bg-white p-4 sm:p-6 rounded-xl shadow-md flex flex-col relative mb-6">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
-            <h3 className="text-lg sm:text-xl font-bold">{job.jobTitle}</h3>
-            <div className="w-16 h-16 sm:w-20 sm:h-20 mt-2 sm:mt-0">
+        <div className="bg-white p-6 sm:p-8 rounded-xl shadow-lg flex flex-col relative mb-6">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 border-b pb-4">
+            <div className="flex-1">
+              <div className="flex items-center">
+                <h3 className="text-xl sm:text-2xl font-bold text-gray-800">{job.jobTitle}</h3>
+                <span className="ml-3 px-3 py-1 text-xs rounded-full bg-blue-100 text-blue-700 font-medium">
+                  {job.jobStatus}
+                </span>
+              </div>
+              <p 
+                className="text-blue-600 font-semibold text-sm sm:text-base mt-1 cursor-pointer hover:underline flex items-center"
+                onClick={() => navigate(`/e-profile?userId=${job.employer.userId}`)}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                </svg>
+                {job.employer.companyName}
+              </p>
+            </div>
+            <div className="w-20 h-20 sm:w-24 sm:h-24 mt-4 sm:mt-0 relative">
               <img
                 src={profilePictureUrl}
                 alt="Company Logo"
-                className="rounded-full w-full h-full object-cover"
+                className="rounded-full w-full h-full object-cover border-4 border-white shadow-md"
                 onError={(e) => {
-                  console.log(`Image failed to load: ${profilePictureUrl}`);
                   e.target.src = DEFAULT_PROFILE_PICTURE;
                 }}
               />
             </div>
           </div>
-          <div className="flex-grow">
-            <div className="mb-4">
-              <p className="text-gray-600 font-semibold text-sm sm:text-base">{job.employer.companyName}</p>
-              <p className="text-gray-500 text-xs sm:text-sm">{job.employer.companyDetails}</p>
-              <p className="text-gray-700 text-sm sm:text-base mt-2">
-                <span className="font-bold">Category:</span> {job.jobCategory} <br />
-                <span className="font-bold">Description:</span> {job.jobDescription} <br />
-                <span className="font-bold">Date:</span>{" "}
-                {new Date(job.startDate).toLocaleDateString()} - {new Date(job.endDate).toLocaleDateString()} <br />
-                <span className="font-bold">Time:</span> {job.startTime} - {job.endTime} <br />
-                <span className="font-bold">Gender:</span> {job.requiredGender.join(", ")} <br />
-                <span className="font-bold">No of Workers:</span> {job.requiredWorkers}
-              </p>
-            </div>
-            <p className="text-gray-700 mt-2">
-              <span className="font-bold">Locations:</span>{" "}
-              {job.jobLocations.map((loc, index) => (
-                <span key={index} className="block text-sm text-gray-500">{loc}</span>
-              ))}
-            </p>
-            <p className="text-green-600 font-bold mt-1 text-sm sm:text-base">
-              Rs. {job.jobPayment.toLocaleString()}.00
-            </p>
-            {!showApplySection && (
-              <div className="flex flex-col sm:flex-row sm:space-x-4">{renderApplyButton()}</div>
-            )}
-            {showApplySection && (
-              <div className="mt-6 border-t pt-4">
-                <h3 className="text-lg font-bold mb-4">Apply</h3>
-                <div className="grid grid-cols-2 sm:grid-cols-2 gap-4 mb-4">
-                  <div className="font-bold">Name</div>
-                  <div className="font-bold">Action</div>
-                  {appliedUsers.map((user) => (
-                    <React.Fragment key={user.userId}>
-                      <div className="flex items-center">
-                        <span>{user.displayName || user.userName}</span>
-                      </div>
-                      <div>
-                        {user.userId !== currentUser?.userId && (
-                          <button
-                            onClick={() => handleRemoveUser(user.userId)}
-                            className="text-red-500"
-                          >
-                            Remove
-                          </button>
-                        )}
-                      </div>
-                    </React.Fragment>
-                  ))}
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Left Column */}
+            <div>
+              <div className="mb-6">
+                <h4 className="text-lg font-bold text-gray-800 mb-2 flex items-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  Job Details
+                </h4>
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <div className="grid grid-cols-2 gap-y-2">
+                    <div className="text-gray-600 font-medium">Category:</div>
+                    <div>{job.jobCategory}</div>
+                    
+                    <div className="text-gray-600 font-medium">Date:</div>
+                    <div>
+                      {new Date(job.startDate).toLocaleDateString()} - {new Date(job.endDate).toLocaleDateString()}
+                    </div>
+                    
+                    <div className="text-gray-600 font-medium">Time:</div>
+                    <div>{job.startTime} - {job.endTime}</div>
+                    
+                    <div className="text-gray-600 font-medium">Gender:</div>
+                    <div>{job.requiredGender.join(", ")}</div>
+                    
+                    <div className="text-gray-600 font-medium">Workers:</div>
+                    <div>{job.requiredWorkers}</div>
+                  </div>
                 </div>
-                {job.requiredWorkers > 1 && (
-                  <>
-                    <input
-                      type="text"
-                      value={teamName}
-                      onChange={(e) => setTeamName(e.target.value)}
-                      placeholder="Enter team name"
-                      className="w-full mb-2 p-2 border rounded"
-                    />
-                    <button
-                      onClick={handleAddMember}
-                      className="bg-purple-600 text-white px-4 py-2 rounded-lg flex items-center justify-center mb-2"
-                    >
-                      <span className="mr-2">👤</span> Add Member
-                    </button>
-                  </>
-                )}
-                <button
-                  onClick={handleApply}
-                  className="bg-blue-600 text-white px-4 py-2 rounded-lg"
-                  disabled={job.requiredWorkers !== appliedUsers.length}
-                >
-                  Apply
-                </button>
               </div>
-            )}
+
+              <div className="mb-6">
+                <h4 className="text-lg font-bold text-gray-800 mb-2 flex items-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                  Locations
+                </h4>
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <ul className="list-disc list-inside space-y-1 text-gray-700">
+                    {job.jobLocations.map((loc, index) => (
+                      <li key={index} className="text-sm">{loc}</li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            {/* Right Column */}
+            <div>
+              <div className="mb-6">
+                <h4 className="text-lg font-bold text-gray-800 mb-2 flex items-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+                  </svg>
+                  Description
+                </h4>
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <p className="text-gray-700 text-sm">{job.jobDescription}</p>
+                </div>
+              </div>
+
+              <div className="mb-6">
+                <h4 className="text-lg font-bold text-gray-800 mb-2 flex items-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  Payment
+                </h4>
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <p className="text-green-600 font-bold text-lg">Rs. {job.jobPayment.toLocaleString()}.00</p>
+                </div>
+              </div>
+            </div>
           </div>
+
+          {!showApplySection && (
+            <div className="flex flex-col sm:flex-row sm:space-x-4 mt-6">{renderApplyButton()}</div>
+          )}
+
+          {showApplySection && (
+            <div className="mt-6 border-t pt-4">
+              <h3 className="text-lg font-bold mb-4">Apply</h3>
+              <div className="grid grid-cols-2 sm:grid-cols-2 gap-4 mb-4">
+                <div className="font-bold">Name</div>
+                <div className="font-bold">Action</div>
+                {appliedUsers.map((user) => (
+                  <React.Fragment key={user.userId}>
+                    <div className="flex items-center">
+                      <span>{user.displayName || user.userName}</span>
+                    </div>
+                    <div>
+                      {user.userId !== currentUser?.userId && (
+                        <button
+                          onClick={() => handleRemoveUser(user.userId)}
+                          className="text-red-500"
+                        >
+                          Remove
+                        </button>
+                      )}
+                    </div>
+                  </React.Fragment>
+                ))}
+              </div>
+              {job.requiredWorkers > 1 && (
+                <>
+                  <input
+                    type="text"
+                    value={teamName}
+                    onChange={(e) => setTeamName(e.target.value)}
+                    placeholder="Enter team name"
+                    className="w-full mb-2 p-2 border rounded"
+                  />
+                  <button
+                    onClick={handleAddMember}
+                    className="bg-purple-600 text-white px-4 py-2 rounded-lg flex items-center justify-center mb-2"
+                  >
+                    <span className="mr-2">👤</span> Add Member
+                  </button>
+                </>
+              )}
+              <button
+                onClick={handleApply}
+                className="bg-blue-600 text-white px-4 py-2 rounded-lg"
+                disabled={job.requiredWorkers !== appliedUsers.length}
+              >
+                Apply
+              </button>
+            </div>
+          )}
         </div>
       </section>
 
