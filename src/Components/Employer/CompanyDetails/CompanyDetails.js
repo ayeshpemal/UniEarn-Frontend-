@@ -383,14 +383,18 @@ function App() {
             setIsSubmittingRating(true);
             const token = localStorage.getItem('token');
             if (!token) throw new Error('No token found');
+            
+            const decodedToken = jwtDecode(token);
+            const raterId = decodedToken.user_id;
 
             await axios.post(
-                `http://localhost:8100/api/rating/add-company`,
+                `http://localhost:8100/api/v1/rating/create`,
                 {
-                    applicationId: applicationId,
-                    companyId: viewUserId,
-                    rating: ratingData.rating,
-                    feedback: ratingData.comment
+                    raterId: raterId,
+                    ratedId: parseInt(viewUserId),
+                    applicationId: parseInt(applicationId),
+                    score: ratingData.rating,
+                    comment: ratingData.comment
                 },
                 {
                     headers: {
@@ -403,7 +407,7 @@ function App() {
             setRatingSuccess('Rating submitted successfully!');
             setRatingError('');
             // Refresh company data to show updated rating
-            window.location.href = `/company-profile?userId=${viewUserId}`;
+            window.location.href = `/e-profile?userId=${viewUserId}`;
         } catch (error) {
             setRatingError(error.response?.data?.message || 'Failed to submit rating');
         } finally {
