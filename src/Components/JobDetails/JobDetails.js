@@ -592,22 +592,26 @@ const JobDetails = () => {
 
   return (
     <div className="bg-gray-100 min-h-screen">
-      <header
-        className="relative flex flex-col justify-center items-center text-white h-[50vh] sm:h-[70vh] bg-cover bg-center px-4 sm:px-6"
+      <div
+        className="relative h-[60vh] bg-cover bg-center"
         style={{
           backgroundImage: 'url("https://images.unsplash.com/photo-1559136555-9303baea8ebd?auto=format&fit=crop&q=80")',
         }}
       >
-        <div className="absolute inset-0 bg-black bg-opacity-50" />
-        <div className="relative z-10 text-center">
-          <h1 className="text-2xl sm:text-4xl md:text-6xl font-bold">
-            Find Your Perfect <br />
-            <span className="text-blue-400">Part-Time</span> Job
-          </h1>
+        <div className="absolute inset-0 bg-gradient-to-b from-black/80 to-black/40 backdrop-blur-[1px]">
+          <div className="max-w-7xl mx-auto h-full flex flex-col justify-end pb-24 px-4 sm:px-6">
+            <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-white tracking-tight drop-shadow-md mt-20">
+              Find Your Perfect <br />
+              <span className="text-blue-400 drop-shadow-lg">Part-Time</span> Job
+            </h1>
+            <p className="mt-3 text-white/90 text-lg sm:text-xl max-w-2xl drop-shadow-sm">
+              {job.jobTitle && `Details about ${job.jobTitle}`}
+            </p>
+          </div>
         </div>
-      </header>
+      </div>
 
-      <section className="max-w-4xl mx-auto p-4 sm:p-6">
+      <section className="max-w-4xl mx-auto p-4 sm:p-6 relative -mt-6 z-10">
         <h2 className="text-xl sm:text-2xl font-bold mb-4 text-center">Job Details</h2>
         <div className="bg-white p-4 sm:p-6 rounded-xl shadow-md flex flex-col relative mb-6">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">

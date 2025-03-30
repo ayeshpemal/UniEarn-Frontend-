@@ -385,17 +385,17 @@ function App() {
         <div className="min-h-screen bg-white">
             {/* Hero Section */}
             <div
-                className="relative h-[50vh] sm:h-[60vh] md:h-[70vh] bg-cover bg-center"
+                className="relative h-[60vh] bg-cover bg-center"
                 style={{
                     backgroundImage: 'url("https://images.unsplash.com/photo-1559136555-9303baea8ebd?auto=format&fit=crop&q=80")',
                 }}
             >
-                <div className="absolute inset-0 bg-black bg-opacity-50">
-                    <div className="container mx-auto h-full flex flex-col justify-center px-4 sm:px-6 lg:px-8">
-                        <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-white">
+                <div className="absolute inset-0 bg-gradient-to-b from-black/80 to-black/40 backdrop-blur-[1px]">
+                    <div className="max-w-7xl mx-auto h-full flex flex-col justify-end pb-24 px-4 sm:px-6">
+                        <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-white tracking-tight drop-shadow-md mt-20">
                             {isViewMode ? 'Profile' : 'Welcome'}
                             <br />
-                            <span className="text-[#6B7AFF]">{formData.displayName}</span>
+                            <span className="text-blue-400 drop-shadow-lg">{formData.displayName}</span>
                         </h1>
                     </div>
                 </div>
@@ -498,15 +498,16 @@ function App() {
                             disabled={true}
                         />
                         
-                        {/* Only show these fields if not in view mode */}
+                        {/* Show mobile number in both view mode and normal mode */}
+                        <ProfileField
+                            label="Mobile No"
+                            value={formData.mobileNo}
+                            disabled={true}
+                        />
+                        
+                        {/* Only show address and preferences if not in view mode */}
                         {!isViewMode && (
                             <>
-                                <ProfileField
-                                    label="Mobile No"
-                                    value={formData.mobileNo}
-                                    disabled={!isEditing}
-                                    onChange={(value) => handleInputChange('mobileNo', value)}
-                                />
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-2">Address</label>
                                     {isEditing ? (
