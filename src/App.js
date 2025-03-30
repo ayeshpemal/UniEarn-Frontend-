@@ -56,21 +56,21 @@ function App() {
     const chatButton = [
         "/", "/hero", "/sign-in", "/sign-up", "/pin", "/verify", "/e-hero", "/e-sign-in", "/e-sign-up", 
         "/e-home", "/e-job-create", "/e-job-edit", "/e-contact-us", "/admins/stats", "/reset-password",
-        "/e-profile"
+        "/e-profile","/e-job-details/:jobId"
     ];
     
     const searchBarHome = [
         "/", "/hero", "/sign-in", "/sign-up", "/pin", "/verify", "/company", "/e-home", "/profile", 
         "/activities", "/job-details", "/apply-job", "/contact-us", "/company-rating", "/e-hero", 
         "/e-sign-in", "/e-sign-up", "/e-job-create", "/e-job-edit", "/e-contact-us", "/admins/stats", 
-        "/search-student", "/activities/summary", "/reset-password", "/home", "/e-profile"
+        "/search-student", "/activities/summary", "/reset-password", "/home", "/e-profile","/e-job-details/:jobId"
     ];
     
     const searchBarCompany = [
         "/", "/hero", "/sign-in", "/sign-up", "/home", "/profile", "/verify", "/e-home", "/activities", 
         "/job-details", "/apply-job", "/contact-us", "/company-rating", "/e-hero", "/e-sign-in", 
         "/e-sign-up", "/e-job-create", "/e-job-edit", "/e-contact-us", "/admins/stats", "/search-student", 
-        "/company", "/activities/summary", "/reset-password", "/e-profile"
+        "/company", "/activities/summary", "/reset-password", "/e-profile","/e-job-details/:jobId"
     ];
 
     const eChatButton = [
@@ -91,7 +91,7 @@ function App() {
         "/activities", "/job-details", "/apply-job", "/contact-us", "/company-rating", "/e-hero", 
         "/e-sign-in", "/e-sign-up", "/e-contact-us", "/admins/stats", "/company", "/activities", 
         "/profile", "/search-student", "/job-details", "/e-job-create", "/e-job-edit", "/activities/summary", 
-        "/reset-password","/e-profile"
+        "/reset-password","/e-profile","/e-job-details/:jobId"
     ];
 
     // Define all valid routes explicitly
@@ -102,7 +102,7 @@ function App() {
         "/companyList", "/search-student", "/activities/summary", "/company",
         "/profile", "/activities", "/confirm", "/job-details", "/apply-job",
         "/contact-us", "/log-out", "/company-details/:employerId",
-        "/searched-results/:selectedLocation/:selectedJob/:searchTerm"
+        "/searched-results/:selectedLocation/:selectedJob/:searchTerm","/e-job-details/:jobId"
     ];
 
     // Check if the current path is valid (simplified check, ignoring params for now)
@@ -177,6 +177,8 @@ function App() {
         return children;
     };
 
+   
+   
     return (
         <div className="App">
             {/* ChatButton and NavBar logic */}
@@ -218,6 +220,8 @@ function App() {
                 <Route path="/e-home" element={<ProtectedRoute><EHome /></ProtectedRoute>} />
                 <Route path="/e-job-create" element={<ProtectedRoute><EJobCreation /></ProtectedRoute>} />
                 <Route path="/e-job-edit" element={<ProtectedRoute><EJobUpdate /></ProtectedRoute>} />
+                <Route path="/e-job-details/:jobId" element={<ProtectedRoute><Application /></ProtectedRoute>} />
+
                 <Route path="/e-profile" element={<ProtectedRoute><CompanyDetails /></ProtectedRoute>} />
                 <Route path="/e-contact-us" element={<ProtectedRoute><ContactUs /></ProtectedRoute>} />
 
@@ -245,6 +249,8 @@ function App() {
             {!isPublicRoute && isAuthenticated && <Footer />}
         </div>
     );
+
+
 }
 
 export default App;

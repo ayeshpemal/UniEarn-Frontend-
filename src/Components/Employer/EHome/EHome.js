@@ -39,7 +39,7 @@ const EHome = () => {
   }, [currentPage]);
 
   const handleViewStudents = (jobId) => {
-    window.location.href = `/e-job-details?jobId=${jobId}`;
+    window.location.href = `/e-job-details/${jobId}`;
   };
 
   const handleEditJob = (jobId) => {

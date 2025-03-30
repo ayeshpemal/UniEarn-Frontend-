@@ -1,37 +1,53 @@
 import { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import GroupTeam from "./GroupTeam";
 import Student from "./Student";
 import axios from "axios";
-
+import { jwtDecode } from "jwt-decode";
+import { useParams } from "react-router-dom"; 
 const Application = () => {
-  // Mock job data
-  const [mockJob] = useState({
-    id: 1,
-    companyName: "K&D Garment",
-    description: "නොවැම්බර් 16 සිට vote activation sampling and selling සඳහා sales ප්‍රවර්ධන ක්‍රියාවලිය 2ක් පැවැත්වේ.",
-    date: "16th Dec 2024 - 22nd Dec 2024",
-    time: "9.00am to 6.00pm",
-    gender: "Female",
-    requiredWorkers: 1,  // Only 1 worker is required for this example
-    salary: "Rs.3500.00",
-    companyLogo: "/job-logo.png",
-    coverImage: "https://images.unsplash.com/photo-1559136555-9303baea8ebd?auto=format&fit=crop&q=80"
-  });
-
-  
+  const [job, setJob] = useState(null);
   const [groups, setGroups] = useState([]);
   const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [confirmedGroupId, setConfirmedGroupId] = useState(null);
+  const [confirmedStudentId, setConfirmedStudentId] = useState(null);
 
-  
+  // Get jobId from URL query parameters
+  const { jobId } = useParams();
+
+
+  // Function to decode the JWT token and get the user ID
+  const getUserIdFromToken = (token) => {
+    try {
+      const decoded = jwtDecode(token);
+      return decoded.user_id;
+      
+    } catch (error) {
+      console.error("Error decoding token:", error);
+      return null;
+    }
+  };
+
+  // Fetch job details and applications
   useEffect(() => {
     const fetchData = async () => {
+      if (!jobId) {
+        setError("Job ID not found in URL");
+        setLoading(false);
+        return;
+      }
+
       try {
+        // Fetch job details
+        const jobResponse = await axios.get(`http://localhost:8100/api/v1/jobs/${jobId}`);
+        setJob(jobResponse.data);
+
         // Fetch group applications
-        const groupResponse = await axios.get("http://localhost:8100/api/v1/application/pending-group/job/8");
-        const transformedGroups = groupResponse.data.map(group => ({
-          applicationId: group.applicationId,  
+        const groupResponse = await axios.get(`http://localhost:8100/api/v1/application/pending-group/job/${jobId}`);
+        const transformedGroups = groupResponse.data.data.map(group => ({
+          applicationId: group.applicationId,
           groupId: group.groupId,
           groupName: group.groupName,
           members: group.members.map(member => ({
@@ -45,9 +61,9 @@ const Application = () => {
         setGroups(transformedGroups);
 
         // Fetch student applications
-        const studentResponse = await axios.get("http://localhost:8100/api/v1/application/pending-student/job/8");
-        const transformedStudents = studentResponse.data.map(student => ({
-          applicationId: student.applicationId,  
+        const studentResponse = await axios.get(`http://localhost:8100/api/v1/application/pending-student/job/${jobId}`);
+        const transformedStudents = studentResponse.data.data.map(student => ({
+          applicationId: student.applicationId,
           studentId: student.id,
           name: student.name,
           location: student.location,
@@ -56,97 +72,41 @@ const Application = () => {
         }));
         setStudents(transformedStudents);
       } catch (error) {
-
-        console.error("Error fetching data:", error); 
-        // Fallback to mock data if the backend request fails
-        setGroups([
-          {
-            groupId: 1,
-            groupName: "Group 1",
-            members: [
-              {
-                id: 1,
-                name: "Aathif Mohamed",
-                location: "Colombo",
-                rating: 4,
-                avatar: "/studentImages/stu2.png",
-              },
-              {
-                id: 2,
-                name: "Umesha Hasinduni",
-                location: "Gampaha",
-                rating: 5,
-                avatar: "/studentImages/stu3.jpeg",
-              },
-            ],
-          },
-          {
-            groupId: 2,
-            groupName: "Group 2",
-            members: [
-              {
-                id: 3,
-                name: "Uditha Chathuranga",
-                location: "Gampaha",
-                rating: 3,
-                avatar: "/studentImages/stu1.jpeg",
-              },
-              {
-                id: 4,
-                name: "Chamal Achintha",
-                location: "Colombo",
-                rating: 4,
-                avatar: "/studentImages/stu4.png",
-              },
-            ],
-          },
-        ]);
-
-        setStudents([
-          {
-            studentId: 1,
-            name: "Timasha Wanninayaka",
-            location: "Kandy",
-            rating: 4,
-            avatar: "/studentImages/stu3.jpeg",
-          },
-          {
-            studentId: 2,
-            name: "Maleesha Wijekon",
-            location: "Matara",
-            rating: 5,
-            avatar: "/studentImages/stu2.png",
-          },
-        ]);
-
-        setError("Failed to load data. Using mock data instead.");
-
-    } finally {
+        console.error("Error fetching data:", error);
+        setError("Failed to load data. Please try again later.");
+      } finally {
         setLoading(false);
       }
     };
 
     fetchData();
-  }, []);
-
-  
-  const [confirmedGroupId, setConfirmedGroupId] = useState(null);
-  const [confirmedStudentId, setConfirmedStudentId] = useState(null);  // Only one student can be selected
-  const { requiredWorkers } = mockJob;
+  }, [jobId]);
 
   const updateApplicationStatus = async (applicationId, newStatus) => {
+    const token = localStorage.getItem("token");
+    const userId = getUserIdFromToken(token);
+    
+    if (!userId) {
+      console.error("User ID not found in token.");
+      return;
+    }
+  
     try {
       const response = await axios.put(
         `http://localhost:8100/api/v1/application/${applicationId}/status`,
-        null, 
+        null, // No request body
         {
-          params: { newStatus },
-          headers: { userId: 2 }, // Replace with actual user ID
+          params: { 
+            newStatus, 
+            userId // Send userId as query parameter
+          }
         }
       );
-      console.log(response.data);
+      console.log("Status update response:", response.data);
+      return response.data;
     } catch (error) {
-      console.error("Error updating application status:", error);
+      console.error("Error updating application status:", error.response || error);
+      throw error; // Re-throw to handle in calling function
     }
   };
 
@@ -157,7 +117,6 @@ const Application = () => {
     setConfirmedGroupId(groupId);
     setConfirmedStudentId(null);
 
-    
     await updateApplicationStatus(group.applicationId, "ACCEPTED");
   };
 
@@ -168,18 +127,35 @@ const Application = () => {
     setConfirmedStudentId(studentId);
     setConfirmedGroupId(null);
 
-    
     await updateApplicationStatus(student.applicationId, "ACCEPTED");
   };
 
   const isJobFilled = confirmedGroupId !== null || confirmedStudentId !== null;
+
+  if (loading) {
+    return <div className="flex justify-center items-center h-screen">
+      <p className="text-xl">Loading...</p>
+    </div>;
+  }
+
+  if (error) {
+    return <div className="flex justify-center items-center h-screen">
+      <p className="text-red-500 text-xl">{error}</p>
+    </div>;
+  }
+
+  if (!job) {
+    return <div className="flex justify-center items-center h-screen">
+      <p className="text-xl">No job details found.</p>
+    </div>;
+  }
 
   return (
     <div className="bg-gray-100 min-h-screen">
       {/* Hero Section */}
       <div
         className="relative h-[70vh] bg-cover bg-center"
-        style={{ backgroundImage: `url('${mockJob.coverImage}')` }}
+        style={{ backgroundImage: `url('${job.coverImage}')` }}
       >
         <div className="absolute inset-0 bg-black bg-opacity-50">
           <div className="max-w-7xl mx-auto h-full flex flex-col justify-center px-6">
@@ -199,43 +175,39 @@ const Application = () => {
           <h2 className="text-2xl font-bold text-center mb-4">Job Details</h2>
           <div className="flex items-start gap-4">
             <img
-              src={mockJob.companyLogo}
+              src={job.companyLogo}
               alt="Company Logo"
               className="w-16 h-16 rounded-full"
             />
             <div className="flex-1">
-              <h3 className="text-lg font-semibold">{mockJob.companyName}</h3>
-              <p className="text-gray-600 mb-4">{mockJob.description}</p>
+              <h3 className="text-lg font-semibold">{job.companyName}</h3>
+              <p className="text-gray-600 mb-4">{job.description}</p>
               
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
                   <p className="font-medium">Date:</p>
-                  <p className="text-gray-600">{mockJob.date}</p>
+                  <p className="text-gray-600">{job.date}</p>
                 </div>
                 <div>
                   <p className="font-medium">Time:</p>
-                  <p className="text-gray-600">{mockJob.time}</p>
+                  <p className="text-gray-600">{job.time}</p>
                 </div>
                 <div>
                   <p className="font-medium">Gender:</p>
-                  <p className="text-gray-600">{mockJob.gender}</p>
+                  <p className="text-gray-600">{job.gender}</p>
                 </div>
                 <div>
                   <p className="font-medium">Required Workers:</p>
-                  <p className="text-gray-600">{mockJob.requiredWorkers}</p>
+                  <p className="text-gray-600">{job.requiredWorkers}</p>
                 </div>
               </div>
               
               <p className="text-lg font-semibold text-green-600 mt-4">
-                {mockJob.salary}
+                {job.salary}
               </p>
             </div>
           </div>
         </div>
-
-        {/* Loading/Error Handling */}
-        {loading && <p>Loading...</p>}
-        {error && <p className="text-red-500">{error}</p>}
 
         {/* Confirmed Selection */}
         {isJobFilled && (
