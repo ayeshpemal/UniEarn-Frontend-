@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import { Mail, Phone, MapPin, Send, MessageSquare, HelpCircle } from "lucide-react";
+import axios from "axios";
+import { jwtDecode } from "jwt-decode";
 
 const Contact = () => {
     const [formData, setFormData] = useState({
@@ -12,6 +14,7 @@ const Contact = () => {
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submitSuccess, setSubmitSuccess] = useState(false);
+    const [submitError, setSubmitError] = useState(null);
 
     const handleChange = (e) => {
         setFormData({
@@ -20,14 +23,35 @@ const Contact = () => {
         });
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         setIsSubmitting(true);
+        setSubmitError(null);
         
-        // Simulate API call delay
-        setTimeout(() => {
-            console.log("Form Submitted:", formData);
-            setIsSubmitting(false);
+        try {
+            // Get token from localStorage
+            const token = localStorage.getItem('token');
+            if (!token) {
+                throw new Error("Authentication required. Please log in.");
+            }
+            
+            // Decode token to get user info if needed
+            const decodedToken = jwtDecode(token);
+            
+            // Send email through API
+            const response = await axios.post(
+                "http://localhost:8100/api/email/send",
+                {
+                    ...formData,
+                    fullName: `${formData.firstName} ${formData.lastName}`,
+                    userId: decodedToken.user_id // Include user ID from token if needed
+                },
+                {
+                    headers: { Authorization: `Bearer ${token}` }
+                }
+            );
+            
+            console.log("Email sent successfully:", response.data);
             setSubmitSuccess(true);
             
             // Reset form
@@ -44,7 +68,16 @@ const Contact = () => {
             setTimeout(() => {
                 setSubmitSuccess(false);
             }, 3000);
-        }, 800);
+        } catch (error) {
+            console.error("Error sending email:", error);
+            setSubmitError(
+                error.response?.data?.message || 
+                error.message || 
+                "Failed to send message. Please try again."
+            );
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     return (
@@ -68,30 +101,6 @@ const Contact = () => {
                     </div>
                 </div>
             </div>
-
-            {/* Features Navigation 
-            <div className="w-full max-w-6xl mx-auto mt-8 px-4 sm:px-0">
-                <div className="flex gap-2 overflow-x-auto pb-3 snap-x">
-                    {[
-                        { id: 'general', label: 'General Inquiry', icon: <MessageSquare size={18} />, color: 'bg-blue-500' },
-                        { id: 'support', label: 'Support Request', icon: <HelpCircle size={18} />, color: 'bg-purple-500' },
-                        { id: 'feedback', label: 'Send Feedback', icon: <Send size={18} />, color: 'bg-green-500' },
-                    ].map(item => (
-                        <button
-                            key={item.id}
-                            onClick={() => setFormData({...formData, subject: item.label})}
-                            className={`flex-shrink-0 snap-start flex items-center px-4 py-2 rounded-full transition-all duration-300 shadow-sm whitespace-nowrap ${
-                                formData.subject === item.label
-                                    ? `${item.color} text-white font-semibold shadow-md`
-                                    : 'bg-white text-gray-700 hover:bg-gray-100'
-                            }`}
-                        >
-                            <span className="mr-2">{item.icon}</span>
-                            {item.label}
-                        </button>
-                    ))}
-                </div>
-            </div>*/}
 
             {/* Contact Form Section */}
             <div className="max-w-6xl mx-auto mt-6 p-6 sm:p-8 relative z-10">
@@ -133,23 +142,6 @@ const Contact = () => {
                                     </div>
                                 </div>
                             </div>
-                            
-                            {/* <div className="mt-12">
-                                <p className="font-medium mb-4">Connect with us</p>
-                                <div className="flex space-x-4">
-                                    {['facebook', 'twitter', 'instagram', 'linkedin'].map(social => (
-                                        <a 
-                                            key={social}
-                                            href={`#${social}`}
-                                            className="bg-blue-400/30 p-2 rounded-full hover:bg-blue-400/60 transition-colors duration-200"
-                                        >
-                                            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                                                <path d="M12 0c-6.627 0-12 5.373-12 12s5.373 12 12 12 12-5.373 12-12-5.373-12-12-12zm3 8h-1.35c-.538 0-.65.221-.65.778v1.222h2l-.209 2h-1.791v7h-3v-7h-2v-2h2v-2.308c0-1.769.931-2.692 3.029-2.692h1.971v3z" />
-                                            </svg>
-                                        </a>
-                                    ))}
-                                </div>
-                            </div> */}
                         </div>
 
                         {/* Contact Form */}
@@ -167,6 +159,23 @@ const Contact = () => {
                                         <div className="ml-3">
                                             <p className="text-sm font-medium text-green-800">
                                                 Message sent successfully! We'll get back to you soon.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                            
+                            {submitError && (
+                                <div className="mb-6 p-4 bg-red-50 border-l-4 border-red-500 rounded-md">
+                                    <div className="flex">
+                                        <div className="flex-shrink-0">
+                                            <svg className="h-5 w-5 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+                                        </div>
+                                        <div className="ml-3">
+                                            <p className="text-sm font-medium text-red-800">
+                                                {submitError}
                                             </p>
                                         </div>
                                     </div>
@@ -295,36 +304,6 @@ const Contact = () => {
                     </div>
                 </div>
             </div>
-
-            {/* FAQ Section 
-            <div className="max-w-6xl mx-auto mt-12 mb-20 px-6">
-                <h2 className="text-3xl font-bold text-gray-800 mb-8 text-center">Frequently Asked Questions</h2>
-                <div className="grid md:grid-cols-2 gap-6">
-                    {[
-                        {
-                            q: "How do I create an account?",
-                            a: "You can create an account by clicking on the 'Sign Up' button in the top right corner of our homepage. Follow the simple registration process to get started."
-                        },
-                        {
-                            q: "What payment methods do you accept?",
-                            a: "We accept major credit/debit cards, PayPal, and bank transfers. All payments are securely processed through our payment gateway."
-                        },
-                        {
-                            q: "How can I reset my password?",
-                            a: "Click on the 'Forgot Password' link on the login page. Enter your registered email address, and we'll send you instructions to reset your password."
-                        },
-                        {
-                            q: "How do I apply for a job?",
-                            a: "Browse available jobs on our platform, select one that interests you, and click the 'Apply' button. Follow the prompts to complete your application."
-                        }
-                    ].map((item, i) => (
-                        <div key={i} className="bg-white shadow-md rounded-lg p-6 hover:shadow-lg transition-shadow duration-300">
-                            <h3 className="text-lg font-semibold text-gray-800 mb-2">{item.q}</h3>
-                            <p className="text-gray-600">{item.a}</p>
-                        </div>
-                    ))}
-                </div>
-            </div>*/}
         </div>
     );
 };
