@@ -390,14 +390,18 @@ function App() {
             setIsSubmittingRating(true);
             const token = localStorage.getItem('token');
             if (!token) throw new Error('No token found');
+            
+            const decodedToken = jwtDecode(token);
+            const raterId = decodedToken.user_id;
 
             await axios.post(
-                `http://localhost:8100/api/rating/add`,
+                `http://localhost:8100/api/v1/rating/create`,
                 {
-                    applicationId: applicationId,
-                    studentId: viewUserId,
-                    rating: ratingData.rating,
-                    feedback: ratingData.comment
+                    raterId: raterId,
+                    ratedId: parseInt(viewUserId),
+                    applicationId: parseInt(applicationId),
+                    score: ratingData.rating,
+                    comment: ratingData.comment
                 },
                 {
                     headers: {
