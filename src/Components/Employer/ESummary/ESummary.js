@@ -94,12 +94,7 @@ const ESummary = () => {
 
       try {
         const response = await axios.get(
-          `http://localhost:8100/api/employer/analysis/brief-summary/`,
-          {
-            employerId: employerId,
-            startDate: new Date(startDate).toISOString(),
-            endDate: new Date(endDate).toISOString()
-          },
+          `http://localhost:8100/api/employer/analysis/brief-summary/${employerId}?startDate=${new Date(startDate).toISOString()}&endDate=${new Date(endDate).toISOString()}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -395,7 +390,14 @@ const ESummary = () => {
                         <tbody className="bg-white divide-y divide-gray-200">
                           {summaryData.mostAppliedJobs.map((job) => (
                             <tr key={job.jobId}>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{job.jobTitle}</td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                <a 
+                                  href={`/e-job-details?jobId=${job.jobId}`} 
+                                  className="text-blue-600 hover:text-blue-800 hover:underline"
+                                >
+                                  {job.jobTitle}
+                                </a>
+                              </td>
                               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{job.applicationCount}</td>
                             </tr>
                           ))}
@@ -418,7 +420,14 @@ const ESummary = () => {
                         <tbody className="bg-white divide-y divide-gray-200">
                           {summaryData.leastAppliedJobs.map((job) => (
                             <tr key={job.jobId}>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{job.jobTitle}</td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                <a 
+                                  href={`/e-job-details?jobId=${job.jobId}`} 
+                                  className="text-blue-600 hover:text-blue-800 hover:underline"
+                                >
+                                  {job.jobTitle}
+                                </a>
+                              </td>
                               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{job.applicationCount}</td>
                             </tr>
                           ))}
