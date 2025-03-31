@@ -66,6 +66,13 @@ const SearchBar = ({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
   
+  // Handle key press for search input
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter') {
+      handleSearch();
+    }
+  };
+  
   return (
     <div className="mt-6 w-full max-w-4xl mx-auto bg-white rounded-full shadow-md p-2 sm:p-3 flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-3">
       {/* Location Dropdown - Improved */}
@@ -207,6 +214,7 @@ const SearchBar = ({
           max={today}
           onChange={(e) => setSelectedDate(e.target.value)}
           placeholder="Select date"
+          onKeyPress={handleKeyPress}
         />
         {selectedDate && (
           <button 
@@ -219,7 +227,7 @@ const SearchBar = ({
         )}
       </div>
 
-      {/* Search Input */}
+      {/* Search Input with Enter key functionality */}
       <div className="relative flex items-center w-full sm:flex-1">
         <Search size={16} className="absolute left-3 text-gray-500 sm:size-18" />
         <input
@@ -228,6 +236,7 @@ const SearchBar = ({
           className="w-full pl-9 pr-4 py-1.5 sm:py-2 text-sm sm:text-base focus:outline-none text-gray-700 rounded-full border bg-gray-50"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
+          onKeyPress={handleKeyPress}
         />
       </div>
 
