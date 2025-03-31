@@ -64,6 +64,13 @@ function App() {
     // Add a ref for the rating section
     const ratingRef = useRef(null);
 
+    // Add these state variables for feedback pagination
+    const [feedbacks, setFeedbacks] = useState([]);
+    const [feedbackPage, setFeedbackPage] = useState(0);
+    const [feedbackPageSize, setFeedbackPageSize] = useState(3);
+    const [totalFeedbacks, setTotalFeedbacks] = useState(0);
+    const [feedbackLoading, setFeedbackLoading] = useState(true);
+
     // Check view mode and set initial state
     useEffect(() => {
         const params = new URLSearchParams(window.location.search);
@@ -157,6 +164,44 @@ function App() {
             }, 500); // Small delay to ensure DOM is fully rendered
         }
     }, [isRatingMode, isViewMode, isLoading]);
+
+    // Add a new useEffect to fetch feedback data
+    useEffect(() => {
+        const fetchFeedbacks = async () => {
+            try {
+                setFeedbackLoading(true);
+                const token = localStorage.getItem('token');
+                if (!token) throw new Error('No token found');
+                
+                let userId;
+                if (isViewMode && viewUserId) {
+                    userId = viewUserId;
+                } else {
+                    const decodedToken = jwtDecode(token);
+                    userId = decodedToken.user_id;
+                }
+
+                const response = await axios.get(
+                    `http://localhost:8100/api/v1/rating/received/${userId}?page=${feedbackPage}&size=${feedbackPageSize}`,
+                    { headers: { 'Authorization': `Bearer ${token}` } }
+                );
+                
+                if (response.data.code === 200) {
+                    setFeedbacks(response.data.data.ratingDetails || []);
+                    setTotalFeedbacks(response.data.data.ratingCount || 0);
+                }
+            } catch (error) {
+                console.error('Error fetching feedbacks:', error);
+                setFeedbacks([]);
+            } finally {
+                setFeedbackLoading(false);
+            }
+        };
+
+        if (!isLoading && localStorage.getItem('token')) {
+            fetchFeedbacks();
+        }
+    }, [isLoading, isViewMode, viewUserId, feedbackPage, feedbackPageSize]);
 
     const handleInputChange = (field, value) => {
         setFormData(prev => ({ ...prev, [field]: value }));
@@ -345,14 +390,18 @@ function App() {
             setIsSubmittingRating(true);
             const token = localStorage.getItem('token');
             if (!token) throw new Error('No token found');
+            
+            const decodedToken = jwtDecode(token);
+            const raterId = decodedToken.user_id;
 
             await axios.post(
-                `http://localhost:8100/api/rating/add`,
+                `http://localhost:8100/api/v1/rating/create`,
                 {
-                    applicationId: applicationId,
-                    studentId: viewUserId,
-                    rating: ratingData.rating,
-                    feedback: ratingData.comment
+                    raterId: raterId,
+                    ratedId: parseInt(viewUserId),
+                    applicationId: parseInt(applicationId),
+                    score: ratingData.rating,
+                    comment: ratingData.comment
                 },
                 {
                     headers: {
@@ -373,6 +422,13 @@ function App() {
         }
     };
 
+    // Add this function to handle page changes
+    const handlePageChange = (newPage) => {
+        if (newPage >= 0 && newPage <= Math.ceil(totalFeedbacks / feedbackPageSize) - 1) {
+            setFeedbackPage(newPage);
+        }
+    };
+
     if (isLoading) {
         return (
             <div className="min-h-screen bg-white flex items-center justify-center">
@@ -385,17 +441,17 @@ function App() {
         <div className="min-h-screen bg-white">
             {/* Hero Section */}
             <div
-                className="relative h-[50vh] sm:h-[60vh] md:h-[70vh] bg-cover bg-center"
+                className="relative h-[60vh] bg-cover bg-center"
                 style={{
                     backgroundImage: 'url("https://images.unsplash.com/photo-1559136555-9303baea8ebd?auto=format&fit=crop&q=80")',
                 }}
             >
-                <div className="absolute inset-0 bg-black bg-opacity-50">
-                    <div className="container mx-auto h-full flex flex-col justify-center px-4 sm:px-6 lg:px-8">
-                        <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-white">
+                <div className="absolute inset-0 bg-gradient-to-b from-black/80 to-black/40 backdrop-blur-[1px]">
+                    <div className="max-w-7xl mx-auto h-full flex flex-col justify-end pb-24 px-4 sm:px-6">
+                        <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-white tracking-tight drop-shadow-md mt-20">
                             {isViewMode ? 'Profile' : 'Welcome'}
                             <br />
-                            <span className="text-[#6B7AFF]">{formData.displayName}</span>
+                            <span className="text-blue-400 drop-shadow-lg">{formData.displayName}</span>
                         </h1>
                     </div>
                 </div>
@@ -498,15 +554,16 @@ function App() {
                             disabled={true}
                         />
                         
-                        {/* Only show these fields if not in view mode */}
+                        {/* Show mobile number in both view mode and normal mode */}
+                        <ProfileField
+                            label="Mobile No"
+                            value={formData.mobileNo}
+                            disabled={true}
+                        />
+                        
+                        {/* Only show address and preferences if not in view mode */}
                         {!isViewMode && (
                             <>
-                                <ProfileField
-                                    label="Mobile No"
-                                    value={formData.mobileNo}
-                                    disabled={!isEditing}
-                                    onChange={(value) => handleInputChange('mobileNo', value)}
-                                />
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-2">Address</label>
                                     {isEditing ? (
@@ -682,32 +739,78 @@ function App() {
 
                 {/* Company Feedback Section */}
                 <div>
-                    <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">Company Feedback</h2>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
-                        <FeedbackCard
-                            image="https://images.unsplash.com/photo-1494790108377-be9c29b29330"
-                            name="Floyd Miles"
-                            rating={4}
-                            review="Amet minim mollit non deserunt ullamco est sit aliqua dolor do amet sint."
-                        />
-                        <FeedbackCard
-                            image="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d"
-                            name="Ronald Richards"
-                            rating={4}
-                            review="ullamco est sit aliqua dolor do amet sint."
-                        />
-                        <FeedbackCard
-                            image="https://images.unsplash.com/photo-1639149888905-fb39731f2e6c"
-                            name="Savannah Nguyen"
-                            rating={3}
-                            review="Amet minim mollit non deserunt ullamco est sit aliqua dolor do amet sint."
-                        />
-                    </div>
-                    <div className="flex justify-center space-x-2">
-                        <div className="w-2 h-2 rounded-full bg-blue-500"></div>
-                        <div className="w-2 h-2 rounded-full bg-gray-300"></div>
-                        <div className="w-2 h-2 rounded-full bg-gray-300"></div>
-                    </div>
+                    <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">Student Feedbacks</h2>
+                    {feedbackLoading ? (
+                        <div className="flex justify-center items-center py-12">
+                            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-500"></div>
+                        </div>
+                    ) : feedbacks.length === 0 ? (
+                        <div className="text-center py-12 text-gray-500">
+                            No feedback available
+                        </div>
+                    ) : (
+                        <>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
+                                {feedbacks.map((feedback) => (
+                                    <FeedbackCard
+                                        key={feedback.ratingId}
+                                        rater={feedback.raterUserName}
+                                        jobTitle={feedback.jobTitle}
+                                        rating={feedback.score}
+                                        review={feedback.comment}
+                                        date={new Date(feedback.createdAt).toLocaleDateString()}
+                                    />
+                                ))}
+                            </div>
+                            
+                            {/* Pagination controls */}
+                            {totalFeedbacks > feedbackPageSize && (
+                                <div className="flex justify-center items-center space-x-4 mt-6">
+                                    <button 
+                                        onClick={() => handlePageChange(feedbackPage - 1)}
+                                        disabled={feedbackPage === 0}
+                                        className={`px-3 py-1 rounded ${feedbackPage === 0 ? 'bg-gray-300 cursor-not-allowed' : 'bg-blue-500 text-white hover:bg-blue-600'}`}
+                                    >
+                                        Previous
+                                    </button>
+                                    <div className="flex space-x-2">
+                                        {[...Array(Math.min(5, Math.ceil(totalFeedbacks / feedbackPageSize)))].map((_, idx) => {
+                                            const pageNumber = feedbackPage <= 2 ? idx : 
+                                                             feedbackPage >= Math.ceil(totalFeedbacks / feedbackPageSize) - 3 ? 
+                                                             Math.ceil(totalFeedbacks / feedbackPageSize) - 5 + idx : 
+                                                             feedbackPage - 2 + idx;
+                                            
+                                            if (pageNumber < 0 || pageNumber >= Math.ceil(totalFeedbacks / feedbackPageSize)) {
+                                                return null;
+                                            }
+                                            
+                                            return (
+                                                <button
+                                                    key={idx}
+                                                    onClick={() => handlePageChange(pageNumber)}
+                                                    className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                                                        pageNumber === feedbackPage ? 'bg-blue-500 text-white' : 'bg-gray-200'
+                                                    }`}
+                                                >
+                                                    {pageNumber + 1}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                    <button 
+                                        onClick={() => handlePageChange(feedbackPage + 1)}
+                                        disabled={feedbackPage >= Math.ceil(totalFeedbacks / feedbackPageSize) - 1}
+                                        className={`px-3 py-1 rounded ${
+                                            feedbackPage >= Math.ceil(totalFeedbacks / feedbackPageSize) - 1 ? 
+                                            'bg-gray-300 cursor-not-allowed' : 'bg-blue-500 text-white hover:bg-blue-600'
+                                        }`}
+                                    >
+                                        Next
+                                    </button>
+                                </div>
+                            )}
+                        </>
+                    )}
                 </div>
             </div>
         </div>
@@ -729,13 +832,17 @@ function ProfileField({ label, value, type = 'text', disabled = false, onChange 
     );
 }
 
-function FeedbackCard({ image, name, rating, review }) {
+// Update the FeedbackCard component to match the API data structure
+function FeedbackCard({ rater, jobTitle, rating, review, date }) {
+    // Generate an initial avatar based on the rater's name for consistency
+    const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(rater)}&background=random`;
+    
     return (
         <div className="bg-white rounded-xl shadow-md p-4 sm:p-6">
             <div className="flex items-center space-x-4 mb-4">
-                <img src={image} alt={name} className="w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover" />
+                <img src={avatarUrl} alt={rater} className="w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover" />
                 <div>
-                    <h3 className="font-semibold text-sm sm:text-base">{name}</h3>
+                    <h3 className="font-semibold text-sm sm:text-base">{rater}</h3>
                     <div className="flex space-x-1">
                         {[...Array(5)].map((_, i) => (
                             <Star
@@ -747,7 +854,11 @@ function FeedbackCard({ image, name, rating, review }) {
                     </div>
                 </div>
             </div>
-            <p className="text-gray-600 text-xs sm:text-sm">{review}</p>
+            <div className="mb-3">
+                <p className="text-xs text-gray-500">{date}</p>
+                <p className="text-sm font-medium text-gray-700">{jobTitle}</p>
+            </div>
+            <p className="text-gray-600 text-xs sm:text-sm">{review || 'No additional comments provided.'}</p>
         </div>
     );
 }

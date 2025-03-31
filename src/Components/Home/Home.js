@@ -100,29 +100,30 @@ export function Home() {
   return (
     <div className="bg-gray-100 min-h-screen">
       <header
-        className="relative flex flex-col justify-center items-center text-white h-[70vh] bg-cover bg-center px-4 sm:px-6"
+        className="relative h-[60vh] bg-cover bg-center"
         style={{ backgroundImage: 'url("https://images.unsplash.com/photo-1559136555-9303baea8ebd?auto=format&fit=crop&q=80")' }}
       >
-        <div className="absolute inset-0 bg-black bg-opacity-50" />
-        <div className="relative z-10 text-center">
-          <h1 className="text-3xl sm:text-4xl md:text-6xl font-bold text-white">
-            Find Your Perfect <br />
-            <span className="text-blue-400">Part-Time</span> Job
-          </h1>
-          <SearchBar
-            selectedLocation={selectedLocation}
-            setSelectedLocation={setSelectedLocation}
-            selectedJob={selectedJob}
-            setSelectedJob={handleJobCategoryChange}  // Use the new handler
-            searchTerm={searchTerm}
-            setSearchTerm={setSearchTerm}
-            selectedDate={selectedDate}
-            setSelectedDate={setSelectedDate}
-            handleSearch={handleSearch}
-          />
-          {searchError && (
-            <p className="text-red-400 mt-4 text-sm">{searchError}</p>
-          )}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/80 to-black/40 backdrop-blur-[1px]">
+          <div className="max-w-7xl mx-auto h-full flex flex-col justify-end pb-24 px-4 sm:px-6">
+            <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-white tracking-tight drop-shadow-md mt-20">
+              Find Your Perfect <br />
+              <span className="text-blue-400 drop-shadow-lg">Part-Time</span> Job
+            </h1>
+            <SearchBar
+              selectedLocation={selectedLocation}
+              setSelectedLocation={setSelectedLocation}
+              selectedJob={selectedJob}
+              setSelectedJob={handleJobCategoryChange}
+              searchTerm={searchTerm}
+              setSearchTerm={setSearchTerm}
+              selectedDate={selectedDate}
+              setSelectedDate={setSelectedDate}
+              handleSearch={handleSearch}
+            />
+            {searchError && (
+              <p className="text-red-400 mt-4 text-sm">{searchError}</p>
+            )}
+          </div>
         </div>
       </header>
 

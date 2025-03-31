@@ -127,6 +127,7 @@ const Application = () => {
       if (response.data.code === 200) {
         const studentData = response.data.data.studentApplications;
         const totalCount = response.data.data.applicationCount || 0;
+        const jobStatus = response.data.data.jobStatus; // Get job status from response
         
         // Calculate total pages
         const pages = Math.ceil(totalCount / itemsPerPage);
@@ -159,7 +160,9 @@ const Application = () => {
               location: student.location,
               rating: student.rating || 0,
               avatar: avatarUrl,
-              status: student.applicationStatus
+              status: student.applicationStatus,
+              rated: student.rated, // Add rated status
+              jobStatus: jobStatus // Add job status
             };
           })
         );
@@ -204,6 +207,7 @@ const Application = () => {
       if (response.data.code === 200) {
         const groupData = response.data.data.groupApplications || [];
         const totalCount = response.data.data.applicationCount || 0;
+        const jobStatus = response.data.data.jobStatus; // Get job status from response
         
         // Calculate total pages
         const pages = Math.ceil(totalCount / itemsPerPage);
@@ -234,7 +238,8 @@ const Application = () => {
                 
                 return {
                   ...member,
-                  avatar: avatarUrl
+                  avatar: avatarUrl,
+                  rated: member.rated // Include rated status
                 };
               })
             );
@@ -249,7 +254,8 @@ const Application = () => {
               groupName: group.groupName,
               status: group.applicationStatus,
               members: membersWithAvatars,
-              averageRating: averageRating // Store the average rating
+              averageRating: averageRating, // Store the average rating
+              jobStatus: jobStatus // Add job status
             };
           })
         );
@@ -331,6 +337,11 @@ const Application = () => {
   // Function to navigate to student profile
   const goToStudentProfile = (studentId) => {
     navigate(`/profile?userId=${studentId}`);
+  };
+
+  // Function to navigate to student profile for feedback
+  const goToStudentProfileWithFeedback = (studentId, applicationId) => {
+    navigate(`/profile?userId=${studentId}&applicationId=${applicationId}`);
   };
 
   // Check if there are any accepted or confirmed applications
@@ -451,7 +462,10 @@ const Application = () => {
                       status={group.status}
                       averageRating={group.averageRating.toFixed(1)}
                       disabled={(job.status !== "PENDING" && group.status === "PENDING" && hasAcceptedOrConfirmedGroups)}
-                      onClickMember={(memberId) => goToStudentProfile(memberId)}
+                      onClickMember={goToStudentProfile}
+                      jobStatus={group.jobStatus}
+                      applicationId={group.applicationId}
+                      onFeedbackClick={goToStudentProfileWithFeedback}
                     />
                   </div>
                 ))
@@ -528,6 +542,11 @@ const Application = () => {
                       status={student.status}
                       disabled={(job.status !== "PENDING" && student.status === "PENDING" && hasAcceptedOrConfirmedStudents)}
                       onStudentClick={goToStudentProfile}
+                      showFeedbackButton={student.jobStatus === "FINISH" && !student.rated}
+                      onFeedbackClick={(e) => {
+                        e.stopPropagation(); // Prevent navigation when clicking feedback button
+                        goToStudentProfileWithFeedback(student.studentId, student.applicationId);
+                      }}
                     />
                   </div>
                 ))
