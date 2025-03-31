@@ -46,6 +46,7 @@ import ASearchEmployer from './Components/Admins/ASearchEmployer/ASearchEmployer
 import ASearchStudent from './Components/Admins/ASearchStudent/ASearchStudent';
 import Landing from './Components/Landing/Landing';
 import EJobApplications from './Components/Employer/EJobApplications/EJobApplications';
+import ESummary from './Components/Employer/ESummary/ESummary';
 
 function App() {
     const location = useLocation();
@@ -64,14 +65,14 @@ function App() {
         "/", "/hero", "/sign-in", "/sign-up", "/pin", "/verify", "/company", "/e-home", "/profile", 
         "/activities", "/job-details", "/apply-job", "/contact-us", "/company-rating", "/e-hero", 
         "/e-sign-in", "/e-sign-up", "/e-job-create", "/e-job-edit", "/e-contact-us", "/admins/stats", 
-        "/search-student", "/activities/summary", "/reset-password", "/home", "/e-profile"
+        "/search-student", "/activities/summary", "/reset-password", "/home", "/e-profile","/e-summary" 
     ];
     
     const searchBarCompany = [
         "/", "/hero", "/sign-in", "/sign-up", "/home", "/profile", "/verify", "/e-home", "/activities", 
         "/job-details", "/apply-job", "/contact-us", "/company-rating", "/e-hero", "/e-sign-in", 
         "/e-sign-up", "/e-job-create", "/e-job-edit", "/e-contact-us", "/admins/stats", "/search-student", 
-        "/company", "/activities/summary", "/reset-password", "/e-profile"
+        "/company", "/activities/summary", "/reset-password", "/e-profile","/e-summary" 
     ];
 
     const eChatButton = [
@@ -84,7 +85,8 @@ function App() {
         "/", "/home", "/hero", "/sign-in", "/sign-up", "/pin", "/verify", "/company", "/profile", 
         "/activities", "/job-details", "/apply-job", "/contact-us", "/company-rating", "/e-hero", 
         "/e-sign-in", "/e-sign-up", "/e-contact-us", "/admins/stats", "/company", "/activities", 
-        "/search-student", "/job-details", "/activities/summary", "/reset-password", "/e-profile"
+        "/search-student", "/job-details", "/activities/summary", "/reset-password", "/e-profile",
+        "/e-summary" 
     ];
     
     const eSearchBarCompany = [
@@ -92,7 +94,7 @@ function App() {
         "/activities", "/job-details", "/apply-job", "/contact-us", "/company-rating", "/e-hero", 
         "/e-sign-in", "/e-sign-up", "/e-contact-us", "/admins/stats", "/company", "/activities", 
         "/profile", "/search-student", "/job-details", "/e-job-create", "/e-job-edit", "/activities/summary", 
-        "/reset-password","/e-profile"
+        "/reset-password","/e-profile","/e-summary" 
     ];
 
     // Define all valid routes explicitly
@@ -220,6 +222,7 @@ function App() {
                 <Route path="/e-profile" element={<ProtectedRoute><CompanyDetails /></ProtectedRoute>} />
                 <Route path="/e-contact-us" element={<ProtectedRoute><ContactUs /></ProtectedRoute>} />
                 <Route path="e-job-details" element={<ProtectedRoute><EJobApplications /></ProtectedRoute>} />
+                <Route path="/e-summary" element={<ProtectedRoute><ESummary /></ProtectedRoute>} />
 
                 {/* Student Protected Routes */}
                 <Route path="/home" element={<ProtectedRoute><Home /></ProtectedRoute>} />
