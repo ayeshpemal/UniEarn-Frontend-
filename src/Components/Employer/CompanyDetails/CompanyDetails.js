@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { ChevronDown, Star, Edit2, Camera, Save, Lock } from 'lucide-react';
+import { ChevronDown, Star, Edit2, Camera, Save, Lock, Flag } from 'lucide-react';
 import axios from 'axios';
 import { jwtDecode } from 'jwt-decode';
+import ReportPopup from '../../ReportPopup/ReportPopup';
 
 // Define preference options
 const PREFERENCE_OPTIONS = [
@@ -69,6 +70,11 @@ function App() {
     const [feedbackPageSize, setFeedbackPageSize] = useState(3);
     const [totalFeedbacks, setTotalFeedbacks] = useState(0);
     const [feedbackLoading, setFeedbackLoading] = useState(true);
+
+    // Add new state for report popup
+    const [isReportPopupOpen, setIsReportPopupOpen] = useState(false);
+    const [currentUserId, setCurrentUserId] = useState(null);
+    const [showReportTooltip, setShowReportTooltip] = useState(false);
 
     // Check view mode and set initial state
     useEffect(() => {
@@ -199,6 +205,19 @@ function App() {
             fetchFeedbacks();
         }
     }, [isLoading, isViewMode, viewUserId, feedbackPage, feedbackPageSize]);
+
+    // Add this effect to get current user ID
+    useEffect(() => {
+        const token = localStorage.getItem('token');
+        if (token) {
+            try {
+                const decodedToken = jwtDecode(token);
+                setCurrentUserId(decodedToken.user_id);
+            } catch (error) {
+                console.error('Error decoding token:', error);
+            }
+        }
+    }, []);
 
     const handleInputChange = (field, value) => {
         setFormData(prev => ({ ...prev, [field]: value }));
@@ -422,6 +441,11 @@ function App() {
         }
     };
 
+    // Function to handle opening the report popup
+    const handleOpenReportPopup = () => {
+        setIsReportPopupOpen(true);
+    };
+
     if (isLoading) {
         return (
             <div className="min-h-screen bg-white flex items-center justify-center">
@@ -481,8 +505,35 @@ function App() {
                             )}
                         </div>
                         <div className="flex-1 text-center sm:text-left">
-                            <h2 className="text-xl sm:text-2xl font-bold">{formData.companyName}</h2>
-                            <p className="text-gray-600 text-sm sm:text-base">{formData.companyDetails}</p>
+                            <div className="flex items-center justify-center sm:justify-between">
+                                <div>
+                                    <h2 className="text-xl sm:text-2xl font-bold">{formData.companyName}</h2>
+                                    <p className="text-gray-600 text-sm sm:text-base">{formData.companyDetails}</p>
+                                </div>
+                                
+                                {/* Add Report Button (Icon only with tooltip) */}
+                                {isViewMode && currentUserId && currentUserId !== viewUserId && (
+                                    <div className="relative">
+                                        <button
+                                            onClick={handleOpenReportPopup}
+                                            className="p-2 bg-gray-100 hover:bg-gray-200 text-red-500 rounded-full transition-colors"
+                                            aria-label="Report Company"
+                                            onMouseEnter={() => setShowReportTooltip(true)}
+                                            onMouseLeave={() => setShowReportTooltip(false)}
+                                        >
+                                            <Flag size={18} />
+                                        </button>
+                                        
+                                        {showReportTooltip && (
+                                            <div className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs rounded py-1 px-3 whitespace-nowrap">
+                                                Report Company
+                                                <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-800"></div>
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+                            
                             <div className="flex justify-center sm:justify-start items-center space-x-1 mt-2 md:float-right">
                                 {[...Array(5)].map((_, i) => (
                                     <Star
@@ -800,6 +851,14 @@ function App() {
                     )}
                 </div>
             </div>
+
+            {/* Report Popup */}
+            <ReportPopup 
+                isOpen={isReportPopupOpen}
+                onClose={() => setIsReportPopupOpen(false)}
+                reportedUserId={viewUserId}
+                currentUserId={currentUserId}
+            />
         </div>
     );
 }
