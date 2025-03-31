@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
 import axios from "axios";
+import ReportPopup from "../ReportPopup/ReportPopup";
 
 const DEFAULT_PROFILE_PICTURE = "/job-logo.png";
 
@@ -23,6 +24,7 @@ const JobDetails = () => {
   const [successMessage, setSuccessMessage] = useState(null);
   const [teamName, setTeamName] = useState("");
   const [applicationStatus, setApplicationStatus] = useState(null);
+  const [showReportPopup, setShowReportPopup] = useState(false);
   const pageSize = 10;
 
   useEffect(() => {
@@ -729,6 +731,15 @@ const JobDetails = () => {
                 <span className="ml-3 px-3 py-1 text-xs rounded-full bg-blue-100 text-blue-700 font-medium">
                   {job.jobStatus}
                 </span>
+                <button 
+                  className="ml-3 text-red-500 hover:text-red-700 transition-colors"
+                  onClick={() => setShowReportPopup(true)}
+                  title="Report this job"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                  </svg>
+                </button>
               </div>
               <p 
                 className="text-blue-600 font-semibold text-sm sm:text-base mt-1 cursor-pointer hover:underline flex items-center"
@@ -986,6 +997,13 @@ const JobDetails = () => {
           </div>
         </div>
       )}
+      {/* Report Job Popup */}
+      <ReportPopup
+        isOpen={showReportPopup}
+        onClose={() => setShowReportPopup(false)}
+        reportedUserId={job?.employer?.userId}
+        currentUserId={currentUser?.userId}
+      />
     </div>
   );
 };
