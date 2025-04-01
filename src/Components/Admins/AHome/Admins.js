@@ -42,7 +42,7 @@ const Admins = () => {
                     </p>
                 </div>
                 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
                     <button
                         onClick={() => handleNavigation('/a-company')}
                         className="bg-white shadow-lg hover:shadow-xl transition-all rounded-lg p-6 border border-gray-200 hover:border-blue-400 group"
@@ -54,7 +54,7 @@ const Admins = () => {
                                 </svg>
                             </div>
                             <h3 className="text-lg font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">Manage Companies</h3>
-                            <p className="mt-2 text-sm text-gray-600">Add, edit, or manage company accounts</p>
+                            <p className="mt-2 text-sm text-gray-600">Manage company accounts</p>
                         </div>
                     </button>
 
@@ -69,7 +69,7 @@ const Admins = () => {
                                 </svg>
                             </div>
                             <h3 className="text-lg font-semibold text-gray-900 group-hover:text-green-600 transition-colors">Manage Students</h3>
-                            <p className="mt-2 text-sm text-gray-600">Review and manage student profiles</p>
+                            <p className="mt-2 text-sm text-gray-600">Manage student profiles</p>
                         </div>
                     </button>
 
@@ -100,6 +100,21 @@ const Admins = () => {
                             </div>
                             <h3 className="text-lg font-semibold text-gray-900 group-hover:text-red-600 transition-colors">Report Management</h3>
                             <p className="mt-2 text-sm text-gray-600">Handle user reports and issues</p>
+                        </div>
+                    </button>
+
+                    <button
+                        onClick={() => handleNavigation('/a-notification')}
+                        className="bg-white shadow-lg hover:shadow-xl transition-all rounded-lg p-6 border border-gray-200 hover:border-blue-400 group"
+                    >
+                        <div className="text-center">
+                            <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-amber-200 transition-colors">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                                </svg>
+                            </div>
+                            <h3 className="text-lg font-semibold text-gray-900 group-hover:text-amber-600 transition-colors">Send Notifications</h3>
+                            <p className="mt-2 text-sm text-gray-600">Send notifications to users</p>
                         </div>
                     </button>
                 </div>

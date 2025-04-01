@@ -48,6 +48,7 @@ import Landing from './Components/Landing/Landing';
 import EJobApplications from './Components/Employer/EJobApplications/EJobApplications';
 import ESummary from './Components/Employer/ESummary/ESummary';
 import AReport from './Components/Admins/AReport/AReport';
+import ANotification from './Components/Admins/ANotification/ANotification';
 
 function App() {
     const location = useLocation();
@@ -66,14 +67,18 @@ function App() {
         "/", "/hero", "/sign-in", "/sign-up", "/pin", "/verify", "/company", "/e-home", "/profile", 
         "/activities", "/job-details", "/apply-job", "/contact-us", "/company-rating", "/e-hero", 
         "/e-sign-in", "/e-sign-up", "/e-job-create", "/e-job-edit", "/e-contact-us", "/admins/stats", 
-        "/search-student", "/activities/summary", "/reset-password", "/home", "/e-profile","/e-summary" 
+        "/search-student", "/activities/summary", "/reset-password", "/home", "/e-profile","/e-summary",
+        "/p-contact-us","/a-home","/admin/stats","/a-profile","/a-company","/a-student","/a-report",
+        "/a-notification","/e-job-details"
     ];
     
     const searchBarCompany = [
         "/", "/hero", "/sign-in", "/sign-up", "/home", "/profile", "/verify", "/e-home", "/activities", 
         "/job-details", "/apply-job", "/contact-us", "/company-rating", "/e-hero", "/e-sign-in", 
         "/e-sign-up", "/e-job-create", "/e-job-edit", "/e-contact-us", "/admins/stats", "/search-student", 
-        "/company", "/activities/summary", "/reset-password", "/e-profile","/e-summary" 
+        "/company", "/activities/summary", "/reset-password", "/e-profile","/e-summary","/p-contact-us",
+        "/a-home","/admin/stats","/a-profile","/a-company","/a-student","/a-report","/a-notification",
+        "/e-job-details"
     ];
 
     const eChatButton = [
@@ -85,9 +90,10 @@ function App() {
     const eSearchBarHome = [
         "/", "/home", "/hero", "/sign-in", "/sign-up", "/pin", "/verify", "/company", "/profile", 
         "/activities", "/job-details", "/apply-job", "/contact-us", "/company-rating", "/e-hero", 
-        "/e-sign-in", "/e-sign-up", "/e-contact-us", "/admins/stats", "/company", "/activities", 
+        "/e-sign-in", "/e-sign-up", "/e-contact-us", "/admins/stats", , "/activities", 
         "/search-student", "/job-details", "/activities/summary", "/reset-password", "/e-profile",
-        "/e-summary" 
+        "/e-summary","/p-contact-us","/a-home","/admin/stats","/a-profile","/a-company","/a-student",
+        "/a-report","/a-notification","/e-job-details"
     ];
     
     const eSearchBarCompany = [
@@ -95,7 +101,9 @@ function App() {
         "/activities", "/job-details", "/apply-job", "/contact-us", "/company-rating", "/e-hero", 
         "/e-sign-in", "/e-sign-up", "/e-contact-us", "/admins/stats", "/company", "/activities", 
         "/profile", "/search-student", "/job-details", "/e-job-create", "/e-job-edit", "/activities/summary", 
-        "/reset-password","/e-profile","/e-summary" 
+        "/reset-password","/e-profile","/e-summary","/p-contact-us","/a-home","/admin/stats","/a-profile",
+        "/a-company","/a-student","/a-report","/a-notification","/e-job-details"
+
     ];
 
     // Define all valid routes explicitly
@@ -103,10 +111,10 @@ function App() {
         "/", "/hero", "/sign-in", "/sign-up", "/e-sign-in", "/e-sign-up", "/e-hero",
         "/verify", "/reset-password", "/admins", "/admins/stats", "/e-home",
         "/e-job-create", "/e-job-edit", "/e-profile", "/e-contact-us", "/home",
-        "/companyList", "/search-student", "/activities/summary", "/company",
-        "/profile", "/activities", "/confirm", "/job-details", "/apply-job",
-        "/contact-us", "/log-out", "/company-details/:employerId",
-        "/searched-results/:selectedLocation/:selectedJob/:searchTerm"
+        "/search-student", "/activities/summary", "/company","/profile", "/activities", 
+        "/job-details", "/apply-job","/contact-us", "/log-out","/p-contact-us","/a-home",
+        "/admin/stats","/a-profile","/a-company","/a-student","/a-report","/a-notification",
+        "/e-job-details","/e-summary"
     ];
 
     // Check if the current path is valid (simplified check, ignoring params for now)
@@ -199,22 +207,24 @@ function App() {
 
             <Routes>
                 {/* Public Routes */}
+                <Route path="/" element={<Landing />} />
                 <Route path="/hero" element={<Hero />} />
+                <Route path="/e-hero" element={<EHero />} />
                 <Route path="/sign-in" element={<Signin />} />
                 <Route path="/sign-up" element={<Signup />} />
                 <Route path="/e-sign-up" element={<ESignup />} />
-                <Route path="/e-hero" element={<EHero />} />
                 <Route path="/verify" element={<JobPreferences />} />
                 <Route path="/reset-password" element={<ResetPassword />} />
-                <Route path="/" element={<Landing />} />
                 <Route path="/contact-us" element={<ContactUs />} />
 
-                {/* Protected Routes */}
+                {/* Admin Protected Routes */}
                 <Route path="/a-home" element={<ProtectedRoute><Admins /></ProtectedRoute>} />
                 <Route path="/admin/stats" element={<ProtectedRoute><AdminStats /></ProtectedRoute>} />
                 <Route path="/a-profile" element={<ProtectedRoute><AProfile /></ProtectedRoute>} />
                 <Route path="/a-company" element={<ProtectedRoute><ASearchEmployer /></ProtectedRoute>} />
                 <Route path="/a-student" element={<ProtectedRoute><ASearchStudent /></ProtectedRoute>} />
+                <Route path="/a-report" element={<ProtectedRoute><AReport /></ProtectedRoute>} />
+                <Route path="/a-notification" element={<ProtectedRoute><ANotification /></ProtectedRoute>} />
                 
                 {/* Employer Protected Routes */}
                 <Route path="/e-home" element={<ProtectedRoute><EHome /></ProtectedRoute>} />
@@ -223,24 +233,17 @@ function App() {
                 <Route path="/e-profile" element={<ProtectedRoute><CompanyDetails /></ProtectedRoute>} />
                 <Route path="e-job-details" element={<ProtectedRoute><EJobApplications /></ProtectedRoute>} />
                 <Route path="/e-summary" element={<ProtectedRoute><ESummary /></ProtectedRoute>} />
-                <Route path="/a-report" element={<ProtectedRoute><AReport /></ProtectedRoute>} />
 
                 {/* Student Protected Routes */}
                 <Route path="/home" element={<ProtectedRoute><Home /></ProtectedRoute>} />
-                <Route path="/companyList" element={<ProtectedRoute><CompanyList /></ProtectedRoute>} />
                 <Route path="/search-student" element={<ProtectedRoute><SearchStudent /></ProtectedRoute>} />
                 <Route path="/activities/summary" element={<ProtectedRoute><StudentSummary /></ProtectedRoute>} />
                 <Route path="/company" element={<ProtectedRoute><SearchEmployer /></ProtectedRoute>} />
                 <Route path="/profile" element={<ProtectedRoute><StudentProfile /></ProtectedRoute>} />
                 <Route path="/activities" element={<ProtectedRoute><Activities /></ProtectedRoute>} />
-                <Route path="/confirm" element={<ProtectedRoute><Application /></ProtectedRoute>} />
                 <Route path="/job-details" element={<ProtectedRoute><JobDetails /></ProtectedRoute>} />
-                <Route path="/apply-job" element={<ProtectedRoute><ApplyJob /></ProtectedRoute>} />
                 <Route path="/p-contact-us" element={<ProtectedRoute><ContactUs /></ProtectedRoute>} />
                 <Route path="/log-out" element={<ProtectedRoute><LogoutPopup /></ProtectedRoute>} />
-                <Route path="/company-details/:employerId" element={<ProtectedRoute><CompanyDetails /></ProtectedRoute>} />
-                <Route path="/searched-results/:selectedLocation/:selectedJob/:searchTerm" 
-                    element={<ProtectedRoute><SearchResults /></ProtectedRoute>} />
 
                 {/* Catch-all Route for Not Found */}
                 <Route path="*" element={<NotFound />} />
