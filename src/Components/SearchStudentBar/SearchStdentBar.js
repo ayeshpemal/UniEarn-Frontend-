@@ -3,10 +3,10 @@ import { Search } from "lucide-react";
 import React, { useState, useEffect } from "react";
 import { jwtDecode } from "jwt-decode";
 
-const searchStudents = async (searchTerm, userId) => {
+const searchStudents = async (searchTerm, userId, page = 0) => {
   try {
     const response = await axios.get(
-      `http://localhost:8100/api/student/search-with-follow-status?userId=${userId}&query=${encodeURIComponent(searchTerm)}&page=0`,
+      `http://localhost:8100/api/student/search-with-follow-status?userId=${userId}&query=${encodeURIComponent(searchTerm)}&page=${page}`,
       {
         headers: {
           "Content-Type": "application/json",
@@ -27,9 +27,10 @@ const searchStudents = async (searchTerm, userId) => {
   }
 };
 
-const StudentSearchBar = ({ onSearchResults }) => {
+const StudentSearchBar = ({ onSearchResults, currentPage = 0 }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [currentUserId, setCurrentUserId] = useState(null);
+  const [lastSearchTerm, setLastSearchTerm] = useState("");
 
   // Extract userId from JWT token on mount
   useEffect(() => {
@@ -52,13 +53,25 @@ const StudentSearchBar = ({ onSearchResults }) => {
     }
   }, []);
 
+  // Effect to handle pagination changes
+  useEffect(() => {
+    if (lastSearchTerm && currentUserId) {
+      performSearch(lastSearchTerm, currentPage);
+    }
+  }, [currentPage, currentUserId]);
+
+  const performSearch = async (term, page) => {
+    console.log(`Searching for "${term}" on page ${page} with userId:`, currentUserId);
+    const results = await searchStudents(term, currentUserId, page);
+    if (results && onSearchResults) {
+      onSearchResults(results, term); // Pass results and search term to parent
+    }
+  };
+
   const handleSearch = async () => {
     if (searchTerm.trim() && currentUserId) {
-      console.log("Searching for student:", searchTerm, "with userId:", currentUserId);
-      const results = await searchStudents(searchTerm, currentUserId);
-      if (results && onSearchResults) {
-        onSearchResults(results); // Pass results to parent component
-      }
+      setLastSearchTerm(searchTerm);
+      performSearch(searchTerm, 0); // Reset to first page on new search
     } else if (!currentUserId) {
       alert("Please log in to search for students.");
     }
