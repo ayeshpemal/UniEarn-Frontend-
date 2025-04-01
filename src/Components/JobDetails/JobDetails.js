@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { Star } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
+import axios from "axios";
+import ReportPopup from "../ReportPopup/ReportPopup";
 
-const DEFAULT_PROFILE_PICTURE = "/job-logo.png"; // Default image path
+const DEFAULT_PROFILE_PICTURE = "/job-logo.png";
 
 const JobDetails = () => {
   const navigate = useNavigate();
@@ -22,11 +23,13 @@ const JobDetails = () => {
   const [errorMessage, setErrorMessage] = useState(null);
   const [successMessage, setSuccessMessage] = useState(null);
   const [teamName, setTeamName] = useState("");
+  const [applicationStatus, setApplicationStatus] = useState(null);
+  const [showReportPopup, setShowReportPopup] = useState(false);
   const pageSize = 10;
 
   useEffect(() => {
     fetchJobDetails();
-    fetchCurrentUser();
+    fetchCurrentUserAndApplicationStatus();
   }, []);
 
   useEffect(() => {
@@ -51,7 +54,7 @@ const JobDetails = () => {
         return;
       }
 
-      const response = await fetch(
+      const response = await axios.get(
         `http://localhost:8100/api/v1/jobs/getjob/${jobId}`,
         {
           headers: {
@@ -60,23 +63,78 @@ const JobDetails = () => {
         }
       );
 
-      const data = await response.json();
-      if (data.code === 200) {
-        const jobData = data.data;
-        if (!jobData.activeStatus) {
-          setError("Job Not Active");
+      console.log("Raw Job Response:", JSON.stringify(response.data, null, 2)); // Debug
+
+      if (response.data.code === 200) {
+        const jobData = response.data.data;
+        
+        // Get user ID for application check
+        let userId = null;
+        try {
+          const decodedToken = jwtDecode(token);
+          userId = decodedToken.user_id;
+        } catch (err) {
+          console.warn("Error decoding token:", err.message);
+        }
+
+        // Check if the job status is CANCEL, immediately reject
+        if (jobData.jobStatus === "CANCEL") {
+          setError("Job Has Been Cancelled");
           setLoading(false);
           return;
         }
+        
+        // For non-PENDING jobs, check if the user has applied
+        if (jobData.jobStatus !== "PENDING" && userId) {
+          try {
+            const applicationResponse = await axios.get(
+              `http://localhost:8100/api/v1/application/has-applied?studentId=${userId}&jobId=${jobId}`,
+              {
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                },
+              }
+            );
+            
+            // Allow access if the user has applied, regardless of job status
+            if (applicationResponse.data.code === 200 && 
+                applicationResponse.data.data && 
+                applicationResponse.data.data.hasApplied) {
+              // Set application status
+              setApplicationStatus(applicationResponse.data.data);
+            } else if (jobData.jobStatus !== "PENDING") {
+              // If job not PENDING and user has not applied, show appropriate message
+              setError(`This job is currently ${jobData.jobStatus}`);
+              setLoading(false);
+              return;
+            }
+          } catch (err) {
+            console.warn("Error checking application status:", err.message);
+            // If we can't check application status and job is not PENDING, default to error
+            if (jobData.jobStatus !== "PENDING") {
+              setError(`Job Not Active (${jobData.jobStatus})`);
+              setLoading(false);
+              return;
+            }
+          }
+        }
+        
         setJob(jobData);
-        if (jobData.employer.profilePictureUrl) {
+
+        // Always fetch profile picture using employer.userId
+        if (jobData.employer?.userId) {
+          console.log(`Fetching profile picture for userId: ${jobData.employer.userId}`);
           fetchProfilePicture(jobData.employer.userId, token);
+        } else {
+          console.warn("No employer.userId found in job data");
+          setProfilePictureUrl(DEFAULT_PROFILE_PICTURE);
         }
       } else {
-        setError(data.message || "Failed to Fetch Job Details");
+        setError(response.data.message || "Failed to Fetch Job Details");
       }
     } catch (err) {
       setError("Error Fetching Job Details: " + err.message);
+      console.error("Fetch job error:", err);
     } finally {
       setLoading(false);
     }
@@ -85,11 +143,12 @@ const JobDetails = () => {
   const fetchProfilePicture = async (userId, token) => {
     try {
       if (!userId) {
+        console.warn("No userId provided for profile picture fetch");
         setProfilePictureUrl(DEFAULT_PROFILE_PICTURE);
         return;
       }
 
-      const response = await fetch(
+      const response = await axios.get(
         `http://localhost:8100/api/user/${userId}/profile-picture`,
         {
           headers: {
@@ -98,10 +157,12 @@ const JobDetails = () => {
         }
       );
 
-      const data = await response.json();
-      if (data.code === 200 && data.data) {
-        setProfilePictureUrl(data.data);
+      console.log(`Profile Picture Response for user ${userId}:`, response.data); // Debug
+
+      if (response.data.code === 200 && response.data.data) {
+        setProfilePictureUrl(response.data.data); // Set S3 URL
       } else {
+        console.warn("Invalid profile picture response:", response.data);
         setProfilePictureUrl(DEFAULT_PROFILE_PICTURE);
       }
     } catch (err) {
@@ -110,7 +171,7 @@ const JobDetails = () => {
     }
   };
 
-  const fetchCurrentUser = async () => {
+  const fetchCurrentUserAndApplicationStatus = async () => {
     try {
       const token = localStorage.getItem("token");
       if (!token) {
@@ -121,7 +182,7 @@ const JobDetails = () => {
       const decodedToken = jwtDecode(token);
       const userId = decodedToken.user_id;
 
-      const response = await fetch(
+      const userResponse = await axios.get(
         `http://localhost:8100/api/user/get-user-by-id/${userId}`,
         {
           headers: {
@@ -130,11 +191,33 @@ const JobDetails = () => {
         }
       );
 
-      const data = await response.json();
-      if (data.code === 200 && data.data) {
-        setCurrentUser(data.data);
+      if (userResponse.data.code === 200 && userResponse.data.data) {
+        setCurrentUser(userResponse.data.data);
       } else {
-        setError(data.message || "Failed to Fetch User Data");
+        setError(userResponse.data.message || "Failed to Fetch User Data");
+        return;
+      }
+
+      const jobId = searchParams.get("jobId");
+      if (jobId) {
+        try {
+          const applicationResponse = await axios.get(
+            `http://localhost:8100/api/v1/application/has-applied?studentId=${userId}&jobId=${jobId}`,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
+
+          if (applicationResponse.data.code === 200 && applicationResponse.data.data) {
+            setApplicationStatus(applicationResponse.data.data);
+          } else {
+            console.warn("Application status fetch failed:", applicationResponse.data.message || "Unknown error");
+          }
+        } catch (err) {
+          console.warn("Error fetching application status:", err.message);
+        }
       }
     } catch (err) {
       setError("Error Fetching User Data: " + err.message);
@@ -152,7 +235,7 @@ const JobDetails = () => {
       const decodedToken = jwtDecode(token);
       const userId = decodedToken.user_id;
 
-      const response = await fetch(
+      const response = await axios.get(
         `http://localhost:8100/follows/${userId}/followingstudents?page=${currentPage}&size=${pageSize}`,
         {
           headers: {
@@ -161,12 +244,11 @@ const JobDetails = () => {
         }
       );
 
-      const data = await response.json();
-      if (data.code === 200 && data.data) {
-        setFollowingStudents(data.data);
-        setHasMore(data.data.length === pageSize);
+      if (response.data.code === 200 && response.data.data) {
+        setFollowingStudents(response.data.data);
+        setHasMore(response.data.data.length === pageSize);
       } else {
-        setError(data.message || "Failed to Fetch Following Students");
+        setError(response.data.message || "Failed to Fetch Following Students");
       }
     } catch (err) {
       setError("Error Fetching Following Students: " + err.message);
@@ -210,16 +292,20 @@ const JobDetails = () => {
   const checkApplicationStatus = async (userId) => {
     const token = localStorage.getItem("token");
     const jobId = searchParams.get("jobId");
-    const response = await fetch(
-      `http://localhost:8100/api/v1/application/has-applied?studentId=${userId}&jobId=${jobId}`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
-    const data = await response.json();
-    return data.data; // Returns true if applied, false if not
+    try {
+      const response = await axios.get(
+        `http://localhost:8100/api/v1/application/has-applied?studentId=${userId}&jobId=${jobId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      return response.data?.data?.hasApplied ?? false;
+    } catch (err) {
+      console.warn("Error checking application status:", err.message);
+      return false;
+    }
   };
 
   const handleApply = async () => {
@@ -235,7 +321,6 @@ const JobDetails = () => {
       return;
     }
 
-    // Check if user(s) have already applied
     let hasApplied = false;
     if (job.requiredWorkers === 1) {
       hasApplied = await checkApplicationStatus(currentUser.userId);
@@ -255,21 +340,21 @@ const JobDetails = () => {
     try {
       if (job.requiredWorkers === 1 && appliedUsers.length === 1) {
         const studentId = currentUser.userId;
-        const response = await fetch(
+        const response = await axios.post(
           `http://localhost:8100/api/v1/application/apply/student?studentId=${studentId}&jobId=${jobId}`,
+          {},
           {
-            method: "POST",
             headers: {
               Authorization: `Bearer ${token}`,
             },
           }
         );
 
-        const data = await response.json();
-        if (data.code === 201) {
+        if (response.data.code === 201) {
           setSuccessMessage({ header: "Application Success", message: "Job application success!" });
+          setApplicationStatus({ hasApplied: true, application: { status: "PENDING", applicationId: response.data.data.applicationId, jobId, studentId } });
         } else {
-          setErrorMessage({ header: "Application Error", message: data.message || "Failed to apply for the job." });
+          setErrorMessage({ header: "Application Error", message: response.data.message || "Failed to apply for the job." });
         }
       } else if (job.requiredWorkers > 1 && appliedUsers.length === job.requiredWorkers) {
         if (!teamName.trim()) {
@@ -277,72 +362,130 @@ const JobDetails = () => {
           return;
         }
 
-        // Create team
-        const createTeamResponse = await fetch(
+        const createTeamResponse = await axios.post(
           `http://localhost:8100/api/teams/create`,
           {
-            method: "POST",
+            teamName: teamName.trim(),
+            leader: currentUser.userId,
+          },
+          {
             headers: {
               "Content-Type": "application/json",
               Authorization: `Bearer ${token}`,
             },
-            body: JSON.stringify({
-              teamName: teamName.trim(),
-              leader: currentUser.userId,
-            }),
           }
         );
 
-        const teamData = await createTeamResponse.json();
-        if (teamData.code !== 201) {
-          setErrorMessage({ header: "Team Creation Error", message: teamData.message || "Failed to create team." });
+        if (createTeamResponse.data.code !== 201) {
+          setErrorMessage({ header: "Team Creation Error", message: createTeamResponse.data.message || "Failed to create team." });
           return;
         }
-        const teamId = teamData.data; // Extract teamId from data (e.g., 3)
+        const teamId = createTeamResponse.data.data;
 
-        // Add members to team
         for (const member of appliedUsers) {
           if (member.userId !== currentUser.userId) {
-            const addMemberResponse = await fetch(
+            const addMemberResponse = await axios.post(
               `http://localhost:8100/api/teams/${teamId}/add-member/${member.userId}`,
+              {},
               {
-                method: "POST",
                 headers: {
                   Authorization: `Bearer ${token}`,
                 },
               }
             );
 
-            const addMemberData = await addMemberResponse.json();
-            if (addMemberData.code !== 200) {
-              setErrorMessage({ header: "Member Addition Error", message: `Failed to add member ${member.userName}: ${addMemberData.message}` });
+            if (addMemberResponse.data.code !== 200) {
+              setErrorMessage({ header: "Member Addition Error", message: `Failed to add member ${member.userName}: ${addMemberResponse.data.message}` });
               return;
             }
           }
         }
 
-        // Apply as team
-        const applyTeamResponse = await fetch(
+        const applyTeamResponse = await axios.post(
           `http://localhost:8100/api/v1/application/apply/team?teamId=${teamId}&jobId=${jobId}`,
+          {},
           {
-            method: "POST",
             headers: {
               Authorization: `Bearer ${token}`,
             },
           }
         );
 
-        const applyTeamData = await applyTeamResponse.json();
-        if (applyTeamData.code === 201) {
+        if (applyTeamResponse.data.code === 201) {
           setSuccessMessage({ header: "Application Success", message: "Job application success!" });
+          setApplicationStatus({ hasApplied: true, application: { status: "PENDING", teamId, applicationId: applyTeamResponse.data.data.applicationId }, isTeamLeader: true });
         } else {
-          setErrorMessage({ header: "Application Error", message: applyTeamData.message || "Failed to apply as a team." });
+          setErrorMessage({ header: "Application Error", message: applyTeamResponse.data.message || "Failed to apply as a team." });
         }
       } else {
         setErrorMessage({ header: "Member Count Error", message: `Please add exactly ${job.requiredWorkers} members to apply.` });
       }
     } catch (err) {
       setErrorMessage({ header: "Application Error", message: "Error applying for the job: " + err.message });
+    }
+  };
+
+  const handleConfirmJob = async () => {
+    const token = localStorage.getItem("token");
+    const applicationId = applicationStatus?.application?.applicationId;
+
+    if (!applicationId) {
+      setErrorMessage({ header: "Confirmation Error", message: "No application ID found." });
+      return;
+    }
+
+    try {
+      const response = await axios.put(
+        `http://localhost:8100/api/student/applications/confirm?applicationId=${applicationId}&studentId=${currentUser.userId}`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Accept": "*/*",
+          },
+        }
+      );
+
+      if (response.data.code === 200) {
+        setApplicationStatus({ ...applicationStatus, application: { ...applicationStatus.application, status: "CONFIRMED" } });
+        setSuccessMessage({ header: "Confirmation Success", message: "Job confirmed successfully!" });
+      } else {
+        setErrorMessage({ header: "Confirmation Error", message: response.data.message || "Failed to confirm job." });
+      }
+    } catch (err) {
+      setErrorMessage({ header: "Confirmation Error", message: "Error confirming job: " + err.message });
+    }
+  };
+
+  const handleConfirmGroup = async () => {
+    const token = localStorage.getItem("token");
+    const teamId = applicationStatus?.application?.teamId;
+
+    if (!teamId) {
+      setErrorMessage({ header: "Group Confirmation Error", message: "No team ID found." });
+      return;
+    }
+
+    try {
+      const response = await axios.put(
+        `http://localhost:8100/api/teams/${currentUser.userId}/confirm/${teamId}`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Accept": "*/*",
+          },
+        }
+      );
+
+      if (response.data.code === 200) {
+        setApplicationStatus({ ...applicationStatus, memberStatus: true });
+        setSuccessMessage({ header: "Group Confirmation Success", message: "Group confirmed successfully!" });
+      } else {
+        setErrorMessage({ header: "Group Confirmation Error", message: response.data.message || "Failed to confirm group." });
+      }
+    } catch (err) {
+      setErrorMessage({ header: "Group Confirmation Error", message: "Error confirming group: " + err.message });
     }
   };
 
@@ -355,7 +498,10 @@ const JobDetails = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-        <p className="text-lg">Loading...</p>
+        <div className="animate-pulse flex flex-col items-center">
+          <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+          <p className="mt-4 text-lg font-medium text-gray-700">Loading job details...</p>
+        </div>
       </div>
     );
   }
@@ -363,158 +509,395 @@ const JobDetails = () => {
   if (error) {
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-        <p className="text-lg text-red-600">{error}</p>
+        <div className="bg-white p-8 rounded-lg shadow-lg max-w-md w-full text-center">
+          <div className="text-red-500 text-5xl mb-4">⚠️</div>
+          <p className="text-xl font-semibold text-red-600 mb-2">Error</p>
+          <p className="text-gray-600">{error}</p>
+          <button 
+            className="mt-6 bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700 transition duration-200"
+            onClick={() => navigate(-1)}
+          >
+            Go Back
+          </button>
+        </div>
       </div>
     );
   }
 
-  if (!job) {
-    return null;
-  }
+  if (!job) return null;
+
+  const renderApplyButton = () => {
+    if (!applicationStatus || !applicationStatus.hasApplied) {
+      return (
+        <button
+          onClick={handleApplyClick}
+          className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition duration-200 transform hover:scale-105 flex items-center justify-center w-full sm:w-auto"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          Apply Now
+        </button>
+      );
+    }
+
+    const { status } = applicationStatus.application;
+    const isTeamJob = job.requiredWorkers > 1;
+
+    if (isTeamJob) {
+      if (status === "INACTIVE" && !applicationStatus.memberStatus) {
+        return (
+          <div className="flex flex-col sm:flex-row gap-3 w-full">
+            <button
+              className="bg-gray-400 text-white px-6 py-3 rounded-lg font-medium opacity-75 w-full sm:w-auto cursor-not-allowed flex items-center justify-center"
+              disabled
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+              </svg>
+              Applied
+            </button>
+            <button
+              onClick={handleConfirmGroup}
+              className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-medium transition duration-200 w-full sm:w-auto flex items-center justify-center"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+              Confirm Group
+            </button>
+          </div>
+        );
+      }
+      if (status === "PENDING" || (status === "INACTIVE" && applicationStatus.memberStatus)) {
+        return (
+          <button
+            className="bg-yellow-500 text-white px-6 py-3 rounded-lg font-medium opacity-90 w-full sm:w-auto cursor-not-allowed flex items-center justify-center"
+            disabled
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            Applied - Pending
+          </button>
+        );
+      }
+      if (status === "CONFIRMED") {
+        return (
+          <button
+            className="bg-green-600 text-white px-6 py-3 rounded-lg font-medium w-full sm:w-auto cursor-not-allowed flex items-center justify-center"
+            disabled
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+            CONFIRMED
+          </button>
+        );
+      }
+      if (status === "REJECTED") {
+        return (
+          <button
+            className="bg-red-600 text-white px-6 py-3 rounded-lg font-medium w-full sm:w-auto cursor-not-allowed flex items-center justify-center"
+            disabled
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+            REJECTED
+          </button>
+        );
+      }
+      if (status === "ACCEPTED" && applicationStatus.isTeamLeader) {
+        return (
+          <div className="flex flex-col sm:flex-row gap-3 w-full">
+            <button
+              className="bg-yellow-500 text-white px-6 py-3 rounded-lg font-medium opacity-90 w-full sm:w-auto cursor-not-allowed flex items-center justify-center"
+              disabled
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              ACCEPTED
+            </button>
+            <button
+              onClick={handleConfirmJob}
+              className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-medium transition duration-200 w-full sm:w-auto flex items-center justify-center"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+              Confirm Job
+            </button>
+          </div>
+        );
+      }
+    } else {
+      if (status === "PENDING") {
+        return (
+          <button
+            className="bg-yellow-500 text-white px-6 py-3 rounded-lg font-medium opacity-90 w-full sm:w-auto cursor-not-allowed flex items-center justify-center"
+            disabled
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            Application Pending
+          </button>
+        );
+      }
+      if (status === "ACCEPTED") {
+        return (
+          <div className="flex flex-col sm:flex-row gap-3 w-full">
+            <button
+              className="bg-yellow-500 text-white px-6 py-3 rounded-lg font-medium opacity-90 w-full sm:w-auto cursor-not-allowed flex items-center justify-center"
+              disabled
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              ACCEPTED
+            </button>
+            <button
+              onClick={handleConfirmJob}
+              className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-medium transition duration-200 w-full sm:w-auto flex items-center justify-center"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+              Confirm Job
+            </button>
+          </div>
+        );
+      }
+      if (status === "CONFIRMED") {
+        return (
+          <button
+            className="bg-green-600 text-white px-6 py-3 rounded-lg font-medium w-full sm:w-auto cursor-not-allowed flex items-center justify-center"
+            disabled
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+            CONFIRMED
+          </button>
+        );
+      }
+      if (status === "REJECTED") {
+        return (
+          <button
+            className="bg-red-600 text-white px-6 py-3 rounded-lg font-medium w-full sm:w-auto cursor-not-allowed flex items-center justify-center"
+            disabled
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+            REJECTED
+          </button>
+        );
+      }
+    }
+  };
 
   return (
     <div className="bg-gray-100 min-h-screen">
-      {/* Hero Section */}
-      <header
-        className="relative flex flex-col justify-center items-center text-white h-[50vh] sm:h-[70vh] bg-cover bg-center px-4 sm:px-6"
+      {/* Hero section remains unchanged */}
+      <div
+        className="relative h-[60vh] bg-cover bg-center"
         style={{
-          backgroundImage:
-            'url("https://images.unsplash.com/photo-1559136555-9303baea8ebd?auto=format&fit=crop&q=80")',
+          backgroundImage: 'url("https://images.unsplash.com/photo-1559136555-9303baea8ebd?auto=format&fit=crop&q=80")',
         }}
       >
-        <div className="absolute inset-0 bg-black bg-opacity-50" />
-        <div className="relative z-10 text-center">
-          <h1 className="text-2xl sm:text-4xl md:text-6xl font-bold">
-            Find Your Perfect <br />
-            <span className="text-blue-400">Part-Time</span> Job
-          </h1>
+        <div className="absolute inset-0 bg-gradient-to-b from-black/80 to-black/40 backdrop-blur-[1px]">
+          <div className="max-w-7xl mx-auto h-full flex flex-col justify-end pb-24 px-4 sm:px-6">
+            <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-white tracking-tight drop-shadow-md mt-20">
+              Find Your Perfect <br />
+              <span className="text-blue-400 drop-shadow-lg">Part-Time</span> Job
+            </h1>
+            <p className="mt-3 text-white/90 text-lg sm:text-xl max-w-2xl drop-shadow-sm">
+              {job.jobTitle && `Details about ${job.jobTitle}`}
+            </p>
+          </div>
         </div>
-      </header>
+      </div>
 
-      {/* Job Listings Section */}
-      <section className="max-w-4xl mx-auto p-4 sm:p-6">
-        <h2 className="text-xl sm:text-2xl font-bold mb-4 text-center">
-          Job Details
-        </h2>
-
-        <div className="bg-white p-4 sm:p-6 rounded-xl shadow-md flex flex-col relative mb-6">
-          {/* Job Title and Profile Picture */}
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
-            <h3 className="text-lg sm:text-xl font-bold">{job.jobTitle}</h3>
-            <div className="w-16 h-16 sm:w-20 sm:h-20 mt-2 sm:mt-0">
+      {/* Improved Job Details Section */}
+      <section className="max-w-4xl mx-auto p-4 sm:p-6 relative -mt-6 z-10">
+        <div className="bg-white p-6 sm:p-8 rounded-xl shadow-lg flex flex-col relative mb-6">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 border-b pb-4">
+            <div className="flex-1">
+              <div className="flex items-center">
+                <h3 className="text-xl sm:text-2xl font-bold text-gray-800">{job.jobTitle}</h3>
+                <span className="ml-3 px-3 py-1 text-xs rounded-full bg-blue-100 text-blue-700 font-medium">
+                  {job.jobStatus}
+                </span>
+                <button 
+                  className="ml-3 text-red-500 hover:text-red-700 transition-colors"
+                  onClick={() => setShowReportPopup(true)}
+                  title="Report this job"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                  </svg>
+                </button>
+              </div>
+              <p 
+                className="text-blue-600 font-semibold text-sm sm:text-base mt-1 cursor-pointer hover:underline flex items-center"
+                onClick={() => navigate(`/e-profile?userId=${job.employer.userId}`)}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                </svg>
+                {job.employer.companyName}
+              </p>
+            </div>
+            <div className="w-20 h-20 sm:w-24 sm:h-24 mt-4 sm:mt-0 relative">
               <img
                 src={profilePictureUrl}
                 alt="Company Logo"
-                className="rounded-full w-full h-full object-cover"
-                onError={() => setProfilePictureUrl(DEFAULT_PROFILE_PICTURE)}
+                className="rounded-full w-full h-full object-cover border-4 border-white shadow-md"
+                onError={(e) => {
+                  e.target.src = DEFAULT_PROFILE_PICTURE;
+                }}
               />
             </div>
           </div>
 
-          {/* Job Details */}
-          <div className="flex-grow">
-            <div className="mb-4">
-              <p className="text-gray-600 font-semibold text-sm sm:text-base">
-                {job.employer.companyName}
-              </p>
-              <p className="text-gray-500 text-xs sm:text-sm">
-                {job.employer.companyDetails}
-              </p>
-              <p className="text-gray-700 text-sm sm:text-base mt-2">
-                <span className="font-bold">Category:</span> {job.jobCategory} <br />
-                <span className="font-bold">Description:</span> {job.jobDescription} <br />
-                <span className="font-bold">Date:</span>{" "}
-                {new Date(job.startDate).toLocaleDateString()} -{" "}
-                {new Date(job.endDate).toLocaleDateString()} <br />
-                <span className="font-bold">Time:</span> {job.startTime} -{" "}
-                {job.endTime} <br />
-                <span className="font-bold">Gender:</span>{" "}
-                {job.requiredGender.join(", ")} <br />
-                <span className="font-bold">No of Workers:</span>{" "}
-                {job.requiredWorkers}
-              </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Left Column */}
+            <div>
+              <div className="mb-6">
+                <h4 className="text-lg font-bold text-gray-800 mb-2 flex items-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  Job Details
+                </h4>
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <div className="grid grid-cols-2 gap-y-2">
+                    <div className="text-gray-600 font-medium">Category:</div>
+                    <div>{job.jobCategory}</div>
+                    
+                    <div className="text-gray-600 font-medium">Date:</div>
+                    <div>
+                      {new Date(job.startDate).toLocaleDateString()} - {new Date(job.endDate).toLocaleDateString()}
+                    </div>
+                    
+                    <div className="text-gray-600 font-medium">Time:</div>
+                    <div>{job.startTime} - {job.endTime}</div>
+                    
+                    <div className="text-gray-600 font-medium">Gender:</div>
+                    <div>{job.requiredGender.join(", ")}</div>
+                    
+                    <div className="text-gray-600 font-medium">Workers:</div>
+                    <div>{job.requiredWorkers}</div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mb-6">
+                <h4 className="text-lg font-bold text-gray-800 mb-2 flex items-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                  Locations
+                </h4>
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <ul className="list-disc list-inside space-y-1 text-gray-700">
+                    {job.jobLocations.map((loc, index) => (
+                      <li key={index} className="text-sm">{loc}</li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
             </div>
 
-            <p className="text-gray-700 mt-2">
-              <span className="font-bold">Locations:</span>{" "}
-              {job.jobLocations.map((loc, index) => (
-                <span key={index} className="block text-sm text-gray-500">
-                  {loc}
-                </span>
-              ))}
-            </p>
-
-            {/* Salary */}
-            <p className="text-green-600 font-bold mt-1 text-sm sm:text-base">
-              Rs. {job.jobPayment.toLocaleString()}.00
-            </p>
-
-            {/* Apply Now Button (disappears after click) */}
-            {!showApplySection && (
-              <button
-                onClick={handleApplyClick}
-                className="bg-blue-600 text-white px-4 sm:px-6 py-2 rounded-lg mt-4 w-full sm:w-auto"
-              >
-                Apply Now
-              </button>
-            )}
-
-            {/* Apply Section */}
-            {showApplySection && (
-              <div className="mt-6 border-t pt-4">
-                <h3 className="text-lg font-bold mb-4">Apply</h3>
-                <div className="grid grid-cols-2 sm:grid-cols-2 gap-4 mb-4">
-                  <div className="font-bold">Name</div>
-                  <div className="font-bold">Action</div>
-                  {appliedUsers.map((user) => (
-                    <React.Fragment key={user.userId}>
-                      <div className="flex items-center">
-                        <span>{user.displayName || user.userName}</span>
-                      </div>
-                      <div>
-                        {user.userId !== currentUser?.userId && (
-                          <button
-                            onClick={() => handleRemoveUser(user.userId)}
-                            className="text-red-500"
-                          >
-                            Remove
-                          </button>
-                        )}
-                      </div>
-                    </React.Fragment>
-                  ))}
+            {/* Right Column */}
+            <div>
+              <div className="mb-6">
+                <h4 className="text-lg font-bold text-gray-800 mb-2 flex items-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+                  </svg>
+                  Description
+                </h4>
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <p className="text-gray-700 text-sm">{job.jobDescription}</p>
                 </div>
-                {job.requiredWorkers > 1 && (
-                  <>
-                    <input
-                      type="text"
-                      value={teamName}
-                      onChange={(e) => setTeamName(e.target.value)}
-                      placeholder="Enter team name"
-                      className="w-full mb-2 p-2 border rounded"
-                    />
-                    <button
-                      onClick={handleAddMember}
-                      className="bg-purple-600 text-white px-4 py-2 rounded-lg flex items-center justify-center mb-2"
-                    >
-                      <span className="mr-2">👤</span> Add Member
-                    </button>
-                  </>
-                )}
-                <button
-                  onClick={handleApply}
-                  className="bg-blue-600 text-white px-4 py-2 rounded-lg"
-                  disabled={job.requiredWorkers !== appliedUsers.length}
-                >
-                  Apply
-                </button>
               </div>
-            )}
+
+              <div className="mb-6">
+                <h4 className="text-lg font-bold text-gray-800 mb-2 flex items-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  Payment
+                </h4>
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <p className="text-green-600 font-bold text-lg">Rs. {job.jobPayment.toLocaleString()}.00</p>
+                </div>
+              </div>
+            </div>
           </div>
+
+          {!showApplySection && (
+            <div className="flex flex-col sm:flex-row sm:space-x-4 mt-6">{renderApplyButton()}</div>
+          )}
+
+          {showApplySection && (
+            <div className="mt-6 border-t pt-4">
+              <h3 className="text-lg font-bold mb-4">Apply</h3>
+              <div className="grid grid-cols-2 sm:grid-cols-2 gap-4 mb-4">
+                <div className="font-bold">Name</div>
+                <div className="font-bold">Action</div>
+                {appliedUsers.map((user) => (
+                  <React.Fragment key={user.userId}>
+                    <div className="flex items-center">
+                      <span>{user.displayName || user.userName}</span>
+                    </div>
+                    <div>
+                      {user.userId !== currentUser?.userId && (
+                        <button
+                          onClick={() => handleRemoveUser(user.userId)}
+                          className="text-red-500"
+                        >
+                          Remove
+                        </button>
+                      )}
+                    </div>
+                  </React.Fragment>
+                ))}
+              </div>
+              {job.requiredWorkers > 1 && (
+                <>
+                  <input
+                    type="text"
+                    value={teamName}
+                    onChange={(e) => setTeamName(e.target.value)}
+                    placeholder="Enter team name"
+                    className="w-full mb-2 p-2 border rounded"
+                  />
+                  <button
+                    onClick={handleAddMember}
+                    className="bg-purple-600 text-white px-4 py-2 rounded-lg flex items-center justify-center mb-2"
+                  >
+                    <span className="mr-2">👤</span> Add Member
+                  </button>
+                </>
+              )}
+              <button
+                onClick={handleApply}
+                className="bg-blue-600 text-white px-4 py-2 rounded-lg"
+                disabled={job.requiredWorkers !== appliedUsers.length}
+              >
+                Apply
+              </button>
+            </div>
+          )}
         </div>
       </section>
 
-      {/* Popup for Adding Members */}
       {showPopup && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded-lg max-w-lg w-full max-h-[80vh] overflow-y-auto">
@@ -540,9 +923,7 @@ const JobDetails = () => {
                       className="bg-blue-500 text-white px-3 py-1 rounded-lg"
                       disabled={appliedUsers.length >= job.requiredWorkers}
                     >
-                      {appliedUsers.some(user => user.userId === student.userId)
-                        ? "Added"
-                        : "Add"}
+                      {appliedUsers.some(user => user.userId === student.userId) ? "Added" : "Add"}
                     </button>
                   </div>
                 ))
@@ -550,7 +931,6 @@ const JobDetails = () => {
                 <p>No available following students found</p>
               )}
             </div>
-            {/* Pagination */}
             <div className="flex justify-between items-center">
               <button
                 onClick={() => setCurrentPage(prev => Math.max(prev - 1, 0))}
@@ -572,7 +952,6 @@ const JobDetails = () => {
         </div>
       )}
 
-      {/* Error Popup */}
       {errorMessage && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded-lg max-w-md w-full">
@@ -596,7 +975,6 @@ const JobDetails = () => {
         </div>
       )}
 
-      {/* Success Popup */}
       {successMessage && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded-lg max-w-md w-full">
@@ -619,6 +997,13 @@ const JobDetails = () => {
           </div>
         </div>
       )}
+      {/* Report Job Popup */}
+      <ReportPopup
+        isOpen={showReportPopup}
+        onClose={() => setShowReportPopup(false)}
+        reportedUserId={job?.employer?.userId}
+        currentUserId={currentUser?.userId}
+      />
     </div>
   );
 };

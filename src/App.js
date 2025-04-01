@@ -1,4 +1,7 @@
 import './App.css';
+import { Route, Routes, useLocation, Navigate } from "react-router-dom";
+import { jwtDecode } from "jwt-decode";
+import { useEffect, useState } from 'react';
 import Signin from "./Components/Signin/Signin";
 import Signup from "./Components/Signup/Signup";
 import Home from "./Components/Home/Home";
@@ -9,14 +12,13 @@ import NavBar from "./Components/NavBar/NavBar";
 import Activities from "./Components/Activities/Activities";
 import Hero from "./Components/hero/Hero";
 import ChatButton from "./Components/ChatButton/ChatButton";
-import { Route, Routes, useLocation } from "react-router-dom";
 import SearchBar from "./Components/SearchBar/SearchBar";
 import ApplyJob from "./Components/ApplyJob/ApplyJob";
 import HeroSectionHome from "./Components/HeroSection/HeroSectionHome";
 import HeroSectionCompany from "./Components/HeroSection/HeroSectionCompany";
 import ContactUs from "./Components/ContactUs/ContactUs";
 import LogoutPopup from "./Components/LogoutPopup/LogoutPopup";
-import Admins from "./Components/Admins/Admins";
+import Admins from "./Components/Admins/AHome/Admins";
 import ESignin from "./Components/Employer/ESignin/ESignin";
 import EHero from "./Components/Employer/EHero/EHero";
 import EChatButton from "./Components/Employer/EChatButton/EChatButton";
@@ -36,17 +38,23 @@ import SearchStudent from "./Components/SearchStudent/SearchStudent";
 import SearchEmployer from "./Components/SearchEmployer/SearchEmployer";
 import StudentSummary from "./Components/StudentSummary/StudentSummary";
 import ResetPassword from "./Components/ResetPassword/ResetPassword";
+import NotFound from "./Components/NotFound/NotFound";
+import ANavBar from "./Components/Admins/ANavBar/ANavBar";
+import Footer from './Components/Footer/Footer';
+import AProfile from './Components/Admins/AProfile/AProfile';
+import ASearchEmployer from './Components/Admins/ASearchEmployer/ASearchEmployer';
+import ASearchStudent from './Components/Admins/ASearchStudent/ASearchStudent';
+import Landing from './Components/Landing/Landing';
+import EJobApplications from './Components/Employer/EJobApplications/EJobApplications';
+import ESummary from './Components/Employer/ESummary/ESummary';
 
 function App() {
     const location = useLocation();
-    // Student
-    // List of routes that do NOT include the Navbar
-    const noNavRoutes = [
-        "/", "/hero", "/sign-in", "/sign-up", "/pin", "/verify", "/e-hero", "/e-sign-in", "/e-sign-up", 
-        "/e-home", "/e-job-create", "/e-job-edit", "/e-contact-us", "/admins/stats", "/reset-password",
-        "/e-profile"
-    ];
-    
+    const [userRole, setUserRole] = useState(null);
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [loading, setLoading] = useState(true);
+
+    // Original HeroSection arrays
     const chatButton = [
         "/", "/hero", "/sign-in", "/sign-up", "/pin", "/verify", "/e-hero", "/e-sign-in", "/e-sign-up", 
         "/e-home", "/e-job-create", "/e-job-edit", "/e-contact-us", "/admins/stats", "/reset-password",
@@ -57,23 +65,16 @@ function App() {
         "/", "/hero", "/sign-in", "/sign-up", "/pin", "/verify", "/company", "/e-home", "/profile", 
         "/activities", "/job-details", "/apply-job", "/contact-us", "/company-rating", "/e-hero", 
         "/e-sign-in", "/e-sign-up", "/e-job-create", "/e-job-edit", "/e-contact-us", "/admins/stats", 
-        "/search-student", "/activities/summary", "/reset-password", "/home","/e-profile"
+        "/search-student", "/activities/summary", "/reset-password", "/home", "/e-profile","/e-summary" 
     ];
     
     const searchBarCompany = [
         "/", "/hero", "/sign-in", "/sign-up", "/home", "/profile", "/verify", "/e-home", "/activities", 
         "/job-details", "/apply-job", "/contact-us", "/company-rating", "/e-hero", "/e-sign-in", 
         "/e-sign-up", "/e-job-create", "/e-job-edit", "/e-contact-us", "/admins/stats", "/search-student", 
-        "/company", "/activities/summary", "/reset-password","/e-profile"
+        "/company", "/activities/summary", "/reset-password", "/e-profile","/e-summary" 
     ];
-    
-    // Employer Routes
-    const eNoNavRoutes = [
-        "/", "/home", "/hero", "/sign-in", "/sign-up", "/pin", "/verify", "/e-hero", "/e-sign-in", 
-        "/e-sign-up", "/admins/stats", "/company", "/activities", "/profile", "/contact-us", 
-        "/search-student", "/job-details", "/activities/summary", "/reset-password"
-    ];
-    
+
     const eChatButton = [
         "/", "/home", "/hero", "/sign-in", "/sign-up", "/pin", "/verify", "/e-hero", "/e-sign-in", 
         "/e-sign-up", "/admins/stats", "/company", "/activities", "/profile", "/contact-us", 
@@ -84,77 +85,167 @@ function App() {
         "/", "/home", "/hero", "/sign-in", "/sign-up", "/pin", "/verify", "/company", "/profile", 
         "/activities", "/job-details", "/apply-job", "/contact-us", "/company-rating", "/e-hero", 
         "/e-sign-in", "/e-sign-up", "/e-contact-us", "/admins/stats", "/company", "/activities", 
-        "/search-student", "/job-details", "/activities/summary", "/reset-password","/e-profile"
+        "/search-student", "/job-details", "/activities/summary", "/reset-password", "/e-profile",
+        "/e-summary" 
     ];
     
     const eSearchBarCompany = [
         "/", "/home", "/hero", "/sign-in", "/sign-up", "/home", "/profile", "/verify", "/e-home", 
         "/activities", "/job-details", "/apply-job", "/contact-us", "/company-rating", "/e-hero", 
         "/e-sign-in", "/e-sign-up", "/e-contact-us", "/admins/stats", "/company", "/activities", 
-        "/profile", "/search-student", "/job-details", "/e-job-create", "/e-job-edit", "/activities/summary", "/reset-password"
+        "/profile", "/search-student", "/job-details", "/e-job-create", "/e-job-edit", "/activities/summary", 
+        "/reset-password","/e-profile","/e-summary" 
     ];
-    
+
+    // Define all valid routes explicitly
+    const validRoutes = [
+        "/", "/hero", "/sign-in", "/sign-up", "/e-sign-in", "/e-sign-up", "/e-hero",
+        "/verify", "/reset-password", "/admins", "/admins/stats", "/e-home",
+        "/e-job-create", "/e-job-edit", "/e-profile", "/e-contact-us", "/home",
+        "/companyList", "/search-student", "/activities/summary", "/company",
+        "/profile", "/activities", "/confirm", "/job-details", "/apply-job",
+        "/contact-us", "/log-out", "/company-details/:employerId",
+        "/searched-results/:selectedLocation/:selectedJob/:searchTerm"
+    ];
+
+    // Check if the current path is valid (simplified check, ignoring params for now)
+    const isValidRoute = validRoutes.some(route => {
+        if (route.includes(":")) {
+            // Handle dynamic routes by checking the base path
+            const baseRoute = route.split(":")[0];
+            return location.pathname.startsWith(baseRoute);
+        }
+        return route === location.pathname;
+    });
+
+    useEffect(() => {
+        const checkToken = () => {
+            setLoading(true);
+            const token = localStorage.getItem('token');
+            console.log('Token from localStorage:', token);
+            
+            if (token) {
+                try {
+                    const decodedToken = jwtDecode(token);
+                    console.log('Decoded token:', decodedToken);
+                    
+                    const currentTime = Math.floor(Date.now() / 1000);
+                    console.log('Current time:', currentTime);
+                    console.log('Token exp:', decodedToken.exp);
+
+                    if (decodedToken.exp < currentTime) {
+                        console.log('Token expired');
+                        localStorage.removeItem('token');
+                        setIsAuthenticated(false);
+                        setUserRole(null);
+                    } else {
+                        console.log('Token valid');
+                        setIsAuthenticated(true);
+                        setUserRole(decodedToken.role);
+                    }
+                } catch (error) {
+                    console.error('Error decoding token:', error);
+                    setIsAuthenticated(false);
+                    setUserRole(null);
+                    localStorage.removeItem('token');
+                }
+            } else {
+                console.log('No token found');
+                setIsAuthenticated(false);
+                setUserRole(null);
+            }
+            setLoading(false);
+        };
+
+        checkToken();
+    }, [location.pathname]);
+
+    const publicRoutes = [
+        "/e-hero", "/e-sign-in", "/e-sign-up", "/sign-in", 
+        "/verify", "/sign-up", "/reset-password", "/hero",
+        "/"
+    ];
+
+    const isPublicRoute = publicRoutes.includes(location.pathname);
+
+    const ProtectedRoute = ({ children, redirectTo = "/sign-in" }) => {
+        if (loading) {
+            return <div>Loading...</div>;
+        }
+
+        if (!isAuthenticated && !isPublicRoute) {
+            console.log('Redirecting to sign-in. Auth:', isAuthenticated, 'Public:', isPublicRoute);
+            return <Navigate to={redirectTo} replace />;
+        }
+        return children;
+    };
 
     return (
         <div className="App">
+            {/* ChatButton and NavBar logic */}
+            {!isPublicRoute && <ChatButton />}
+            {!isPublicRoute && isAuthenticated && (
+                userRole === 'STUDENT' ? <NavBar /> : 
+                userRole === 'EMPLOYER' ? <ENavBar /> :
+                userRole === 'ADMIN' ? <ANavBar /> : null
+            )}
 
-            {/*Show Navbar only if the route is NOT in noNavRoutes*/}
-            {!eChatButton.includes(location.pathname)&& <ChatButton />}
-            {!eNoNavRoutes.includes(location.pathname) && <ENavBar />}
-            {!eSearchBarHome.includes(location.pathname) && <EHeroSectionHome />}
-            {!eSearchBarCompany.includes(location.pathname) && <EHeroSectionCompany />}
-
-            {!chatButton.includes(location.pathname)&& <ChatButton />}
-            {!noNavRoutes.includes(location.pathname) && <NavBar />}
-            {!searchBarHome.includes(location.pathname) && <HeroSectionHome />}
-            {!searchBarCompany.includes(location.pathname) && <HeroSectionCompany />}
-
-            {/*Show Navbar only if the route is NOT in noNavRoutes*/}
+            {/* Render HeroSections only on valid routes */}
+            {isValidRoute && !eSearchBarHome.includes(location.pathname) && <EHeroSectionHome />}
+            {isValidRoute && !eSearchBarCompany.includes(location.pathname) && <EHeroSectionCompany />}
+            {isValidRoute && !searchBarHome.includes(location.pathname) && <HeroSectionHome />}
+            {isValidRoute && !searchBarCompany.includes(location.pathname) && <HeroSectionCompany />}
 
             <Routes>
-                <Route path="/" element={<Admins />} />
-                <Route path="/admins" element={<Admins />} />
-                <Route path="/admins/stats" element={<AdminStats />} />
-
-                {/*Employer*/}
-                <Route path="/e-hero" element={<EHero />} />
-                <Route path="/e-sign-in" element={<ESignin />} />
-                <Route path="/e-sign-up" element={<ESignup />} />
-                <Route path="/e-home" element={<EHome />} />
-                <Route path="/e-job-create" element={<EJobCreation />} />
-                <Route path="/e-job-edit" element={<EJobUpdate />} />
-                <Route path="/e-profile" element={<CompanyDetails />} />
-                <Route path="/e-contact-us" element={<ContactUs/>}/>
-
-                {/*Students*/}
+                {/* Public Routes */}
                 <Route path="/hero" element={<Hero />} />
                 <Route path="/sign-in" element={<Signin />} />
                 <Route path="/sign-up" element={<Signup />} />
+                <Route path="/e-sign-in" element={<ESignin />} />
+                <Route path="/e-sign-up" element={<ESignup />} />
+                <Route path="/e-hero" element={<EHero />} />
                 <Route path="/verify" element={<JobPreferences />} />
-                <Route path="/searched-results/:selectedLocation/:selectedJob/:searchTerm" element={<SearchResults />} />
+                <Route path="/reset-password" element={<ResetPassword />} />
+                <Route path="/" element={<Landing />} />
 
-                {/* Pages with NavBar */}
-                <Route path="/home" element={<Home />} />
-                <Route path="/companyList" element={<CompanyList />} />
-                <Route path="/verify/:userid" element={<JobPreferences />} />
-                <Route path='/search-student' element={<SearchStudent/>} />
-                <Route path="/activities/summary" element={<StudentSummary />} />
+                {/* Protected Routes */}
+                <Route path="/a-home" element={<ProtectedRoute><Admins /></ProtectedRoute>} />
+                <Route path="/admin/stats" element={<ProtectedRoute><AdminStats /></ProtectedRoute>} />
+                <Route path="/a-profile" element={<ProtectedRoute><AProfile /></ProtectedRoute>} />
+                <Route path="/a-company" element={<ProtectedRoute><ASearchEmployer /></ProtectedRoute>} />
+                <Route path="/a-student" element={<ProtectedRoute><ASearchStudent /></ProtectedRoute>} />
+                
+                {/* Employer Protected Routes */}
+                <Route path="/e-home" element={<ProtectedRoute><EHome /></ProtectedRoute>} />
+                <Route path="/e-job-create" element={<ProtectedRoute><EJobCreation /></ProtectedRoute>} />
+                <Route path="/e-job-edit" element={<ProtectedRoute><EJobUpdate /></ProtectedRoute>} />
+                <Route path="/e-profile" element={<ProtectedRoute><CompanyDetails /></ProtectedRoute>} />
+                <Route path="/e-contact-us" element={<ProtectedRoute><ContactUs /></ProtectedRoute>} />
+                <Route path="e-job-details" element={<ProtectedRoute><EJobApplications /></ProtectedRoute>} />
+                <Route path="/e-summary" element={<ProtectedRoute><ESummary /></ProtectedRoute>} />
 
-                {/* Pages with NavBar */}
-                <Route path="/home" element={<Home />} />
-                <Route path="/company" element={<SearchEmployer />} />
-                <Route path="/profile" element={<StudentProfile />} />
-                <Route path="/activities" element={<Activities />} />
-                <Route path="/confirm" element={<Application />} /> 
-                <Route path="/job-details" element={<JobDetails />} />
-                <Route path="/job-details/:jobId" element={<JobDetails />} />
-                <Route path="/apply-job" element={<ApplyJob />}/>
-                <Route path="/contact-us" element={<ContactUs/>}/>
-                <Route path="/log-out" element={<LogoutPopup/>}/>
-                <Route path="/reset-password" element={<ResetPassword/>}/>
-                <Route path="/company-details/:employerId" element={<CompanyDetails/>}/>
+                {/* Student Protected Routes */}
+                <Route path="/home" element={<ProtectedRoute><Home /></ProtectedRoute>} />
+                <Route path="/companyList" element={<ProtectedRoute><CompanyList /></ProtectedRoute>} />
+                <Route path="/search-student" element={<ProtectedRoute><SearchStudent /></ProtectedRoute>} />
+                <Route path="/activities/summary" element={<ProtectedRoute><StudentSummary /></ProtectedRoute>} />
+                <Route path="/company" element={<ProtectedRoute><SearchEmployer /></ProtectedRoute>} />
+                <Route path="/profile" element={<ProtectedRoute><StudentProfile /></ProtectedRoute>} />
+                <Route path="/activities" element={<ProtectedRoute><Activities /></ProtectedRoute>} />
+                <Route path="/confirm" element={<ProtectedRoute><Application /></ProtectedRoute>} />
+                <Route path="/job-details" element={<ProtectedRoute><JobDetails /></ProtectedRoute>} />
+                <Route path="/apply-job" element={<ProtectedRoute><ApplyJob /></ProtectedRoute>} />
+                <Route path="/contact-us" element={<ProtectedRoute><ContactUs /></ProtectedRoute>} />
+                <Route path="/log-out" element={<ProtectedRoute><LogoutPopup /></ProtectedRoute>} />
+                <Route path="/company-details/:employerId" element={<ProtectedRoute><CompanyDetails /></ProtectedRoute>} />
+                <Route path="/searched-results/:selectedLocation/:selectedJob/:searchTerm" 
+                    element={<ProtectedRoute><SearchResults /></ProtectedRoute>} />
 
+                {/* Catch-all Route for Not Found */}
+                <Route path="*" element={<NotFound />} />
             </Routes>
+
+            {!isPublicRoute && isAuthenticated && <Footer />}
         </div>
     );
 }

@@ -1,11 +1,11 @@
 import React, { useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import {
-    GraduationCap, Menu, X, Home, ListTodo, Building2, User, Phone, LogOut, BarChart3
+    GraduationCap, Menu, X, Home, ListTodo, Building2, User, Phone, LogOut, Users, BarChart3
 } from "lucide-react";
-import LogoutPopup from "../ELogoutPopup/ELogoutPopup"; // Import the Logout Popup
+import LogoutPopup from "../../LogoutPopup/LogoutPopup"; // Import the Logout Popup
 
-const ENavBar = () => {
+const ANavBar = () => {
     const [menuOpen, setMenuOpen] = useState(false);
     const [logoutPopup, setLogoutPopup] = useState(false);
     const navigate = useNavigate();
@@ -27,20 +27,23 @@ const ENavBar = () => {
 
                 {/* Desktop Menu */}
                 <div className="hidden md:flex space-x-6 text-lg">
-                    <NavLink to="/e-home" className="hover:underline flex items-center gap-1">
+                    <NavLink to="/a-home" className="hover:underline flex items-center gap-1">
                         <Home size={20} /> Home
                     </NavLink>
-                    <NavLink to="/e-job-create" className="hover:underline flex items-center gap-1">
-                        <Building2 size={18} /> Create Job
+                    <NavLink to="/a-company" className="hover:underline flex items-center gap-1">
+                        <Building2 size={18} /> Company
                     </NavLink>
-                    <NavLink to="/e-summary" className="hover:underline flex items-center gap-1">
-                        <BarChart3 size={18} /> Summary
+                    <NavLink to="/a-student" className="hover:underline flex items-center gap-1">
+                        <Users size={18} /> Students
                     </NavLink>
-                    <NavLink to="/e-profile" className="hover:underline flex items-center gap-1">
+                    <NavLink to="/activities" className="hover:underline flex items-center gap-1">
+                        <ListTodo size={18} /> Activities
+                    </NavLink>
+                    <NavLink to="/admin/stats" className="hover:underline flex items-center gap-1">
+                        <BarChart3 size={20} /> Stats
+                    </NavLink>
+                    <NavLink to="/a-profile" className="hover:underline flex items-center gap-1">
                         <User size={20} /> Profile
-                    </NavLink>
-                    <NavLink to="/e-contact-us" className="hover:underline flex items-center gap-1">
-                        <Phone size={20} /> Contact
                     </NavLink>
                     <button
                         onClick={() => setLogoutPopup(true)}
@@ -65,20 +68,23 @@ const ENavBar = () => {
 
                 {/* Menu List */}
                 <div className="flex flex-col items-center justify-center h-full space-y-6 text-lg">
-                    <NavLink to="/e-home" className="hover:underline flex items-center gap-2" onClick={() => setMenuOpen(false)}>
+                    <NavLink to="/a-home" className="hover:underline flex items-center gap-2" onClick={() => setMenuOpen(false)}>
                         <Home size={24} /> Home
                     </NavLink>
-                    <NavLink to="/e-job-create" className="hover:underline flex items-center gap-2" onClick={() => setMenuOpen(false)}>
-                        <ListTodo size={18} /> Create Job
+                    <NavLink to="/a-company" className="hover:underline flex items-center gap-2" onClick={() => setMenuOpen(false)}>
+                        <Building2 size={18} /> Company
                     </NavLink>
-                    <NavLink to="/e-summary" className="hover:underline flex items-center gap-2" onClick={() => setMenuOpen(false)}>
-                        <BarChart3 size={18} /> Summary
+                    <NavLink to="/a-student" className="hover:underline flex items-center gap-1" onClick={() => setMenuOpen(false)}>
+                        <Users size={18} /> Students
                     </NavLink>
-                    <NavLink to="/e-profile" className="hover:underline flex items-center gap-2" onClick={() => setMenuOpen(false)}>
+                    <NavLink to="/activities" className="hover:underline flex items-center gap-2" onClick={() => setMenuOpen(false)}>
+                        <ListTodo size={18} /> Activities
+                    </NavLink>
+                    <NavLink to="/admin/stats" className="hover:underline flex items-center gap-2" onClick={() => setMenuOpen(false)}>
+                        <BarChart3 size={24} /> Stats
+                    </NavLink>
+                    <NavLink to="/a-profile" className="hover:underline flex items-center gap-2" onClick={() => setMenuOpen(false)}>
                         <User size={24} /> Profile
-                    </NavLink>
-                    <NavLink to="/e-contact-us" className="hover:underline flex items-center gap-2" onClick={() => setMenuOpen(false)}>
-                        <Phone size={24} /> Contact
                     </NavLink>
                     <button
                         onClick={() => {
@@ -102,4 +108,4 @@ const ENavBar = () => {
     );
 };
 
-export default ENavBar;
+export default ANavBar;

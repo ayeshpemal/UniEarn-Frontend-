@@ -8,7 +8,7 @@ import html2pdf from 'html2pdf.js';
 // Register ChartJS components
 ChartJS.register(ArcElement, Tooltip, Legend, BarElement, CategoryScale, LinearScale);
 
-const ApplicationSummary = () => {
+const ESummary = () => {
   const [summaryData, setSummaryData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -31,7 +31,7 @@ const ApplicationSummary = () => {
     // Better PDF options with landscape orientation
     const opt = {
       margin: [10, 10, 10, 10], // top, right, bottom, left margins in mm
-      filename: `UniEarn_Student_Summary_${new Date().toISOString().split('T')[0]}.pdf`,
+      filename: `UniEarn_Employer_Summary_${new Date().toISOString().split('T')[0]}.pdf`,
       image: { type: 'jpeg', quality: 0.98 },
       html2canvas: { 
         scale: 1.5,
@@ -81,11 +81,11 @@ const ApplicationSummary = () => {
         return;
       }
 
-      let userId;
+      let employerId;
       try {
         const decodedToken = jwtDecode(token);
-        userId = decodedToken.user_id;
-        console.log(`Decoded user_id: ${userId}`);
+        employerId = decodedToken.user_id;
+        console.log(`Decoded employer_id: ${employerId}`);
       } catch (err) {
         setError("Error decoding token");
         setLoading(false);
@@ -93,10 +93,10 @@ const ApplicationSummary = () => {
       }
 
       try {
-        const response = await axios.post(
-          `http://localhost:8100/api/v1/application/student/summary`,
+        const response = await axios.get(
+          `http://localhost:8100/api/employer/analysis/brief-summary/`,
           {
-            studentId: userId,
+            employerId: employerId,
             startDate: new Date(startDate).toISOString(),
             endDate: new Date(endDate).toISOString()
           },
@@ -108,7 +108,7 @@ const ApplicationSummary = () => {
           }
         );
 
-        setSummaryData(response.data.data); // Updated to match new response structure
+        setSummaryData(response.data.data);
         setLoading(false);
       } catch (err) {
         setError(err.response?.data?.message || "Failed to fetch summary data");
@@ -121,8 +121,8 @@ const ApplicationSummary = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-white">
-        <p className="text-lg text-gray-600">Loading...</p>
+      <div className="flex justify-center items-center h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
       </div>
     );
   }
@@ -135,20 +135,19 @@ const ApplicationSummary = () => {
     );
   }
 
-  // Prepare data for Pie Chart (Status Percentages)
-  const pieData = {
-    labels: ["Confirmed", "Pending", "Rejected", "Accepted", "Inactive"],
+  // Prepare data for Status Pie Chart
+  const statusPieData = {
+    labels: ["Pending", "Ongoing", "Finished", "Canceled"],
     datasets: [
       {
         data: [
-          summaryData.statusPercentages.CONFIRMED || 0,
-          summaryData.statusPercentages.PENDING || 0,
-          summaryData.statusPercentages.REJECTED || 0,
-          summaryData.statusPercentages.ACCEPTED || 0,
-          summaryData.statusPercentages.INACTIVE || 0,
+          summaryData.pendingJobCount || 0,
+          summaryData.ongoingJobCount || 0,
+          summaryData.finishedJobCount || 0,
+          summaryData.canceledJobCount || 0,
         ],
-        backgroundColor: ["#34D399", "#F97316", "#EF4444", "#A855F7", "#6B7280"], // Added Purple for Accepted, Gray for Inactive
-        hoverBackgroundColor: ["#2DD4BF", "#F97316", "#DC2626", "#9333EA", "#4B5563"],
+        backgroundColor: ["#F97316", "#3B82F6", "#34D399", "#EF4444"],
+        hoverBackgroundColor: ["#F59E0B", "#2563EB", "#10B981", "#DC2626"],
       },
     ],
   };
@@ -157,19 +156,33 @@ const ApplicationSummary = () => {
     responsive: true,
     plugins: {
       legend: { position: "top", labels: { color: "#6B7280" } },
-      title: { display: true, text: "Application Status Percentages", color: "#6B7280" },
+      title: { display: true, text: "Job Status Distribution", color: "#6B7280" },
     },
   };
 
-  // Prepare data for Bar Chart (Category Breakdown)
-  const barData = {
-    labels: Object.keys(summaryData.categoryBreakdown),
+  // Prepare data for Category Bar Chart
+  const categoryBarData = {
+    labels: Object.keys(summaryData.jobCountByCategory),
     datasets: [
       {
-        label: "Number of Applications",
-        data: Object.values(summaryData.categoryBreakdown),
+        label: "Number of Jobs",
+        data: Object.values(summaryData.jobCountByCategory),
         backgroundColor: "#3B82F6",
         borderColor: "#2563EB",
+        borderWidth: 1,
+      },
+    ],
+  };
+
+  // Prepare data for Location Bar Chart
+  const locationBarData = {
+    labels: Object.keys(summaryData.jobCountByLocation),
+    datasets: [
+      {
+        label: "Number of Jobs",
+        data: Object.values(summaryData.jobCountByLocation),
+        backgroundColor: "#8B5CF6",
+        borderColor: "#7C3AED",
         borderWidth: 1,
       },
     ],
@@ -179,7 +192,7 @@ const ApplicationSummary = () => {
     responsive: true,
     plugins: {
       legend: { position: "top", labels: { color: "#6B7280" } },
-      title: { display: true, text: "Applications by Category", color: "#6B7280" },
+      title: { display: true, text: "Jobs Distribution", color: "#6B7280" },
     },
     scales: {
       y: { beginAtZero: true, title: { display: true, text: "Count", color: "#6B7280" }, ticks: { color: "#6B7280" } },
@@ -194,33 +207,33 @@ const ApplicationSummary = () => {
         className="relative h-[60vh] bg-cover bg-center"
         style={{
           backgroundImage:
-            'url("https://images.unsplash.com/photo-1559136555-9303baea8ebd?auto=format&fit=crop&q=80")',
+            'url("https://images.unsplash.com/photo-1542744173-05336fcc7ad4?auto=format&fit=crop&q=80")',
         }}
       >
         <div className="absolute inset-0 bg-gradient-to-b from-black/80 to-black/40 backdrop-blur-[1px]">
           <div className="max-w-7xl mx-auto h-full flex flex-col justify-end pb-24 px-4 sm:px-6">
             <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-white tracking-tight drop-shadow-md mt-20">
-              My<br />
-              <span className="text-blue-400 drop-shadow-lg">Activities</span>
+              Job<br />
+              <span className="text-blue-400 drop-shadow-lg">Analytics</span>
             </h1>
             <p className="mt-3 text-white/90 text-lg sm:text-xl max-w-2xl drop-shadow-sm">
-              Track your job applications and opportunities
+              Track your job postings and application statistics
             </p>
           </div>
         </div>
       </div>
 
       {/* Content Section */}
-      <div className="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
         <div className="bg-white rounded-xl shadow-lg p-6">
           <div className="flex justify-between items-center mb-6">
             <h1 className="text-3xl font-bold text-gray-800">
-              Application Summary
+              Job Posting Analysis
             </h1>
             <button 
               onClick={downloadPDF}
               disabled={generatingPDF || loading || error}
-              className={`px-4 py-2 ${generatingPDF || loading || error ? 'bg-gray-400' : 'bg-blue-600 hover:bg-blue-700'} 
+              className={`px-4 py-2 ${generatingPDF || loading || error ? 'bg-gray-400' : 'bg-green-600 hover:bg-green-700'} 
               text-white rounded-lg transition-colors flex items-center shadow-md`}
             >
               {generatingPDF ? (
@@ -256,7 +269,7 @@ const ApplicationSummary = () => {
                     type="date"
                     value={startDate}
                     onChange={(e) => setStartDate(e.target.value)}
-                    className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
                   />
                 </div>
                 <div>
@@ -267,7 +280,7 @@ const ApplicationSummary = () => {
                     type="date"
                     value={endDate}
                     onChange={(e) => setEndDate(e.target.value)}
-                    className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
                   />
                 </div>
               </div>
@@ -284,43 +297,134 @@ const ApplicationSummary = () => {
             ) : (
               <>
                 {/* Summary Stats */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8 avoid-break-inside">
+                <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-8 avoid-break-inside">
                   <div className="bg-white border border-gray-200 p-4 rounded-lg text-center shadow-sm">
-                    <p className="text-lg font-semibold text-gray-500">Inactive</p>
-                    <p className="text-2xl text-gray-500">{summaryData.inactive}</p>
-                  </div>
-                  <div className="bg-white border border-gray-200 p-4 rounded-lg text-center shadow-sm">
-                    <p className="text-lg font-semibold text-teal-500">Confirmed</p>
-                    <p className="text-2xl text-teal-500">{summaryData.confirmed}</p>
+                    <p className="text-lg font-semibold text-gray-800">Total Jobs</p>
+                    <p className="text-2xl text-gray-800">{summaryData.totalJobCount}</p>
                   </div>
                   <div className="bg-white border border-gray-200 p-4 rounded-lg text-center shadow-sm">
                     <p className="text-lg font-semibold text-orange-500">Pending</p>
-                    <p className="text-2xl text-orange-500">{summaryData.pending}</p>
+                    <p className="text-2xl text-orange-500">{summaryData.pendingJobCount}</p>
                   </div>
                   <div className="bg-white border border-gray-200 p-4 rounded-lg text-center shadow-sm">
-                    <p className="text-lg font-semibold text-pink-500">Rejected</p>
-                    <p className="text-2xl text-pink-500">{summaryData.rejected}</p>
+                    <p className="text-lg font-semibold text-blue-500">Ongoing</p>
+                    <p className="text-2xl text-blue-500">{summaryData.ongoingJobCount}</p>
                   </div>
                   <div className="bg-white border border-gray-200 p-4 rounded-lg text-center shadow-sm">
-                    <p className="text-lg font-semibold text-purple-500">Accepted</p>
-                    <p className="text-2xl text-purple-500">{summaryData.accepted}</p>
+                    <p className="text-lg font-semibold text-green-500">Finished</p>
+                    <p className="text-2xl text-green-500">{summaryData.finishedJobCount}</p>
+                  </div>
+                  <div className="bg-white border border-gray-200 p-4 rounded-lg text-center shadow-sm">
+                    <p className="text-lg font-semibold text-red-500">Canceled</p>
+                    <p className="text-2xl text-red-500">{summaryData.canceledJobCount}</p>
                   </div>
                 </div>
 
-                <div className="text-center mb-8 avoid-break-inside">
-                  <p className="text-lg font-semibold text-gray-700">
-                    Total Applications:{" "}
-                    <span className="text-blue-500">{summaryData.totalApplications}</span>
-                  </p>
+                {/* Charts with reduced size */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8 avoid-break-inside">
+                  <div className="bg-white p-4 rounded-lg shadow">
+                    <div className="h-64 md:h-80 mx-auto">
+                      <Pie data={statusPieData} options={{...pieOptions, maintainAspectRatio: true}} />
+                    </div>
+                  </div>
+                  <div className="bg-white p-4 rounded-lg shadow">
+                    <div className="h-64 md:h-80 mx-auto">
+                      <Bar 
+                        data={categoryBarData} 
+                        options={{
+                          ...barOptions,
+                          maintainAspectRatio: true,
+                          plugins: {
+                            ...barOptions.plugins,
+                            title: {
+                              ...barOptions.plugins.title,
+                              text: "Jobs by Category"
+                            }
+                          }
+                        }} 
+                      />
+                    </div>
+                  </div>
                 </div>
 
-                {/* Charts */}
+                {/* Location Distribution */}
+                <div className="mb-8 avoid-break-inside">
+                  <div className="bg-white p-4 rounded-lg shadow">
+                    <div className="h-64 md:h-80 mx-auto">
+                      <Bar 
+                        data={locationBarData} 
+                        options={{
+                          ...barOptions,
+                          maintainAspectRatio: true,
+                          plugins: {
+                            ...barOptions.plugins,
+                            title: {
+                              ...barOptions.plugins.title,
+                              text: "Jobs by Location"
+                            }
+                          },
+                          scales: {
+                            ...barOptions.scales,
+                            x: {
+                              ...barOptions.scales.x,
+                              title: {
+                                ...barOptions.scales.x.title,
+                                text: "Locations"
+                              }
+                            }
+                          }
+                        }} 
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Most & Least Applied Jobs */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 avoid-break-inside">
+                  {/* Most Applied Jobs */}
                   <div className="bg-white p-4 rounded-lg shadow">
-                    <Pie data={pieData} options={pieOptions} />
+                    <h2 className="text-xl font-semibold text-gray-700 mb-4">Most Applied Jobs</h2>
+                    <div className="overflow-x-auto">
+                      <table className="min-w-full divide-y divide-gray-200">
+                        <thead className="bg-gray-50">
+                          <tr>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Job Title</th>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Applications</th>
+                          </tr>
+                        </thead>
+                        <tbody className="bg-white divide-y divide-gray-200">
+                          {summaryData.mostAppliedJobs.map((job) => (
+                            <tr key={job.jobId}>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{job.jobTitle}</td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{job.applicationCount}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
+                  
+                  {/* Least Applied Jobs */}
                   <div className="bg-white p-4 rounded-lg shadow">
-                    <Bar data={barData} options={barOptions} />
+                    <h2 className="text-xl font-semibold text-gray-700 mb-4">Least Applied Jobs</h2>
+                    <div className="overflow-x-auto">
+                      <table className="min-w-full divide-y divide-gray-200">
+                        <thead className="bg-gray-50">
+                          <tr>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Job Title</th>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Applications</th>
+                          </tr>
+                        </thead>
+                        <tbody className="bg-white divide-y divide-gray-200">
+                          {summaryData.leastAppliedJobs.map((job) => (
+                            <tr key={job.jobId}>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{job.jobTitle}</td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{job.applicationCount}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
                 </div>
               </>
@@ -332,4 +436,4 @@ const ApplicationSummary = () => {
   );
 };
 
-export default ApplicationSummary;
+export default ESummary;

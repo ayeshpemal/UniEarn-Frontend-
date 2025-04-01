@@ -1,24 +1,24 @@
 import axios from "axios";
 import React, { useState, useEffect } from "react";
 import { jwtDecode } from "jwt-decode";
-import SearchEmployerBar from "../SearchEmployerBar/SearchEmployerBar"; // Assuming this is the correct import path
+import { Link } from "react-router-dom";
+import ASearchEmployerBar from "../ASearchEmployerBar/ASearchEmployerBar"; // Assuming this is the correct import path
 
 // Hero Section Component
 const HeroSectionEmployer = ({ onSearchResults }) => {
   return (
     <div>
       <header
-        className="relative h-[60vh] bg-cover bg-center"
+        className="relative flex flex-col justify-center items-center text-white text-align h-[70vh] bg-cover bg-center px-6"
         style={{ backgroundImage: 'url("https://images.unsplash.com/photo-1559136555-9303baea8ebd?auto=format&fit=crop&q=80")' }}
       >
-        <div className="absolute inset-0 bg-gradient-to-b from-black/80 to-black/40 backdrop-blur-[1px]">
-          <div className="max-w-7xl mx-auto h-full flex flex-col justify-end pb-24 px-4 sm:px-6">
-            <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-white tracking-tight drop-shadow-md mt-20">
-              Connect with <br />
-              <span className="text-blue-400 drop-shadow-lg">Employers</span>
-            </h1>
-            <SearchEmployerBar onSearchResults={onSearchResults} />
-          </div>
+        <div className="absolute inset-0 bg-black bg-opacity-50" />
+        <div className="relative z-10 text-center">
+          <h1 className="text-4xl md:text-6xl font-bold text-white">
+            Find <br />
+            <span className="text-blue-400">Company</span>
+          </h1>
+          <ASearchEmployerBar onSearchResults={onSearchResults} />
         </div>
       </header>
     </div>
@@ -94,50 +94,6 @@ const EmployersPage = () => {
     }
   }, [searchResults, currentStudentId]);
 
-  const handleFollowToggle = async (targetEmployerId) => {
-    if (!currentStudentId) {
-      alert("Please log in to follow employers.");
-      return;
-    }
-
-    const isFollowing = followingStatus[targetEmployerId];
-    let url, method;
-
-    if (isFollowing) {
-      // Unfollow API
-      url = `http://localhost:8100/follows/unfollow?studentId=${currentStudentId}&employerId=${targetEmployerId}`;
-      method = "delete";
-    } else {
-      // Follow API
-      url = `http://localhost:8100/follows/${targetEmployerId}/follow?studentId=${currentStudentId}`;
-      method = "post";
-    }
-
-    console.log(`Calling ${method.toUpperCase()} ${url}`);
-
-    try {
-      const response = await axios({
-        method,
-        url,
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${localStorage.getItem("token")}`,
-        },
-      });
-
-      if (response.status === 200) {
-        setFollowingStatus((prev) => ({
-          ...prev,
-          [targetEmployerId]: !isFollowing,
-        }));
-        alert(`${isFollowing ? "Unfollowed" : "Followed"} employer successfully!`);
-      }
-    } catch (error) {
-      console.error("Follow/Unfollow error:", error.response?.data || error.message);
-      alert(error.response?.data?.message || `${isFollowing ? "Unfollow" : "Follow"} failed. Please try again.`);
-    }
-  };
-
   const defaultProfilePicture = "https://images.unsplash.com/photo-1633332755192-727a05c4013d?auto=format&fit=crop&q=80";
 
   return (
@@ -146,7 +102,7 @@ const EmployersPage = () => {
       <HeroSectionEmployer onSearchResults={setSearchResults} />
 
       {/* Employers List */}
-      <section className="container mx-auto px-4 py-8">
+      <section className="container mx-auto px-4 py-8 max-w-6xl">
         {searchResults ? (
           (() => {
             const filteredEmployers = searchResults.employers.filter(
@@ -154,37 +110,32 @@ const EmployersPage = () => {
             );
             if (filteredEmployers.length > 0) {
               return (
-                <div>
+                <div className="w-full">
                   <h2 className="text-2xl font-semibold mb-6 text-gray-800">
                     Found {filteredEmployers.length} Employer(s)
                   </h2>
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                     {filteredEmployers.map((employer) => (
-                      <div
-                        key={employer.userId}
-                        className="bg-white rounded-lg shadow-md p-4 flex flex-col items-center text-center"
+                      <Link 
+                      to={`/e-profile?userId=${employer.userId}`}
+                      key={employer.userId}
+                      className="w-full"
                       >
-                        <img
-                          src={profilePictureUrls[employer.userId] || defaultProfilePicture}
-                          alt={employer.companyName}
-                          className="w-24 h-24 rounded-full object-cover mb-4"
-                          onError={(e) => (e.target.src = defaultProfilePicture)}
-                        />
-                        <h3 className="text-lg font-medium text-gray-900">{employer.companyName}</h3>
-                        <p className="text-sm text-gray-600 mb-2">{employer.companyDetails}</p>
-                        <p className="text-sm text-gray-600 mb-4">{employer.location}</p>
-                        <button
-                          onClick={() => handleFollowToggle(employer.userId)}
-                          className={`px-4 py-2 rounded-full text-sm font-medium transition-colors duration-200 ${
-                            followingStatus[employer.userId]
-                              ? "bg-gray-500 text-white hover:bg-gray-600"
-                              : "bg-blue-600 text-white hover:bg-blue-700"
-                          }`}
-                          disabled={!currentStudentId}
+                        <div
+                          key={employer.userId}
+                          className="bg-white rounded-lg shadow-md p-4 flex flex-col items-center text-center w-full"
                         >
-                          {followingStatus[employer.userId] ? "Following" : "Follow"}
-                        </button>
-                      </div>
+                          <img
+                            src={profilePictureUrls[employer.userId] || defaultProfilePicture}
+                            alt={employer.companyName}
+                            className="w-24 h-24 rounded-full object-cover mb-4"
+                            onError={(e) => (e.target.src = defaultProfilePicture)}
+                          />
+                          <h3 className="text-lg font-medium text-gray-900">{employer.companyName}</h3>
+                          <p className="text-sm text-gray-600 mb-2">{employer.companyDetails}</p>
+                          <p className="text-sm text-gray-600 mb-4">{employer.location}</p>
+                        </div>
+                      </Link>
                     ))}
                   </div>
                 </div>

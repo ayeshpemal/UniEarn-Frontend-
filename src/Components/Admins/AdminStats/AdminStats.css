@@ -1,0 +1,12 @@
+/* PDF printing styles */
+@media print {
+  .avoid-break-inside {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+}
+
+.pdf-content .avoid-break-inside {
+  page-break-inside: avoid !important;
+  break-inside: avoid !important;
+}
