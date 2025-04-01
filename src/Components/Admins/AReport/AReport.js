@@ -1,9 +1,17 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import ReportDetailsPopup from "./ReportDetailsPopup";
-import { jwtDecode } from "jwt-decode"; // Add this import
+import { jwtDecode } from "jwt-decode";
+import { useParams, useLocation } from "react-router-dom"; // Add these imports
+import DeleteUserConfirmationPopup from "./DeleteUserConfirmationPopup";
 
 const AReport = () => {
+  // Access URL parameters
+  const { userId: urlUserId } = useParams();
+  const location = useLocation();
+  const queryParams = new URLSearchParams(location.search);
+  const queryUserId = queryParams.get('userId');
+  
   const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -18,12 +26,15 @@ const AReport = () => {
   const [pageSize, setPageSize] = useState(10);
   const [totalItems, setTotalItems] = useState(0);
   
-  // Filter states
-  const [userId, setUserId] = useState("");
-  const [filterByUser, setFilterByUser] = useState(false);
+  // Filter states - initialize with URL param if available
+  const [userId, setUserId] = useState(urlUserId || queryUserId || "");
+  const [filterByUser, setFilterByUser] = useState(Boolean(urlUserId || queryUserId));
   
   // Active tab for filtering by status
   const [activeTab, setActiveTab] = useState('ALL');
+
+  const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
+  const [userToDelete, setUserToDelete] = useState(null);
 
   // Get authentication token
   const getAuthHeaders = () => {
@@ -133,6 +144,41 @@ const AReport = () => {
     }
   };
 
+  // Replace the existing deleteUser function with this:
+  const deleteUser = async (userId) => {
+    setActionLoading('delete-user');
+    setError(null);
+    setSuccessMessage(null);
+    
+    try {
+      const response = await axios.delete(
+        `http://localhost:8100/api/user/users/${userId}/delete`,
+        { headers: getAuthHeaders() }
+      );
+      
+      if (response.status === 200 || response.status === 204) {
+        setSuccessMessage(`User ${userId} has been successfully deleted.`);
+        
+        // Clear the filter after successful deletion
+        clearFilter();
+        
+        // Hide success message after 5 seconds
+        setTimeout(() => {
+          setSuccessMessage(null);
+        }, 5000);
+      } else {
+        setError(`Failed to delete user ${userId}. Please try again.`);
+      }
+    } catch (err) {
+      console.error(`Error deleting user:`, err);
+      setError(err.response?.data?.message || "Network error when deleting user. Please try again.");
+    } finally {
+      setActionLoading(null);
+      setShowDeleteConfirmation(false);
+      setUserToDelete(null);
+    }
+  };
+
   // Handle resolving a report
   const handleResolve = (reportId) => {
     updateReportStatus(reportId, "RESOLVED");
@@ -175,14 +221,31 @@ const AReport = () => {
     fetchAllReports(0, pageSize);
   };
 
-  // Initial data fetch
+  // Add this function to handle the delete button click
+  const handleDeleteClick = (userId) => {
+    setUserToDelete(userId);
+    setShowDeleteConfirmation(true);
+  };
+
+  // Add this function to handle cancel
+  const handleCancelDelete = () => {
+    setShowDeleteConfirmation(false);
+    setUserToDelete(null);
+  };
+
+  // Initial data fetch - modified to check for URL parameters
   useEffect(() => {
-    if (filterByUser && userId) {
+    if (urlUserId || queryUserId) {
+      // If userId is in URL, apply filter automatically
+      setFilterByUser(true);
+      setUserId(urlUserId || queryUserId);
+      fetchReportsByUserId(urlUserId || queryUserId, 0, pageSize);
+    } else if (filterByUser && userId) {
       fetchReportsByUserId(userId, currentPage, pageSize);
     } else {
       fetchAllReports(currentPage, pageSize);
     }
-  }, [currentPage, pageSize]);
+  }, [currentPage, pageSize, urlUserId, queryUserId]);
 
   // Format date to be more readable
   const formatDate = (dateString) => {
@@ -289,6 +352,16 @@ const AReport = () => {
           onReject={handleReject}
           actionLoading={actionLoading}
           formatDate={formatDate}
+        />
+      )}
+
+      {/* Delete User Confirmation Popup */}
+      {showDeleteConfirmation && (
+        <DeleteUserConfirmationPopup
+          userId={userToDelete}
+          onConfirm={() => deleteUser(userToDelete)}
+          onCancel={handleCancelDelete}
+          isLoading={actionLoading === 'delete-user'}
         />
       )}
 
@@ -429,6 +502,37 @@ const AReport = () => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
               <span>Currently filtering reports for User ID: <strong>{userId}</strong></span>
+            </div>
+          )}
+
+          {/* Delete user button - shows only when filtering by a specific user and reports exist */}
+          {filterByUser && getFilteredReports().length > 0 && (
+            <div className="mb-6 flex flex-col sm:flex-row gap-3 sm:justify-between sm:items-center bg-red-50 p-3 rounded-lg border border-red-100">
+              <div className="flex items-center gap-2 text-sm text-red-600">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+                <span>Reports found for User ID: <strong>{getFilteredReports()[0]?.reportedUser}</strong></span>
+              </div>
+              <button
+                onClick={() => handleDeleteClick(getFilteredReports()[0]?.reportedUser)}
+                disabled={actionLoading === 'delete-user'}
+                className="flex items-center justify-center w-full sm:w-auto px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors duration-150"
+              >
+                {actionLoading === 'delete-user' ? (
+                  <div className="flex items-center">
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                    Deleting...
+                  </div>
+                ) : (
+                  <>
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                    Delete Reported User
+                  </>
+                )}
+              </button>
             </div>
           )}
 
