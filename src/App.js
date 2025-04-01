@@ -47,6 +47,7 @@ import ASearchStudent from './Components/Admins/ASearchStudent/ASearchStudent';
 import Landing from './Components/Landing/Landing';
 import EJobApplications from './Components/Employer/EJobApplications/EJobApplications';
 import ESummary from './Components/Employer/ESummary/ESummary';
+import AReport from './Components/Admins/AReport/AReport';
 
 function App() {
     const location = useLocation();
@@ -161,9 +162,9 @@ function App() {
     }, [location.pathname]);
 
     const publicRoutes = [
-        "/e-hero", "/e-sign-in", "/e-sign-up", "/sign-in", 
+        "/e-hero", "/e-sign-up", "/sign-in", 
         "/verify", "/sign-up", "/reset-password", "/hero",
-        "/"
+        "/","/contact-us"
     ];
 
     const isPublicRoute = publicRoutes.includes(location.pathname);
@@ -183,7 +184,7 @@ function App() {
     return (
         <div className="App">
             {/* ChatButton and NavBar logic */}
-            {!isPublicRoute && <ChatButton />}
+            {!isPublicRoute && isAuthenticated && <ChatButton />}
             {!isPublicRoute && isAuthenticated && (
                 userRole === 'STUDENT' ? <NavBar /> : 
                 userRole === 'EMPLOYER' ? <ENavBar /> :
@@ -201,12 +202,12 @@ function App() {
                 <Route path="/hero" element={<Hero />} />
                 <Route path="/sign-in" element={<Signin />} />
                 <Route path="/sign-up" element={<Signup />} />
-                <Route path="/e-sign-in" element={<ESignin />} />
                 <Route path="/e-sign-up" element={<ESignup />} />
                 <Route path="/e-hero" element={<EHero />} />
                 <Route path="/verify" element={<JobPreferences />} />
                 <Route path="/reset-password" element={<ResetPassword />} />
                 <Route path="/" element={<Landing />} />
+                <Route path="/contact-us" element={<ContactUs />} />
 
                 {/* Protected Routes */}
                 <Route path="/a-home" element={<ProtectedRoute><Admins /></ProtectedRoute>} />
@@ -220,9 +221,9 @@ function App() {
                 <Route path="/e-job-create" element={<ProtectedRoute><EJobCreation /></ProtectedRoute>} />
                 <Route path="/e-job-edit" element={<ProtectedRoute><EJobUpdate /></ProtectedRoute>} />
                 <Route path="/e-profile" element={<ProtectedRoute><CompanyDetails /></ProtectedRoute>} />
-                <Route path="/e-contact-us" element={<ProtectedRoute><ContactUs /></ProtectedRoute>} />
                 <Route path="e-job-details" element={<ProtectedRoute><EJobApplications /></ProtectedRoute>} />
                 <Route path="/e-summary" element={<ProtectedRoute><ESummary /></ProtectedRoute>} />
+                <Route path="/a-report" element={<ProtectedRoute><AReport /></ProtectedRoute>} />
 
                 {/* Student Protected Routes */}
                 <Route path="/home" element={<ProtectedRoute><Home /></ProtectedRoute>} />
@@ -235,7 +236,7 @@ function App() {
                 <Route path="/confirm" element={<ProtectedRoute><Application /></ProtectedRoute>} />
                 <Route path="/job-details" element={<ProtectedRoute><JobDetails /></ProtectedRoute>} />
                 <Route path="/apply-job" element={<ProtectedRoute><ApplyJob /></ProtectedRoute>} />
-                <Route path="/contact-us" element={<ProtectedRoute><ContactUs /></ProtectedRoute>} />
+                <Route path="/p-contact-us" element={<ProtectedRoute><ContactUs /></ProtectedRoute>} />
                 <Route path="/log-out" element={<ProtectedRoute><LogoutPopup /></ProtectedRoute>} />
                 <Route path="/company-details/:employerId" element={<ProtectedRoute><CompanyDetails /></ProtectedRoute>} />
                 <Route path="/searched-results/:selectedLocation/:selectedJob/:searchTerm" 

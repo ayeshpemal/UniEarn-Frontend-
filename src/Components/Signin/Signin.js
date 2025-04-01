@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { GraduationCap, X } from "lucide-react";
+import { GraduationCap, X, Mail } from "lucide-react";
 import axios from "axios";
 import { jwtDecode } from "jwt-decode";
 
@@ -189,6 +189,20 @@ const Signin = () => {
                         </span>
                     </div>
                 </div>
+            </div>
+
+            {/* Contact Support Button - Fixed at bottom right */}
+            <div className="fixed bottom-6 right-6 z-30">
+                <button
+                    type="button"
+                    className="flex items-center justify-center gap-2 text-white bg-gradient-to-r from-purple-500 to-blue-500 px-4 py-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 group"
+                    onClick={() => navigate("/contact-us")}
+                    aria-label="Contact Support"
+                    title="Need help? Contact support"
+                >
+                    <Mail size={20} className="group-hover:scale-110 transition-transform" />
+                    <span className="font-medium">Support</span>
+                </button>
             </div>
 
             {showErrorPopup && (

@@ -21,8 +21,8 @@ const Admins = () => {
                 <div className="absolute inset-0 bg-gradient-to-b from-black/80 to-black/40 backdrop-blur-[1px]">
                     <div className="max-w-7xl mx-auto h-full flex flex-col justify-end pb-24 px-4 sm:px-6">
                         <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-white tracking-tight drop-shadow-md mt-20">
-                            Platform<br />
-                            <span className="text-blue-400 drop-shadow-lg">Statistics</span>
+                           Admin<br />
+                            <span className="text-blue-400 drop-shadow-lg">Dashboard</span>
                         </h1>
                         <p className="mt-3 text-white/90 text-lg sm:text-xl max-w-2xl drop-shadow-sm">
                             Insights into platform performance and metrics

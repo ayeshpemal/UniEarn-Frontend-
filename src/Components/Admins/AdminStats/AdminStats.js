@@ -385,6 +385,14 @@ const App = () => {
   const fetchStats = async () => {
     try {
       setLoading(true);
+      
+      // Get token from localStorage
+      const token = localStorage.getItem('token');
+      if (!token) {
+        console.error("No authentication token found");
+        return;
+      }
+      
       const response = await axios.post(
         "http://localhost:8100/api/admin/stats",
         {
@@ -394,6 +402,7 @@ const App = () => {
         {
           headers: {
             "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}` // Add token to request headers
           },
         }
       );
@@ -401,6 +410,10 @@ const App = () => {
       setLoading(false);
     } catch (error) {
       console.error("Error fetching stats:", error);
+      if (error.response?.status === 401 || error.response?.status === 403) {
+        // Handle authentication/authorization errors
+        navigate('/login'); 
+      }
       setStatsData(null); // Reset statsData on error
       setLoading(false);
     }
