@@ -11,6 +11,11 @@ const EHome = () => {
   const jobsPerPage = 10;
   const [activeTab, setActiveTab] = useState('PENDING'); // New state for tab navigation
 
+  // Add this effect to scroll to top when component mounts
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, []);
+
   useEffect(() => {
     const fetchJobs = async () => {
       try {
@@ -51,7 +56,7 @@ const EHome = () => {
     if (window.confirm('Are you sure you want to cancel this job?')) {
       try {
         const token = localStorage.getItem('token');
-        await axios.put(
+        const response = await axios.put(
           `http://localhost:8100/api/v1/jobs/set-status?job_id=${jobId}&status=CANCEL`, 
           {}, // Empty body for PUT request
           { headers: { Authorization: `Bearer ${token}` } }
@@ -65,6 +70,10 @@ const EHome = () => {
         );
         alert('Job cancelled successfully');
       } catch (err) {
+        if(err.status === 400){
+          alert(err.response.data.message);
+          return;
+        }
         console.error('Failed to cancel job:', err);
         alert('Failed to cancel job. Please try again.');
       }
