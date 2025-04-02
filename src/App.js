@@ -49,6 +49,7 @@ import EJobApplications from './Components/Employer/EJobApplications/EJobApplica
 import ESummary from './Components/Employer/ESummary/ESummary';
 import AReport from './Components/Admins/AReport/AReport';
 import ANotification from './Components/Admins/ANotification/ANotification';
+import ManageAdmin from './Components/Admins/ManageAdmin/ManageAdmin';
 
 function App() {
     const location = useLocation();
@@ -223,6 +224,7 @@ function App() {
                 <Route path="/a-profile" element={<ProtectedRoute><AProfile /></ProtectedRoute>} />
                 <Route path="/a-company" element={<ProtectedRoute><ASearchEmployer /></ProtectedRoute>} />
                 <Route path="/a-student" element={<ProtectedRoute><ASearchStudent /></ProtectedRoute>} />
+                <Route path="/a-admins" element={<ProtectedRoute><ManageAdmin /></ProtectedRoute>} />
                 <Route path="/a-report" element={<ProtectedRoute><AReport /></ProtectedRoute>} />
                 <Route path="/a-notification" element={<ProtectedRoute><ANotification /></ProtectedRoute>} />
                 
