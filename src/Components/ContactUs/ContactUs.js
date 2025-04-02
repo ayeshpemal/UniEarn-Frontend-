@@ -28,26 +28,17 @@ const Contact = () => {
         setIsSubmitting(true);
         setSubmitError(null);
         
-        try {
-            // Get token from localStorage
-            const token = localStorage.getItem('token');
-            if (!token) {
-                throw new Error("Authentication required. Please log in.");
-            }
+        try { 
+            // Get base URL from config.js
+            const baseUrl = window._env_?.BASE_URL || "http://localhost:8100";
+            console.log("API Base URL:", baseUrl);
             
-            // Decode token to get user info if needed
-            const decodedToken = jwtDecode(token);
-            
-            // Send email through API
+            // Send email through API using the configured base URL
             const response = await axios.post(
-                "http://localhost:8100/api/email/send",
+                `${baseUrl}/api/email/send`,
                 {
                     ...formData,
-                    fullName: `${formData.firstName} ${formData.lastName}`,
-                    userId: decodedToken.user_id // Include user ID from token if needed
-                },
-                {
-                    headers: { Authorization: `Bearer ${token}` }
+                    fullName: `${formData.firstName} ${formData.lastName}`
                 }
             );
             

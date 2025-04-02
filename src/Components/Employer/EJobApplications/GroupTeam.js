@@ -34,7 +34,7 @@ const MemberRow = memo(({
           onClick={() => onMemberClick(member.id)}
         >
           <img
-            src={member.avatar || "/placeholder.svg"}
+            src={`https://ui-avatars.com/api/?name=${encodeURIComponent(member.name)}&background=random`}
             alt={`${member.name}'s profile picture`}
             className="h-10 w-10 rounded-full hover:ring-2 hover:ring-purple-400 transition-all"
             onError={(e) => {

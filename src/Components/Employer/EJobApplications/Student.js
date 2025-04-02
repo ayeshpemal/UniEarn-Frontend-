@@ -44,7 +44,7 @@ const Student = ({
                     onClick={() => onStudentClick(student.studentId)}
                   >
                     <img
-                      src={student.avatar || "/placeholder.svg"}
+                      src={`https://ui-avatars.com/api/?name=${encodeURIComponent(student.name)}&background=random`}
                       alt={`${student.name}'s avatar`}
                       className="h-10 w-10 rounded-full hover:ring-2 hover:ring-purple-400 transition-all"
                     />

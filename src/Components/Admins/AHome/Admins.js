@@ -42,7 +42,7 @@ const Admins = () => {
                     </p>
                 </div>
                 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                     <button
                         onClick={() => handleNavigation('/a-company')}
                         className="bg-white shadow-lg hover:shadow-xl transition-all rounded-lg p-6 border border-gray-200 hover:border-blue-400 group"
@@ -70,6 +70,21 @@ const Admins = () => {
                             </div>
                             <h3 className="text-lg font-semibold text-gray-900 group-hover:text-green-600 transition-colors">Manage Students</h3>
                             <p className="mt-2 text-sm text-gray-600">Manage student profiles</p>
+                        </div>
+                    </button>
+
+                    <button
+                        onClick={() => handleNavigation('/a-admins')}
+                        className="bg-white shadow-lg hover:shadow-xl transition-all rounded-lg p-6 border border-gray-200 hover:border-blue-400 group"
+                    >
+                        <div className="text-center">
+                            <div className="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-indigo-200 transition-colors">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                            </div>
+                            <h3 className="text-lg font-semibold text-gray-900 group-hover:text-indigo-600 transition-colors">Manage Admins</h3>
+                            <p className="mt-2 text-sm text-gray-600">Add and manage admin accounts</p>
                         </div>
                     </button>
 
@@ -117,6 +132,8 @@ const Admins = () => {
                             <p className="mt-2 text-sm text-gray-600">Send notifications to users</p>
                         </div>
                     </button>
+
+                    
                 </div>
             </div>
         </div>
