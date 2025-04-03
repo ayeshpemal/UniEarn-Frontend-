@@ -29,7 +29,14 @@ export function SearchResults() {
         const fetchJobs = async () => {
             try {
 
-                const response = await axios.get(`http://localhost:8100/api/v1/jobs/search?location=${dselectedLocation}&categories=${dselectedJob}&keyword=${dsearchTerm}&page=0`);
+                const response = await axios.get(`http://localhost:8100/api/v1/jobs/search?location=${dselectedLocation}&categories=${dselectedJob}&keyword=${dsearchTerm}&page=0`,
+                    {
+                        headers: {
+                            "Content-Type": "application/json",
+                            Authorization: `Bearer ${localStorage.getItem("token")}`,
+                        },
+                    }
+                );
                 console.log(response);
                 const jobs = response.data?.data?.jobList || [];
                 setJobs(jobs);

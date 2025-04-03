@@ -52,7 +52,7 @@ function App() {
                 
                 const userData = userResponse.data.data;
 
-                let profilePictureUrl = 'https://images.unsplash.com/photo-1633332755192-727a05c4013d?auto=format&fit=crop&q=80';
+                let profilePictureUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(userData.userName)}&background=random`;
                 try {
                     const profilePictureResponse = await axios.get(
                         `http://localhost:8100/api/user/${userId}/profile-picture`,
