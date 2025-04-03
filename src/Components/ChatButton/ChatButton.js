@@ -273,7 +273,7 @@ const ChatButton = () => {
                     
                     // Redirect based on user role
                     if (role === "ADMIN"){
-                        window.location.href = `/a-report?userId=1`;
+                        window.location.href = `/a-report?userId=${notification.user}`;
                         setShowNotifications(false);
                     }
                 } catch (error) {
