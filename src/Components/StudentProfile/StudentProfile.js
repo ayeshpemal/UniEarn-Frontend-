@@ -3,6 +3,7 @@ import { ChevronDown, Star, Edit2, Camera, Save, Lock, Flag } from 'lucide-react
 import axios from 'axios';
 import { jwtDecode } from 'jwt-decode';
 import ReportPopup from '../ReportPopup/ReportPopup';
+import SubmitNotiBox from '../SubmitNotiBox/SubmitNotiBox'; // Add this import
 
 // Define preference options
 const PREFERENCE_OPTIONS = [
@@ -76,6 +77,13 @@ function App() {
     const [isReportPopupOpen, setIsReportPopupOpen] = useState(false);
     const [currentUserId, setCurrentUserId] = useState(null);
     const [showReportTooltip, setShowReportTooltip] = useState(false);
+
+    // Add notification state
+    const [notification, setNotification] = useState({
+        message: '',
+        status: '',
+        show: false
+    });
 
     // Check view mode and set initial state
     useEffect(() => {
@@ -353,8 +361,22 @@ function App() {
                 profilePicture: formData.profilePicture,
             });
             setIsEditing(false);
+            
+            // Show success notification
+            setNotification({
+                message: 'Profile updated successfully!',
+                status: 'success',
+                show: true
+            });
         } catch (error) {
             console.error('Error saving data:', error);
+            
+            // Show error notification
+            setNotification({
+                message: error.response?.data?.message || 'Failed to update profile',
+                status: 'error',
+                show: true
+            });
         }
     };
 
@@ -385,9 +407,22 @@ function App() {
             setPasswordUpdateData({ oldPassword: '', newPassword: '', confirmNewPassword: '' });
             setPasswordUpdateError('');
             setIsUpdatingPassword(false);
-            alert('Password updated successfully!');
+            
+            // Show success notification instead of alert
+            setNotification({
+                message: 'Password updated successfully!',
+                status: 'success',
+                show: true
+            });
         } catch (error) {
             setPasswordUpdateError(error.response?.data?.message || 'An error occurred while updating the password');
+            
+            // Show error notification
+            setNotification({
+                message: error.response?.data?.message || 'Failed to update password',
+                status: 'error',
+                show: true
+            });
         }
     };
 
@@ -466,6 +501,15 @@ function App() {
 
     return (
         <div className="min-h-screen bg-white">
+            {/* Add the SubmitNotiBox component */}
+            {notification.show && (
+                <SubmitNotiBox
+                    message={notification.message}
+                    status={notification.status}
+                    duration={5000}
+                />
+            )}
+            
             {/* Hero Section */}
             <div
                 className="relative h-[60vh] bg-cover bg-center"
@@ -614,7 +658,8 @@ function App() {
                         <ProfileField
                             label="Mobile No"
                             value={formData.mobileNo}
-                            disabled={true}
+                            disabled={!isEditing || isViewMode}
+                            onChange={(value) => handleInputChange('mobileNo', value)}
                         />
                         
                         {/* Only show address and preferences if not in view mode */}

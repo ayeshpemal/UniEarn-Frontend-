@@ -1,13 +1,17 @@
 import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { useLocation } from "react-router-dom";
+import SubmitNotiBox from "../../../Components/SubmitNotiBox/SubmitNotiBox";
 
 const ANotification = () => {
     const [message, setMessage] = useState("");
     const [recipientType, setRecipientType] = useState("broadcast");
     const [userId, setUserId] = useState("");
     const [loading, setLoading] = useState(false);
-    const [statusMessage, setStatusMessage] = useState(""); // For showing status messages
+    const [statusMessage, setStatusMessage] = useState(""); // For internal state tracking
+    const [showNotification, setShowNotification] = useState(false);
+    const [notificationStatus, setNotificationStatus] = useState("success");
+    const [notificationMessage, setNotificationMessage] = useState("");
     const notificationCenterRef = useRef(null);
     
     // Get the query parameters from the URL
@@ -33,11 +37,13 @@ const ANotification = () => {
     const handleSendNotification = async () => {
         if (!message.trim()) {
             setStatusMessage("Please enter a notification message");
+            showNotificationBox("Please enter a notification message", "error");
             return;
         }
 
         if (recipientType === "specific" && !userId.trim()) {
             setStatusMessage("Please enter a user ID");
+            showNotificationBox("Please enter a user ID", "error");
             return;
         }
 
@@ -48,6 +54,7 @@ const ANotification = () => {
             const token = localStorage.getItem("token");
             if (!token) {
                 setStatusMessage("Authentication error: Please log in again");
+                showNotificationBox("Authentication error: Please log in again", "error");
                 return;
             }
             
@@ -79,19 +86,25 @@ const ANotification = () => {
             });
             
             if (response.data.code === 200) {
-                setStatusMessage(response.data.message || "Notification sent successfully");
+                const successMsg = response.data.message || "Notification sent successfully";
+                setStatusMessage(successMsg);
+                showNotificationBox(successMsg, "success");
                 setMessage("");
                 if (recipientType === "specific") {
                     setUserId("");
                 }
             } else {
-                setStatusMessage(`Error (${response.data.code}): ${response.data.message || "Failed to send notification"}`);
+                const errorMsg = `Error (${response.data.code}): ${response.data.message || "Failed to send notification"}`;
+                setStatusMessage(errorMsg);
+                showNotificationBox(errorMsg, "error");
             }
         } catch (error) {
             console.error("Error sending notification:", error);
             
+            let errorMsg = "";
+            
             if (error.code === "ECONNABORTED") {
-                setStatusMessage("Request timed out. Server may be unavailable.");
+                errorMsg = "Request timed out. Server may be unavailable.";
             } else if (error.response) {
                 // The request was made and the server responded with a status code
                 // that falls out of the range of 2xx
@@ -99,36 +112,60 @@ const ANotification = () => {
                 const errorMessage = error.response.data?.message || "Unknown error occurred";
                 
                 if (status === 401) {
-                    setStatusMessage("Authentication error: Your session may have expired");
+                    errorMsg = "Authentication error: Your session may have expired";
                 } else if (status === 403) {
-                    setStatusMessage("Permission denied: You don't have rights to send this notification");
+                    errorMsg = "Permission denied: You don't have rights to send this notification";
                 } else if (status === 404) {
                     if (recipientType === "specific") {
-                        setStatusMessage(`User with ID "${userId}" not found`);
+                        errorMsg = `User with ID "${userId}" not found`;
                     } else {
-                        setStatusMessage("The requested endpoint was not found");
+                        errorMsg = "The requested endpoint was not found";
                     }
                 } else if (status === 400) {
-                    setStatusMessage(`Bad request: ${errorMessage}`);
+                    errorMsg = `Bad request: ${errorMessage}`;
                 } else if (status >= 500) {
-                    setStatusMessage(`Server error (${status}): Please try again later`);
+                    errorMsg = `Server error (${status}): Please try again later`;
                 } else {
-                    setStatusMessage(`Error (${status}): ${errorMessage}`);
+                    errorMsg = `Error (${status}): ${errorMessage}`;
                 }
             } else if (error.request) {
                 // The request was made but no response was received
-                setStatusMessage("No response from server. Please check your connection.");
+                errorMsg = "No response from server. Please check your connection.";
             } else {
                 // Something happened in setting up the request that triggered an Error
-                setStatusMessage(`Error: ${error.message || "Failed to send notification"}`);
+                errorMsg = `Error: ${error.message || "Failed to send notification"}`;
             }
+            
+            setStatusMessage(errorMsg);
+            showNotificationBox(errorMsg, "error");
         } finally {
             setLoading(false);
         }
     };
 
+    // Helper function to display notifications using SubmitNotiBox
+    const showNotificationBox = (message, status) => {
+        setNotificationMessage(message);
+        setNotificationStatus(status);
+        setShowNotification(true);
+        
+        // Hide the notification after a few seconds
+        setTimeout(() => {
+            setShowNotification(false);
+        }, 5000); // Adjust this time as needed
+    };
+
     return (
         <div>
+            {/* Add SubmitNotiBox component */}
+            {showNotification && (
+                <SubmitNotiBox 
+                    message={notificationMessage} 
+                    status={notificationStatus} 
+                    duration={5000}
+                />
+            )}
+            
             {/* Hero Section - Matching Admins component styling */}
             <div
                 className="relative h-[60vh] bg-cover bg-center"
@@ -157,8 +194,8 @@ const ANotification = () => {
                         <h2 className="text-2xl font-bold text-gray-800">Notification Center</h2>
                     </div>
 
-                    {/* Status message display - Enhanced styling with better error detection */}
-                    {statusMessage && (
+                    {/* You can keep this for debugging or remove it since we're using SubmitNotiBox now */}
+                    {/* {statusMessage && (
                         <div className={`mb-6 p-4 rounded-lg flex items-center ${
                             statusMessage.includes("Error") || 
                             statusMessage.includes("Failed") || 
@@ -193,7 +230,7 @@ const ANotification = () => {
                             </span>
                             {statusMessage}
                         </div>
-                    )}
+                    )} */}
                     
                     {/* Recipient Selection - Enhanced cards with icons */}
                     <div className="mb-6">

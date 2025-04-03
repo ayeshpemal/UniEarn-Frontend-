@@ -65,7 +65,7 @@ const JobDetails = () => {
         }
       );
 
-      console.log("Raw Job Response:", JSON.stringify(response.data, null, 2)); // Debug
+      //console.log("Raw Job Response:", JSON.stringify(response.data, null, 2)); // Debug
 
       if (response.data.code === 200) {
         const jobData = response.data.data;
@@ -159,7 +159,7 @@ const JobDetails = () => {
         }
       );
 
-      console.log(`Profile Picture Response for user ${user.userId}:`, response.data); // Debug
+      //console.log(`Profile Picture Response for user ${user.userId}:`, response.data); // Debug
 
       if (response.data.code === 200 && response.data.data) {
         setProfilePictureUrl(response.data.data); // Set S3 URL
@@ -355,6 +355,7 @@ const JobDetails = () => {
         if (response.data.code === 201) {
           setSuccessMessage({ header: "Application Success", message: "Job application success!" });
           setApplicationStatus({ hasApplied: true, application: { status: "PENDING", applicationId: response.data.data.applicationId, jobId, studentId } });
+          setShowApplySection(false);
         } else {
           setErrorMessage({ header: "Application Error", message: response.data.message || "Failed to apply for the job." });
         }
@@ -416,6 +417,7 @@ const JobDetails = () => {
         if (applyTeamResponse.data.code === 201) {
           setSuccessMessage({ header: "Application Success", message: "Job application success!" });
           setApplicationStatus({ hasApplied: true, application: { status: "PENDING", teamId, applicationId: applyTeamResponse.data.data.applicationId }, isTeamLeader: true });
+          setShowApplySection(false);
         } else {
           setErrorMessage({ header: "Application Error", message: applyTeamResponse.data.message || "Failed to apply as a team." });
         }

@@ -34,7 +34,7 @@ export const connectWebSocket = (username, onMessageReceived, jwtToken) => {
         console.log('Connected: ' + frame);
 
         // All users subscribe to job notifications
-        stompClient.subscribe(`/user/${username}/topic/notifications`, (message) => {
+        stompClient.subscribe(`/user/${username}/topic/job-notifications`, (message) => {
             console.log('Received job notification:', message.body);
             let notification = null;
 
@@ -46,6 +46,21 @@ export const connectWebSocket = (username, onMessageReceived, jwtToken) => {
             }
 
             onMessageReceived(notification, notification.type || 'job');
+        });
+
+        // All users subscribe to job notifications
+        stompClient.subscribe(`/user/${username}/topic/update-notifications`, (message) => {
+            console.log('Received job notification:', message.body);
+            let notification = null;
+
+            try {
+                notification = JSON.parse(message.body);
+            } catch (e) {
+                console.warn('Message is not JSON. Handling as plain text.');
+                notification = { message: message.body, type: 'update' };
+            }
+
+            onMessageReceived(notification, notification.type || 'update');
         });
 
         // All users subscribe to user-specific admin notifications
