@@ -290,20 +290,20 @@ const ApplicationSummary = () => {
                     <p className="text-2xl text-gray-500">{summaryData.inactive}</p>
                   </div>
                   <div className="bg-white border border-gray-200 p-4 rounded-lg text-center shadow-sm">
-                    <p className="text-lg font-semibold text-teal-500">Confirmed</p>
-                    <p className="text-2xl text-teal-500">{summaryData.confirmed}</p>
-                  </div>
-                  <div className="bg-white border border-gray-200 p-4 rounded-lg text-center shadow-sm">
                     <p className="text-lg font-semibold text-orange-500">Pending</p>
                     <p className="text-2xl text-orange-500">{summaryData.pending}</p>
+                  </div>
+                  <div className="bg-white border border-gray-200 p-4 rounded-lg text-center shadow-sm">
+                    <p className="text-lg font-semibold text-purple-500">Accepted</p>
+                    <p className="text-2xl text-purple-500">{summaryData.accepted}</p>
                   </div>
                   <div className="bg-white border border-gray-200 p-4 rounded-lg text-center shadow-sm">
                     <p className="text-lg font-semibold text-pink-500">Rejected</p>
                     <p className="text-2xl text-pink-500">{summaryData.rejected}</p>
                   </div>
                   <div className="bg-white border border-gray-200 p-4 rounded-lg text-center shadow-sm">
-                    <p className="text-lg font-semibold text-purple-500">Accepted</p>
-                    <p className="text-2xl text-purple-500">{summaryData.accepted}</p>
+                    <p className="text-lg font-semibold text-teal-500">Confirmed</p>
+                    <p className="text-2xl text-teal-500">{summaryData.confirmed}</p>
                   </div>
                 </div>
 

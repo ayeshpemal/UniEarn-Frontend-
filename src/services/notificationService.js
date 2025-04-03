@@ -111,6 +111,24 @@ export const connectWebSocket = (username, onMessageReceived, jwtToken) => {
                 onMessageReceived(notification, notification.type || 'system');
             });
         }
+
+        // Only users with role 'ADMIN' subscribe to admin-specific notifications
+        if (role === 'ADMIN') {
+            stompClient.subscribe(`/user/admin/topic/report-notifications`, (message) => {
+                console.log('Received admin-specific notification:', message.body);
+                let notification = null;
+
+                try {
+                    notification = JSON.parse(message.body);
+                    notification.type = "system"; // Force the correct type
+                } catch (e) {
+                    console.warn('Message is not JSON. Handling as plain text.');
+                    notification = { message: message.body, type: 'system' };
+                }
+
+                onMessageReceived(notification, notification.type || 'system');
+            });
+        }
     };
 
     stompClient.onStompError = (error) => {

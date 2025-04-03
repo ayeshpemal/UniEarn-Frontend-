@@ -168,6 +168,9 @@ function App() {
             setTimeout(() => {
                 ratingRef.current.scrollIntoView({ behavior: 'smooth' });
             }, 500); // Small delay to ensure DOM is fully rendered
+        } else {
+            // For all other cases, scroll to top of page
+            window.scrollTo(0, 0);
         }
     }, [isRatingMode, isViewMode, isLoading]);
 

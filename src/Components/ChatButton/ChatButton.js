@@ -204,7 +204,7 @@ const ChatButton = () => {
                         ).sort((a, b) => new Date(b.sentDate) - new Date(a.sentDate))
                     );
                     setMessageCount((prev) => prev - 1);
-                    return; // Exit early to avoid the fetch block
+                    //return; // Exit early to avoid the fetch block
                 }
 
                 if (response && response.ok) {
@@ -259,6 +259,26 @@ const ChatButton = () => {
             } else {
                 // Fallback if no token exists
                 window.location.href = `/job-details?jobId=${notification.job}`;
+            }
+        }
+
+        if(notification.type === "system"){
+            
+            // Get role from JWT token
+            const token = localStorage.getItem("token");
+            if (token) {
+                try {
+                    const decodedToken = jwtDecode(token);
+                    const role = decodedToken.role || "";
+                    
+                    // Redirect based on user role
+                    if (role === "ADMIN"){
+                        window.location.href = `/a-report?userId=1`;
+                        setShowNotifications(false);
+                    }
+                } catch (error) {
+                    console.error("Error decoding token for redirection:", error);
+                }
             }
         }
     };
@@ -360,6 +380,7 @@ const ChatButton = () => {
                         {activeTab === "updates" ? (
                             (jobNotifications.length > 0 || updateNotifications.length > 0 ? (
                                 [...jobNotifications, ...updateNotifications]
+                                    //.filter(notif => notif.type === "job" || notif.type === "update") // Add explicit filter
                                     .sort((a, b) => new Date(b.sentDate) - new Date(a.sentDate))
                                     .map((notif) => (
                                         <div
@@ -404,6 +425,7 @@ const ChatButton = () => {
                                 </div>
                             ) : (
                                 systemNotifications
+                                    //.filter((notif) => notif.type === "system")
                                     .sort((a, b) => new Date(b.sentDate) - new Date(a.sentDate))
                                     .map((notif) => (
                                         <div
