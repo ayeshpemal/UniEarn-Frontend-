@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { ChevronDown, Edit2, Camera, Save, Lock } from 'lucide-react';
 import axios from 'axios';
 import { jwtDecode } from 'jwt-decode';
+import SubmitNotiBox from '../../SubmitNotiBox/SubmitNotiBox'; // Add this import
 
 function App() {
     const [isEditing, setIsEditing] = useState(false);
@@ -25,6 +26,13 @@ function App() {
         confirmNewPassword: '',
     });
     const [passwordUpdateError, setPasswordUpdateError] = useState('');
+
+    // Add notification state
+    const [notification, setNotification] = useState({
+        message: '',
+        status: '',
+        show: false
+    });
 
     useEffect(() => {
         const params = new URLSearchParams(window.location.search);
@@ -52,7 +60,7 @@ function App() {
                 
                 const userData = userResponse.data.data;
 
-                let profilePictureUrl = 'https://images.unsplash.com/photo-1633332755192-727a05c4013d?auto=format&fit=crop&q=80';
+                let profilePictureUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(userData.userName)}&background=random`;
                 try {
                     const profilePictureResponse = await axios.get(
                         `http://localhost:8100/api/user/${userId}/profile-picture`,
@@ -188,8 +196,32 @@ function App() {
                 profilePicture: formData.profilePicture,
             });
             setIsEditing(false);
+            
+            // Show success notification
+            setNotification({
+                message: 'Profile updated successfully!',
+                status: 'success',
+                show: true
+            });
+
+            // Hide notification after duration
+            setTimeout(() => {
+                setNotification(prev => ({ ...prev, show: false }));
+            }, 5000);
         } catch (error) {
             console.error('Error saving data:', error);
+            
+            // Show error notification
+            setNotification({
+                message: error.response?.data?.message || 'Failed to update profile',
+                status: 'error',
+                show: true
+            });
+            
+            // Hide notification after duration
+            setTimeout(() => {
+                setNotification(prev => ({ ...prev, show: false }));
+            }, 5000);
         }
     };
 
@@ -220,14 +252,46 @@ function App() {
             setPasswordUpdateData({ oldPassword: '', newPassword: '', confirmNewPassword: '' });
             setPasswordUpdateError('');
             setIsUpdatingPassword(false);
-            alert('Password updated successfully!');
+            
+            // Show success notification instead of alert
+            setNotification({
+                message: 'Password updated successfully!',
+                status: 'success',
+                show: true
+            });
+            
+            // Hide notification after duration
+            setTimeout(() => {
+                setNotification(prev => ({ ...prev, show: false }));
+            }, 5000);
         } catch (error) {
             setPasswordUpdateError(error.response?.data?.message || 'An error occurred while updating the password');
+            
+            // Show error notification
+            setNotification({
+                message: error.response?.data?.message || 'Failed to update password',
+                status: 'error',
+                show: true
+            });
+            
+            // Hide notification after duration
+            setTimeout(() => {
+                setNotification(prev => ({ ...prev, show: false }));
+            }, 5000);
         }
     };
 
     return (
         <div className="min-h-screen bg-white">
+            {/* Add SubmitNotiBox component */}
+            {notification.show && (
+                <SubmitNotiBox
+                    message={notification.message}
+                    status={notification.status}
+                    duration={5000}
+                />
+            )}
+            
             {/* Hero Section */}
             <div
                 className="relative h-[60vh] bg-cover bg-center"

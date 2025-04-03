@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { FaTrash, FaPlus } from "react-icons/fa";
 import axios from "axios";
 import { jwtDecode } from "jwt-decode";
+import SubmitNotiBox from "../../SubmitNotiBox/SubmitNotiBox";
 
 const LOCATIONS = [
   "AMPARA", "ANURADHAPURA", "BADULLA", "BATTICALOA", "COLOMBO", "GALLE",
@@ -38,6 +39,7 @@ export default function JobCreationForm() {
   const [errors, setErrors] = useState({});
   const [submittedData, setSubmittedData] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [notification, setNotification] = useState({ message: "", status: "" });
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -156,6 +158,17 @@ export default function JobCreationForm() {
     );
   };
 
+  const validateTimes = () => {
+    // New validation: Check if start time is before end time
+    const startTimeInMinutes = formData.startTime.hour * 60 + formData.startTime.minute;
+    const endTimeInMinutes = formData.endTime.hour * 60 + formData.endTime.minute;
+    if (startTimeInMinutes >= endTimeInMinutes) {
+      setErrors({ ...errors, timeRange: "Start time must be before end time" });
+      return false;
+    }
+    return true; // Add this line to return true when validation passes
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -167,6 +180,12 @@ export default function JobCreationForm() {
 
     if (!validateDates()) {
       setErrors({ ...errors, dateValidation: "Invalid date selection. Dates must be current or future and end date must be after start date." });
+      setIsSubmitting(false);
+      return;
+    }
+
+    if (!validateTimes()) {
+      setErrors({ ...errors, timeRange: "Start time must be before end time" });
       setIsSubmitting(false);
       return;
     }
@@ -200,6 +219,13 @@ export default function JobCreationForm() {
       });
       
       setSubmittedData(response.data);
+      // Show success notification
+      setNotification({
+        message: "Job created successfully!",
+        status: "success"
+      });
+      
+      // Reset form
       setFormData({
         jobDescription: "",
         jobTitle: "",
@@ -215,6 +241,12 @@ export default function JobCreationForm() {
       });
     } catch (error) {
       console.error('API Error:', error);
+      // Show error notification
+      setNotification({
+        message: error.response?.data?.message || "Failed to create job. Please try again.",
+        status: "error"
+      });
+      
       setErrors({ 
         ...errors, 
         submit: error.response?.data?.message || "Failed to create job. Please try again." 
@@ -336,6 +368,10 @@ export default function JobCreationForm() {
           </div>
         </div>
 
+        {errors.timeRange && (
+          <div className="text-red-500 text-sm mt-1 text-center">{errors.timeRange}</div>
+        )}
+
         {/* Required Gender */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Required Gender</label>
@@ -429,17 +465,22 @@ export default function JobCreationForm() {
           {isSubmitting ? 'Submitting...' : 'Create Job'}
         </button>
 
-        {errors.submit && <p className="text-red-500 text-sm text-center">{errors.submit}</p>}
+        {Object.keys(errors).length > 0 && errors.submit && (
+          <SubmitNotiBox
+            message={errors.submit}
+            status="error"
+            duration={5000}
+          />
+        )}
       </form>
 
-      {/* Display Submitted Data */}
-      {submittedData && (
-        <div className="mt-8 p-6 bg-gray-100 rounded-xl">
-          <h3 className="text-xl font-semibold mb-3 text-gray-800">Job Created Successfully!</h3>
-          <pre className="text-sm bg-white p-4 rounded-lg overflow-auto max-h-96">
-            {JSON.stringify(submittedData, null, 2)}
-          </pre>
-        </div>
+      {/* Notification Box */}
+      {notification.message && (
+        <SubmitNotiBox 
+          message={notification.message} 
+          status={notification.status} 
+          duration={5000}
+        />
       )}
     </div>
   );

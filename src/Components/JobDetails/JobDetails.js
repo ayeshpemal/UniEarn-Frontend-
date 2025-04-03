@@ -65,7 +65,7 @@ const JobDetails = () => {
         }
       );
 
-      console.log("Raw Job Response:", JSON.stringify(response.data, null, 2)); // Debug
+      //console.log("Raw Job Response:", JSON.stringify(response.data, null, 2)); // Debug
 
       if (response.data.code === 200) {
         const jobData = response.data.data;
@@ -159,7 +159,7 @@ const JobDetails = () => {
         }
       );
 
-      console.log(`Profile Picture Response for user ${user.userId}:`, response.data); // Debug
+      //console.log(`Profile Picture Response for user ${user.userId}:`, response.data); // Debug
 
       if (response.data.code === 200 && response.data.data) {
         setProfilePictureUrl(response.data.data); // Set S3 URL
@@ -355,6 +355,7 @@ const JobDetails = () => {
         if (response.data.code === 201) {
           setSuccessMessage({ header: "Application Success", message: "Job application success!" });
           setApplicationStatus({ hasApplied: true, application: { status: "PENDING", applicationId: response.data.data.applicationId, jobId, studentId } });
+          setShowApplySection(false);
         } else {
           setErrorMessage({ header: "Application Error", message: response.data.message || "Failed to apply for the job." });
         }
@@ -416,6 +417,7 @@ const JobDetails = () => {
         if (applyTeamResponse.data.code === 201) {
           setSuccessMessage({ header: "Application Success", message: "Job application success!" });
           setApplicationStatus({ hasApplied: true, application: { status: "PENDING", teamId, applicationId: applyTeamResponse.data.data.applicationId }, isTeamLeader: true });
+          setShowApplySection(false);
         } else {
           setErrorMessage({ header: "Application Error", message: applyTeamResponse.data.message || "Failed to apply as a team." });
         }
@@ -694,6 +696,28 @@ const JobDetails = () => {
               Confirm Job
             </button>
           </div>
+        );
+      }
+      if (status === "ACCEPTED" && !applicationStatus.isTeamLeader) {
+        return (
+          <div>
+            <button
+            className="bg-yellow-500 text-white px-6 py-3 rounded-lg font-medium opacity-90 w-full sm:w-auto cursor-not-allowed flex items-center justify-center"
+            disabled
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              ACCEPTED
+            </button>
+            <div className="flex items-center mt-2">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" style={{ color: 'red' }}>
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <p className="text-red-600">Waiting for team leader confirmation</p>
+            </div>
+          </div>
+          
         );
       }
     } else {

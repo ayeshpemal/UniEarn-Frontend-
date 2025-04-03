@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { jwtDecode } from "jwt-decode";
+import SubmitNotiBox from '../../../Components/SubmitNotiBox/SubmitNotiBox';
 
 const ConfirmationModal = ({ isOpen, title, message, onConfirm, onCancel }) => {
   if (!isOpen) return null;
@@ -52,6 +53,7 @@ const ManageAdmin = () => {
   const [selectedUserId, setSelectedUserId] = useState(null);
   const [modalTitle, setModalTitle] = useState('');
   const [modalMessage, setModalMessage] = useState('');
+  const [notification, setNotification] = useState({ message: '', status: '', show: false });
 
   useEffect(() => {
     // Get current user ID from token
@@ -255,12 +257,32 @@ const ManageAdmin = () => {
       });
       
       setMessage(`User ${selectedUserId} is now an admin`);
+      setNotification({
+        message: `User ${selectedUserId} is now an admin`,
+        status: 'success',
+        show: true
+      });
       setUserId('');
       setError('');
+      
+      // Refresh both the admin list and employer list
       fetchAdmins();
+      
+      // Refresh employer list while preserving search state
+      if (isSearching) {
+        searchEmployers(searchTerm, currentPage);
+      } else {
+        fetchEmployers(currentPage - 1); // Convert UI's 1-based to API's 0-based
+      }
+      
     } catch (err) {
       console.error('Error making admin:', err);
       setError(err.response?.data?.message || 'Failed to make user an admin');
+      setNotification({
+        message: err.response?.data?.message || 'Failed to make user an admin',
+        status: 'error',
+        show: true
+      });
       if (err.response && err.response.status === 401) {
         navigate('/login');
       }
@@ -285,11 +307,21 @@ const ManageAdmin = () => {
       });
       
       setMessage(`Admin privileges removed for user ${adminId}`);
+      setNotification({
+        message: `Admin privileges removed for user ${adminId}`,
+        status: 'success',
+        show: true
+      });
       setError('');
       fetchAdmins();
     } catch (err) {
       console.error('Error removing admin:', err);
       setError(err.response?.data?.message || 'Failed to remove admin privileges');
+      setNotification({
+        message: err.response?.data?.message || 'Failed to remove admin privileges',
+        status: 'error',
+        show: true
+      });
       if (err.response && err.response.status === 401) {
         navigate('/login');
       }
@@ -300,6 +332,15 @@ const ManageAdmin = () => {
 
   return (
     <div className="bg-gray-50 min-h-screen">
+      {/* Show notification using SubmitNotiBox */}
+      {notification.show && (
+        <SubmitNotiBox 
+          message={notification.message}
+          status={notification.status}
+          duration={5000}
+        />
+      )}
+      
       {/* Confirmation Modal */}
       <ConfirmationModal 
         isOpen={modalOpen}
