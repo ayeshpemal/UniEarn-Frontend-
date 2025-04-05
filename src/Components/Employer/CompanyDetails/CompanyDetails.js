@@ -707,6 +707,25 @@ function App() {
                                 />
                             )}
                         </div>
+                        
+                        {/* Add Company Details field here - available in both view and edit modes */}
+                        <div className="col-span-1 sm:col-span-2">
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Company Details</label>
+                            {isEditing && !isViewMode ? (
+                                <textarea
+                                    value={formData.companyDetails}
+                                    onChange={(e) => handleInputChange('companyDetails', e.target.value)}
+                                    className="w-full p-2 sm:p-3 border rounded-lg bg-gray-50 text-sm sm:text-base"
+                                    rows={4}
+                                    placeholder="Describe your company"
+                                ></textarea>
+                            ) : (
+                                <div className="w-full p-3 border rounded-lg bg-gray-50 text-sm min-h-[100px] whitespace-pre-wrap">
+                                    {formData.companyDetails || 'No company details available'}
+                                </div>
+                            )}
+                        </div>
+                        
                         {!isViewMode && (
                             <>
                                 <ProfileField
