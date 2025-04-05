@@ -36,6 +36,9 @@ const AReport = () => {
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
   const [userToDelete, setUserToDelete] = useState(null);
 
+  // Add state for totalPenaltyScore
+  const [totalPenaltyScore, setTotalPenaltyScore] = useState(0);
+
   // Get authentication token
   const getAuthHeaders = () => {
     const token = localStorage.getItem('token');
@@ -87,6 +90,8 @@ const AReport = () => {
       if (response.data.code === 200) {
         setReports(response.data.data.reportDTOList || []);
         setTotalItems(response.data.data.totalItems || 0);
+        // Store the totalPenaltyScore from the API response
+        setTotalPenaltyScore(response.data.data.totalPenaltyScore || 0);
       } else {
         setError(`Error ${response.data.code}: ${response.data.message || "Failed to fetch reports for this user"}`);
       }
@@ -218,6 +223,7 @@ const AReport = () => {
     setUserId("");
     setFilterByUser(false);
     setCurrentPage(0);
+    setTotalPenaltyScore(0); // Reset penalty score
     fetchAllReports(0, pageSize);
   };
 
@@ -367,19 +373,19 @@ const AReport = () => {
 
       {/* Hero Section */}
       <div
-        className="relative h-[30vh] sm:h-[40vh] md:h-[50vh] bg-cover bg-center bg-fixed"
+        className="relative h-[60vh] bg-cover bg-center"
         style={{
           backgroundImage:
             'url("https://images.unsplash.com/photo-1590402494587-44b71d7772f6?auto=format&fit=crop&q=80")',
         }}
       >
-        <div className="absolute inset-0 bg-gradient-to-b from-black/80 to-black/60 backdrop-blur-[1px]">
-          <div className="max-w-7xl mx-auto h-full flex flex-col justify-center px-4 sm:px-6">
-            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold text-white tracking-tight drop-shadow-md animate-fade-in-down">
+        <div className="absolute inset-0 bg-gradient-to-b from-black/80 to-black/40 backdrop-blur-[1px]">
+          <div className="max-w-7xl mx-auto h-full flex flex-col justify-end pb-24 px-4 sm:px-6">
+            <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-white tracking-tight drop-shadow-md mt-20">
               Report<br />
               <span className="text-red-400 drop-shadow-lg">Management</span>
             </h1>
-            <p className="mt-2 sm:mt-3 text-white/90 text-base sm:text-lg md:text-xl max-w-2xl drop-shadow-sm animate-fade-in-up">
+            <p className="mt-3 text-white/90 text-lg sm:text-xl max-w-2xl drop-shadow-sm">
               Effectively manage and review user reports across the platform
             </p>
           </div>
@@ -387,7 +393,7 @@ const AReport = () => {
       </div>
 
       {/* Main content section */}
-      <div className="container mx-auto py-8 px-4 sm:px-6 -mt-16 relative z-10">
+      <div className="container mx-auto py-8 px-4 sm:px-6 mt-8 relative z-10">
         <div className="bg-white rounded-xl shadow-lg p-6 mb-8 animate-fade-in-up">
           <h2 className="text-2xl font-bold text-gray-900 mb-6">Report Dashboard</h2>
           
@@ -502,6 +508,16 @@ const AReport = () => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
               <span>Currently filtering reports for User ID: <strong>{userId}</strong></span>
+            </div>
+          )}
+
+          {/* Add penalty score display - place after the filter active indicator */}
+          {filterByUser && totalPenaltyScore > 0 && (
+            <div className="mb-4 flex items-center gap-2 text-sm text-red-600 bg-red-50 p-2 px-3 rounded-md border border-red-100">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+              <span>Total Penalty Score: <strong className="font-bold">{totalPenaltyScore}</strong></span>
             </div>
           )}
 

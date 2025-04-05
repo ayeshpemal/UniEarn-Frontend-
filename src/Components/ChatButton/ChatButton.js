@@ -177,7 +177,7 @@ const ChatButton = () => {
                                 const adminNotifications = adminData.data.notifications.map(notif => ({
                                     ...notif,
                                     type: "system",
-                                    isRead: notif.read // Handle different property name
+                                    isRead: notif.isRead // Handle different property name
                                 }));
                                 allSystemNotifications = [...allSystemNotifications, ...adminNotifications];
                                 totalSystemNotificationsCount += adminData.data.totalNotifications || 0;
@@ -206,7 +206,7 @@ const ChatButton = () => {
                                 const reportNotifications = reportData.data.notifications.map(notif => ({
                                     ...notif,
                                     type: "REPORT", // Use the specific type for reports
-                                    isRead: notif.read // Handle different property name
+                                    isRead: notif.isRead // Handle different property name
                                 }));
                                 allSystemNotifications = [...allSystemNotifications, ...reportNotifications];
                                 totalSystemNotificationsCount += reportData.data.totalNotifications || 0;
@@ -240,7 +240,7 @@ const ChatButton = () => {
                                 const typeNotifications = systemData.data.notifications.map(notif => ({
                                     ...notif,
                                     type: "system",
-                                    isRead: notif.read // Handle different property name
+                                    isRead: notif.isRead // Handle different property name
                                 }));
                                 allSystemNotifications = [...allSystemNotifications, ...typeNotifications];
                                 totalSystemNotificationsCount += systemData.data.totalNotifications || 0;
@@ -395,20 +395,25 @@ const ChatButton = () => {
                         );
                         setMessageCount((prev) => prev - 1);
                     }
-                } else if (notification.type === "system" || notification.type === "REPORT") {
+                // Check if notification type is any of the system notification types
+                } else if (systemNotificationTypes.includes(notification.type.toLowerCase())) {
                     // Make API call to mark system notification as read
-                    response = await axios.put(
-                        `http://localhost:8100/api/user/notification/mark-as-read/${notification.id}`,
-                        {},
-                        {
-                            headers: {
-                                "Content-Type": "application/json",
-                                Authorization: `Bearer ${localStorage.getItem("token")}`,
-                            },
-                        }
-                    );
-                    
-                    console.log("Marking system notification as read:", notification.id, response);
+                    try {
+                        response = await axios.put(
+                            `http://localhost:8100/api/user/notification/mark-as-read/${notification.id}`,
+                            {},
+                            {
+                                headers: {
+                                    "Content-Type": "application/json",
+                                    Authorization: `Bearer ${localStorage.getItem("token")}`,
+                                },
+                            }
+                        );
+                        
+                        console.log(`Marking ${notification.type} notification as read:`, notification.id, response);
+                    } catch (markError) {
+                        console.error(`API call failed for marking ${notification.type} notification as read:`, markError);
+                    }
                     
                     // Always update the UI state regardless of API response
                     // This ensures the user sees the notification as read immediately
@@ -421,15 +426,11 @@ const ChatButton = () => {
                     // Decrease the message count
                     setMessageCount((prev) => Math.max(0, prev - 1));
                 }
-                
-                // Removed the duplicated code block that was causing issues
-                // The response checks are now handled in each specific condition
-                
             } catch (error) {
-                console.error("Error marking notification as read:", error);
+                console.error("Error handling notification click:", error);
                 
-                // Even if API fails, update the UI for better user experience
-                if (notification.type === "system" || notification.type === "REPORT") {
+                // If API fails but the notification is a system type, still mark as read in UI
+                if (systemNotificationTypes.includes(notification.type.toLowerCase())) {
                     setSystemNotifications((prev) =>
                         prev.map((notif) =>
                             notif.id === notification.id ? { ...notif, isRead: true } : notif
@@ -440,7 +441,7 @@ const ChatButton = () => {
             }
         }
     
-        // Handle navigation based on notification type
+        // Handle navigation logic for different notification types
         if (notification.job) {
             setShowNotifications(false);
             
@@ -469,7 +470,8 @@ const ChatButton = () => {
             }
         }
     
-        if(notification.type === "REPORT"){
+        // Special handling for REPORT type notifications
+        if (notification.type.toLowerCase() === "report") {
             // Get role from JWT token
             const token = localStorage.getItem("token");
             if (token) {
@@ -487,6 +489,13 @@ const ChatButton = () => {
                 }
             }
         }
+    
+        // Add any other special navigation handling for system notification types here
+        // For example:
+        // if (notification.type.toLowerCase() === "broadcast" && notification.actionUrl) {
+        //     window.location.href = notification.actionUrl;
+        //     setShowNotifications(false);
+        // }
     };
 
     const handlePageChange = (page, type) => {
