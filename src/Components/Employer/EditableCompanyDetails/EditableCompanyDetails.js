@@ -3,6 +3,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faStar as solidStar } from "@fortawesome/free-solid-svg-icons";
 import { faStar as regularStar } from "@fortawesome/free-regular-svg-icons";
 
+const baseUrl = window._env_.BASE_URL;
 const CompanyDetails = () => {
     const { employerId } = useParams(); // Get jobId from URL
     const [employer, setEmployer] = useState(null); // Store job details
@@ -63,7 +64,7 @@ const CompanyDetails = () => {
         const fetchEmployer = async () => {
             try {
                 console.log("Fetching employer with ID:", employerId);
-                const response = await axios.get(`http://localhost:8100/api/user/get-user-by-id/${employerId}`);
+                const response = await axios.get(`${baseUrl}/api/user/get-user-by-id/${employerId}`);
                 console.log("API Response:", response);
 
                 const fetchedJob = response.data?.data || null;

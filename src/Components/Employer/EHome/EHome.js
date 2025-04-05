@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { jwtDecode } from 'jwt-decode';
 import axios from 'axios';
 
+const baseUrl = window._env_.BASE_URL;
 const EHome = () => {
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -25,7 +26,7 @@ const EHome = () => {
         const userId = decodedToken.user_id;
 
         const response = await axios.get(
-          `http://localhost:8100/api/v1/jobs/get-jobs-by-user?user_id=${userId}&page=${currentPage}`,
+          `${baseUrl}/api/v1/jobs/get-jobs-by-user?user_id=${userId}&page=${currentPage}`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
 
@@ -57,7 +58,7 @@ const EHome = () => {
       try {
         const token = localStorage.getItem('token');
         const response = await axios.put(
-          `http://localhost:8100/api/v1/jobs/set-status?job_id=${jobId}&status=CANCEL`, 
+          `${baseUrl}/api/v1/jobs/set-status?job_id=${jobId}&status=CANCEL`, 
           {}, // Empty body for PUT request
           { headers: { Authorization: `Bearer ${token}` } }
         );

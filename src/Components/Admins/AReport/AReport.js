@@ -5,6 +5,7 @@ import { jwtDecode } from "jwt-decode";
 import { useParams, useLocation } from "react-router-dom"; // Add these imports
 import DeleteUserConfirmationPopup from "./DeleteUserConfirmationPopup";
 
+const baseUrl = window._env_.BASE_URL;
 const AReport = () => {
   // Access URL parameters
   const { userId: urlUserId } = useParams();
@@ -54,7 +55,7 @@ const AReport = () => {
     setError(null);
     try {
       const response = await axios.get(
-        `http://localhost:8100/api/v1/report/getall?page=${page}&size=${size}`,
+        `${baseUrl}/api/v1/report/getall?page=${page}&size=${size}`,
         { headers: getAuthHeaders() }
       );
       
@@ -83,7 +84,7 @@ const AReport = () => {
     setError(null);
     try {
       const response = await axios.get(
-        `http://localhost:8100/api/v1/report/getall-by-id?userId=${userId}&page=${page}&size=${size}`,
+        `${baseUrl}/api/v1/report/getall-by-id?userId=${userId}&page=${page}&size=${size}`,
         { headers: getAuthHeaders() }
       );
       
@@ -111,7 +112,7 @@ const AReport = () => {
     
     try {
       const response = await axios.put(
-        `http://localhost:8100/api/v1/report/resolve?reportId=${reportId}&status=${reportStatus}`,
+        `${baseUrl}/api/v1/report/resolve?reportId=${reportId}&status=${reportStatus}`,
         {}, // Empty body for PUT request
         { headers: getAuthHeaders() }
       );
@@ -157,7 +158,7 @@ const AReport = () => {
     
     try {
       const response = await axios.delete(
-        `http://localhost:8100/api/user/users/${userId}/delete`,
+        `${baseUrl}/api/user/users/${userId}/delete`,
         { headers: getAuthHeaders() }
       );
       

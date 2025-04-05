@@ -4,6 +4,7 @@ import { jwtDecode } from "jwt-decode";
 import SearchEmployerBar from "../SearchEmployerBar/SearchEmployerBar";
 import { ChevronLeft, ChevronRight, UserCheck, User, Loader, Building } from "lucide-react";
 
+const baseUrl = window._env_.BASE_URL;
 // Hero Section Component with enhanced styling
 const HeroSectionEmployer = ({ onSearchResults, currentPage }) => {
   return (
@@ -218,7 +219,7 @@ const EmployersPage = () => {
           } else {
             try {
               const response = await axios.get(
-                `http://localhost:8100/api/user/${employer.userId}/profile-picture`,
+                `${baseUrl}/api/user/${employer.userId}/profile-picture`,
                 {
                   headers: {
                     "Authorization": `Bearer ${localStorage.getItem("token")}`,
@@ -252,11 +253,11 @@ const EmployersPage = () => {
 
     if (isFollowing) {
       // Unfollow API
-      url = `http://localhost:8100/follows/unfollow?studentId=${currentStudentId}&employerId=${targetEmployerId}`;
+      url = `${baseUrl}/follows/unfollow?studentId=${currentStudentId}&employerId=${targetEmployerId}`;
       method = "delete";
     } else {
       // Follow API
-      url = `http://localhost:8100/follows/${targetEmployerId}/follow?studentId=${currentStudentId}`;
+      url = `${baseUrl}/follows/${targetEmployerId}/follow?studentId=${currentStudentId}`;
       method = "post";
     }
 

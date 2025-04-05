@@ -5,6 +5,7 @@ import { jwtDecode } from 'jwt-decode';
 import ReportPopup from '../../ReportPopup/ReportPopup';
 import SubmitNotiBox from '../../SubmitNotiBox/SubmitNotiBox'; // Add this import
 
+const baseUrl = window._env_.BASE_URL;
 // Define preference options
 const PREFERENCE_OPTIONS = [
     'CASHIER', 'SALESMEN', 'RETAIL', 'TUTORING', 'CATERING', 'EVENT_BASED',
@@ -130,7 +131,7 @@ function App() {
                 }
 
                 const userResponse = await axios.get(
-                    `http://localhost:8100/api/user/get-user-by-id/${userId}`,
+                    `${baseUrl}/api/user/get-user-by-id/${userId}`,
                     { headers: { 'Authorization': `Bearer ${token}` } }
                 );
                 
@@ -139,7 +140,7 @@ function App() {
                 let profilePictureUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(userData.userName)}&background=random`;
                 try {
                     const profilePictureResponse = await axios.get(
-                        `http://localhost:8100/api/user/${userId}/profile-picture`,
+                        `${baseUrl}/api/user/${userId}/profile-picture`,
                         { headers: { 'Authorization': `Bearer ${token}` } }
                     );
                     
@@ -193,7 +194,7 @@ function App() {
                 }
 
                 const response = await axios.get(
-                    `http://localhost:8100/api/v1/rating/received/${userId}?page=${feedbackPage}&size=${feedbackPageSize}`,
+                    `${baseUrl}/api/v1/rating/received/${userId}?page=${feedbackPage}&size=${feedbackPageSize}`,
                     { headers: { 'Authorization': `Bearer ${token}` } }
                 );
                 
@@ -311,7 +312,7 @@ function App() {
                 };
 
                 await axios.put(
-                    `http://localhost:8100/api/user/update/${userId}`,
+                    `${baseUrl}/api/user/update/${userId}`,
                     updateData,
                     {
                         headers: {
@@ -327,7 +328,7 @@ function App() {
                 formDataForUpload.append('file', selectedProfilePictureFile);
 
                 const response = await axios.put(
-                    `http://localhost:8100/api/user/${userId}/profile-picture`,
+                    `${baseUrl}/api/user/${userId}/profile-picture`,
                     formDataForUpload,
                     {
                         headers: {
@@ -394,7 +395,7 @@ function App() {
             };
 
             await axios.put(
-                `http://localhost:8100/api/user/update-password/${userId}`,
+                `${baseUrl}/api/user/update-password/${userId}`,
                 updateData,
                 {
                     headers: {
@@ -469,7 +470,7 @@ function App() {
             const raterId = decodedToken.user_id;
 
             await axios.post(
-                `http://localhost:8100/api/v1/rating/create`,
+                `${baseUrl}/api/v1/rating/create`,
                 {
                     raterId: raterId,
                     ratedId: parseInt(viewUserId),

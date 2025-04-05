@@ -4,6 +4,7 @@ import axios from "axios";
 import { X, Loader2 } from "lucide-react";
 import SubmitNotiBox from "../../SubmitNotiBox/SubmitNotiBox";
 
+const baseUrl = window._env_.BASE_URL;
 const EmployerSignUp = () => {
     const navigate = useNavigate();
     const [showVerificationPopup, setShowVerificationPopup] = useState(false);
@@ -112,7 +113,7 @@ const EmployerSignUp = () => {
                     setIsLoading(true);
                     console.log("Sending request to register employer...");
                     const response = await axios.post(
-                        "http://localhost:8100/api/user/register",
+                        `${baseUrl}/api/user/register`,
                         formData,
                         { headers: { "Content-Type": "application/json" } }
                     );

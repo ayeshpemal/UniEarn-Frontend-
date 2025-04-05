@@ -4,6 +4,7 @@ import { jwtDecode } from "jwt-decode";
 import SearchStudentBar from "../SearchStudentBar/SearchStdentBar";
 import { ChevronLeft, ChevronRight, UserCheck, User, Loader } from "lucide-react"; // Added more icons
 
+const baseUrl = window._env_.BASE_URL;
 // Hero Section Component with enhanced styling
 const HeroSectionStudent = ({ onSearchResults, currentPage }) => {
   return (
@@ -216,7 +217,7 @@ const StudentsPage = () => {
           } else {
             try {
               const response = await axios.get(
-                `http://localhost:8100/api/user/${student.userId}/profile-picture`,
+                `${baseUrl}/api/user/${student.userId}/profile-picture`,
                 {
                   headers: {
                     "Authorization": `Bearer ${localStorage.getItem("token")}`,
@@ -247,8 +248,8 @@ const StudentsPage = () => {
 
     const isFollowing = followingStatus[targetStudentId];
     const url = isFollowing
-      ? `http://localhost:8100/follows/${currentStudentId}/unfollowstudents/${targetStudentId}`
-      : `http://localhost:8100/follows/${currentStudentId}/followstudents/${targetStudentId}`;
+      ? `${baseUrl}/follows/${currentStudentId}/unfollowstudents/${targetStudentId}`
+      : `${baseUrl}/follows/${currentStudentId}/followstudents/${targetStudentId}`;
     const method = isFollowing ? "delete" : "post";
 
     console.log(`Calling ${method.toUpperCase()} ${url}`);

@@ -4,6 +4,7 @@ import { jwtDecode } from "jwt-decode";
 import { useLocation } from "react-router-dom";
 import SubmitNotiBox from "../../SubmitNotiBox/SubmitNotiBox"; // Add this import
 
+const baseUrl = window._env_.BASE_URL;
 const LOCATIONS = [
   "AMPARA", "ANURADHAPURA", "BADULLA", "BATTICALOA", "COLOMBO", "GALLE",
   "GAMPAHA", "HAMBANTOTA", "JAFFNA", "KALUTARA", "KANDY", "KEGALLE",
@@ -19,7 +20,7 @@ const JOB_CATEGORIES = [
   "WEB_DEVELOPER", "OTHER"
 ];
 
-const API_URL = "http://localhost:8100/api/v1/jobs/updatejob";
+const API_URL = `${baseUrl}/api/v1/jobs/updatejob`;
 
 export default function JobEditForm() {
   const location = useLocation();
@@ -56,7 +57,7 @@ export default function JobEditForm() {
         const decoded = jwtDecode(token);
         const employerId = decoded.user_id;
 
-        const response = await axios.get(`http://localhost:8100/api/v1/jobs/getjob/${jobId}`, {
+        const response = await axios.get(`${baseUrl}/api/v1/jobs/getjob/${jobId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 

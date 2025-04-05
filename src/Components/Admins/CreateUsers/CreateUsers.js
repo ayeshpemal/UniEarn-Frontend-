@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 
+const baseUrl = window._env_.BASE_URL;
 const CreateUsers = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [notification, setNotification] = useState({ show: false, message: '', type: '' });
@@ -26,7 +27,7 @@ const CreateUsers = () => {
       }
       
       // Make the API request with authorization header
-      const response = await axios.post('http://localhost:8100/api/admin/generate-dummy-users', {}, {
+      const response = await axios.post(`${baseUrl}/api/admin/generate-dummy-users`, {}, {
         headers: {
           'Authorization': `Bearer ${token}`
         }

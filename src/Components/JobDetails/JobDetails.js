@@ -4,6 +4,7 @@ import { jwtDecode } from "jwt-decode";
 import axios from "axios";
 import ReportPopup from "../ReportPopup/ReportPopup";
 
+const baseUrl = window._env_.BASE_URL;
 const JobDetails = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -57,7 +58,7 @@ const JobDetails = () => {
       }
 
       const response = await axios.get(
-        `http://localhost:8100/api/v1/jobs/getjob/${jobId}`,
+        `${baseUrl}/api/v1/jobs/getjob/${jobId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -90,7 +91,7 @@ const JobDetails = () => {
         if (jobData.jobStatus !== "PENDING" && userId) {
           try {
             const applicationResponse = await axios.get(
-              `http://localhost:8100/api/v1/application/has-applied?studentId=${userId}&jobId=${jobId}`,
+              `${baseUrl}/api/v1/application/has-applied?studentId=${userId}&jobId=${jobId}`,
               {
                 headers: {
                   Authorization: `Bearer ${token}`,
@@ -151,7 +152,7 @@ const JobDetails = () => {
       }
 
       const response = await axios.get(
-        `http://localhost:8100/api/user/${user.userId}/profile-picture`,
+        `${baseUrl}/api/user/${user.userId}/profile-picture`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -185,7 +186,7 @@ const JobDetails = () => {
       const userId = decodedToken.user_id;
 
       const userResponse = await axios.get(
-        `http://localhost:8100/api/user/get-user-by-id/${userId}`,
+        `${baseUrl}/api/user/get-user-by-id/${userId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -204,7 +205,7 @@ const JobDetails = () => {
       if (jobId) {
         try {
           const applicationResponse = await axios.get(
-            `http://localhost:8100/api/v1/application/has-applied?studentId=${userId}&jobId=${jobId}`,
+            `${baseUrl}/api/v1/application/has-applied?studentId=${userId}&jobId=${jobId}`,
             {
               headers: {
                 Authorization: `Bearer ${token}`,
@@ -238,7 +239,7 @@ const JobDetails = () => {
       const userId = decodedToken.user_id;
 
       const response = await axios.get(
-        `http://localhost:8100/follows/${userId}/followingstudents?page=${currentPage}&size=${pageSize}`,
+        `${baseUrl}/follows/${userId}/followingstudents?page=${currentPage}&size=${pageSize}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -296,7 +297,7 @@ const JobDetails = () => {
     const jobId = searchParams.get("jobId");
     try {
       const response = await axios.get(
-        `http://localhost:8100/api/v1/application/has-applied?studentId=${userId}&jobId=${jobId}`,
+        `${baseUrl}/api/v1/application/has-applied?studentId=${userId}&jobId=${jobId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -343,7 +344,7 @@ const JobDetails = () => {
       if (job.requiredWorkers === 1 && appliedUsers.length === 1) {
         const studentId = currentUser.userId;
         const response = await axios.post(
-          `http://localhost:8100/api/v1/application/apply/student?studentId=${studentId}&jobId=${jobId}`,
+          `${baseUrl}/api/v1/application/apply/student?studentId=${studentId}&jobId=${jobId}`,
           {},
           {
             headers: {
@@ -366,7 +367,7 @@ const JobDetails = () => {
         }
 
         const createTeamResponse = await axios.post(
-          `http://localhost:8100/api/teams/create`,
+          `${baseUrl}/api/teams/create`,
           {
             teamName: teamName.trim(),
             leader: currentUser.userId,
@@ -388,7 +389,7 @@ const JobDetails = () => {
         for (const member of appliedUsers) {
           if (member.userId !== currentUser.userId) {
             const addMemberResponse = await axios.post(
-              `http://localhost:8100/api/teams/${teamId}/add-member/${member.userId}`,
+              `${baseUrl}/api/teams/${teamId}/add-member/${member.userId}`,
               {},
               {
                 headers: {
@@ -405,7 +406,7 @@ const JobDetails = () => {
         }
 
         const applyTeamResponse = await axios.post(
-          `http://localhost:8100/api/v1/application/apply/team?teamId=${teamId}&jobId=${jobId}`,
+          `${baseUrl}/api/v1/application/apply/team?teamId=${teamId}&jobId=${jobId}`,
           {},
           {
             headers: {
@@ -440,7 +441,7 @@ const JobDetails = () => {
 
     try {
       const response = await axios.put(
-        `http://localhost:8100/api/student/applications/confirm?applicationId=${applicationId}&studentId=${currentUser.userId}`,
+        `${baseUrl}/api/student/applications/confirm?applicationId=${applicationId}&studentId=${currentUser.userId}`,
         {},
         {
           headers: {
@@ -472,7 +473,7 @@ const JobDetails = () => {
 
     try {
       const response = await axios.put(
-        `http://localhost:8100/api/teams/${currentUser.userId}/confirm/${teamId}`,
+        `${baseUrl}/api/teams/${currentUser.userId}/confirm/${teamId}`,
         {},
         {
           headers: {
@@ -503,7 +504,7 @@ const JobDetails = () => {
       }
 
       const response = await axios.get(
-        `http://localhost:8100/api/teams/${teamId}`,
+        `${baseUrl}/api/teams/${teamId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,

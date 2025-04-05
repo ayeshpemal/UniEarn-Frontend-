@@ -7,6 +7,7 @@ import html2pdf from 'html2pdf.js';
 
 // Register ChartJS components
 ChartJS.register(ArcElement, Tooltip, Legend);
+const baseUrl = window._env_.BASE_URL;
 
 const AdminStats = ({ statsData, loading }) => {
   const navigate = useNavigate();
@@ -394,7 +395,7 @@ const App = () => {
       }
       
       const response = await axios.post(
-        "http://localhost:8100/api/admin/stats",
+        `${baseUrl}/api/admin/stats`,
         {
           startDate: startDate ? new Date(startDate).toISOString() : null,
           endDate: endDate ? new Date(endDate).toISOString() : null,

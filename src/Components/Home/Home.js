@@ -5,6 +5,7 @@ import SearchBar from "../SearchBar/SearchBar";
 import { jwtDecode } from "jwt-decode";
 import axios from 'axios';
 
+const baseUrl = window._env_.BASE_URL;
 export function Home() {
   const navigate = useNavigate();
   const onNavigateToJobDetails = (jobId) => {
@@ -42,7 +43,7 @@ export function Home() {
         }
 
         const response = await axios.get(
-          `http://localhost:8100/api/v1/jobs/studentpreferedjobs?student_id=${userId}&page=${currentPage}`,
+          `${baseUrl}/api/v1/jobs/studentpreferedjobs?student_id=${userId}&page=${currentPage}`,
           { headers: { Authorization: `Bearer ${initialToken}` } }
         );
         const jobsList = response.data?.data?.jobList || [];
@@ -86,7 +87,7 @@ export function Home() {
     try {
       const token = localStorage.getItem('token');
       const response = await axios.get(
-        `http://localhost:8100/api/v1/jobs/search?location=${selectedLocation}&categories=${selectedJob}&keyword=${searchTerm}${selectedDate ? `&startDate=${selectedDate}` : ''}&page=${currentPage}`,
+        `${baseUrl}/api/v1/jobs/search?location=${selectedLocation}&categories=${selectedJob}&keyword=${searchTerm}${selectedDate ? `&startDate=${selectedDate}` : ''}&page=${currentPage}`,
         { headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` } }
       );
       const searchResults = response.data?.data?.jobList || [];

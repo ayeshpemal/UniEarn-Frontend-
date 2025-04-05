@@ -4,6 +4,7 @@ import axios from "axios";
 import { X } from "lucide-react";
 import SubmitNotiBox from "../SubmitNotiBox/SubmitNotiBox";
 
+const baseUrl = window._env_.BASE_URL;
 const ADDRESS_OPTIONS = [
     "AMPARA", "ANURADHAPURA", "BADULLA", "BATTICALOA", "COLOMBO", "GALLE",
     "GAMPAHA", "HAMBANTOTA", "JAFFNA", "KALUTARA", "KANDY", "KEGALLE",
@@ -151,7 +152,7 @@ const Signup = () => {
 
             try {
                 const response = await axios.post(
-                    "http://localhost:8100/api/user/register",
+                    `${baseUrl}/api/user/register`,
                     submitData,
                     {
                         headers: { "Content-Type": "application/json" },
@@ -212,7 +213,7 @@ const Signup = () => {
         setTimeout(async () => {
             try {
                 const response = await axios.get(
-                    `http://localhost:8100/api/user/resend-verification-email?username=${formData.userName}`,
+                    `${baseUrl}/api/user/resend-verification-email?username=${formData.userName}`,
                     {
                         headers: { "Content-Type": "application/json" },
                     }
