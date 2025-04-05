@@ -3,6 +3,7 @@ import { BellIcon } from "@heroicons/react/24/solid";
 import { connectWebSocket, disconnectWebSocket } from "../../services/notificationService";
 import { jwtDecode } from "jwt-decode";
 import { v4 as uuidv4 } from "uuid"; // Add uuid package for generating unique IDs
+import axios from "axios"; // Import axios
 
 const ChatButton = () => {
     const [messageCount, setMessageCount] = useState(0);
@@ -18,6 +19,23 @@ const ChatButton = () => {
     const [totalJobNotifications, setTotalJobNotifications] = useState(0);
     const [currentUpdatePage, setCurrentUpdatePage] = useState(0);
     const [currentJobPage, setCurrentJobPage] = useState(0);
+    // Add state for system notifications pagination
+    const [currentSystemPage, setCurrentSystemPage] = useState(0);
+    const [totalSystemNotifications, setTotalSystemNotifications] = useState(0);
+    const systemNotificationTypes = [
+        "system",
+        "broadcast",
+        "all_employers",
+        "all_students",
+        "all_admins",
+        "user_specific",
+        "report"
+    ];
+
+    // Update the state management for combined notifications
+    const [combinedNotifications, setCombinedNotifications] = useState([]);
+    const [currentCombinedPage, setCurrentCombinedPage] = useState(0);
+    const [totalCombinedNotifications, setTotalCombinedNotifications] = useState(0);
 
     useEffect(() => {
         const token = localStorage.getItem("token");
@@ -50,37 +68,9 @@ const ChatButton = () => {
             try {
                 // Fetch update notifications for all users (load immediately on mount)
                 console.log("Fetching update notifications for userId:", userId);
-                const updateResponse = await fetch(
-                    `http://localhost:8100/api/v1/updateNotification/get-update-notifications/${userId}?page=${currentUpdatePage}&size=${itemsPerPage}`,
-                    {
-                        headers: {
-                            Authorization: `Bearer ${token}`,
-                            "Content-Type": "application/json",
-                        },
-                    }
-                );
-                const updateData = await updateResponse.json();
-                console.log("Update notifications response:", updateData);
-                if (updateData.code === 200) {
-                    const sortedUpdateNotifications = updateData.data.notifications
-                        .map((notif) => ({ ...notif, type: "update" }))
-                        .sort((a, b) => new Date(b.sentDate) - new Date(a.sentDate));
-                    setUpdateNotifications(sortedUpdateNotifications);
-                    setTotalUpdateNotifications(updateData.data.totalNotifications || 0);
-                    const unreadUpdateCount = sortedUpdateNotifications.filter(
-                        (notif) => !notif.isRead
-                    ).length;
-                    setMessageCount((prev) => prev + unreadUpdateCount);
-                    console.log("Updated updateNotifications:", sortedUpdateNotifications);
-                } else {
-                    console.error("Failed to fetch update notifications:", updateData);
-                }
-
-                // Fetch job notifications only if role is not "EMPLOYER"
-                if (role !== "EMPLOYER") {
-                    console.log("Fetching job notifications for userId:", userId);
-                    const jobResponse = await fetch(
-                        `http://localhost:8100/api/v1/Notification/get-job-notifications/${userId}?page=${currentJobPage}&size=${itemsPerPage}`,
+                try {
+                    const updateResponse = await axios.get(
+                        `http://localhost:8100/api/v1/updateNotification/get-update-notifications/${userId}?page=${currentUpdatePage}&size=${itemsPerPage}`,
                         {
                             headers: {
                                 Authorization: `Bearer ${token}`,
@@ -88,22 +78,195 @@ const ChatButton = () => {
                             },
                         }
                     );
-                    const jobData = await jobResponse.json();
-                    console.log("Job notifications response:", jobData);
-                    if (jobData.code === 200) {
-                        const sortedJobNotifications = jobData.data.notifications
-                            .map((notif) => ({ ...notif, type: "job" }))
+                    
+                    const updateData = updateResponse.data;
+                    console.log("Update notifications response:", updateData);
+                    
+                    if (updateData.code === 200) {
+                        const sortedUpdateNotifications = updateData.data.notifications
+                            .map((notif) => ({ ...notif, type: "update" }))
                             .sort((a, b) => new Date(b.sentDate) - new Date(a.sentDate));
-                        setJobNotifications(sortedJobNotifications);
-                        setTotalJobNotifications(jobData.data.totalNotifications || 0);
-                        const unreadJobCount = sortedJobNotifications.filter(
+                        setUpdateNotifications(sortedUpdateNotifications);
+                        setTotalUpdateNotifications(updateData.data.totalNotifications || 0);
+                        const unreadUpdateCount = sortedUpdateNotifications.filter(
                             (notif) => !notif.isRead
                         ).length;
-                        setMessageCount((prev) => prev + unreadJobCount);
-                        console.log("Updated jobNotifications:", sortedJobNotifications);
+                        setMessageCount((prev) => prev + unreadUpdateCount);
+                        console.log("Updated updateNotifications:", sortedUpdateNotifications);
                     } else {
-                        console.error("Failed to fetch job notifications:", jobData);
+                        console.error("Failed to fetch update notifications:", updateData);
                     }
+                } catch (error) {
+                    console.error("Error fetching update notifications:", error);
+                }
+
+                // Fetch job notifications only if role is not "EMPLOYER"
+                if (role !== "EMPLOYER" && role !== "ADMIN") {
+                    console.log("Fetching job notifications for userId:", userId);
+                    try {
+                        const jobResponse = await axios.get(
+                            `http://localhost:8100/api/v1/Notification/get-job-notifications/${userId}?page=${currentJobPage}&size=${itemsPerPage}`,
+                            {
+                                headers: {
+                                    Authorization: `Bearer ${token}`,
+                                    "Content-Type": "application/json",
+                                },
+                            }
+                        );
+                        
+                        const jobData = jobResponse.data;
+                        console.log("Job notifications response:", jobData);
+                        
+                        if (jobData.code === 200) {
+                            const sortedJobNotifications = jobData.data.notifications
+                                .map((notif) => ({ ...notif, type: "job" }))
+                                .sort((a, b) => new Date(b.sentDate) - new Date(a.sentDate));
+                            setJobNotifications(sortedJobNotifications);
+                            setTotalJobNotifications(jobData.data.totalNotifications || 0);
+                            const unreadJobCount = sortedJobNotifications.filter(
+                                (notif) => !notif.isRead
+                            ).length;
+                            setMessageCount((prev) => prev + unreadJobCount);
+                            console.log("Updated jobNotifications:", sortedJobNotifications);
+                        } else {
+                            console.error("Failed to fetch job notifications:", jobData);
+                        }
+                    } catch (error) {
+                        console.error("Error fetching job notifications:", error);
+                    }
+                }
+
+                // Fetch system notifications
+                console.log("Fetching system notifications for userId:", userId);
+                try {
+                    // Initialize an array to hold all system notifications
+                    let allSystemNotifications = [];
+                    let totalSystemNotificationsCount = 0;
+                    
+                    // Common notification types for all users
+                    const fetchNotificationTypes = ["BROADCAST", "USER_SPECIFIC"];
+                    
+                    // Add role-specific notification types
+                    if (role === "STUDENT") {
+                        fetchNotificationTypes.push("ALL_STUDENTS");
+                    } else if (role === "EMPLOYER") {
+                        fetchNotificationTypes.push("ALL_EMPLOYERS");
+                    } else if (role === "ADMIN") {
+                        fetchNotificationTypes.push("ALL_ADMINS");
+                    }
+                    
+                    // For admins, we need to use different API endpoints
+                    if (role === "ADMIN") {
+                        // Fetch ALL_ADMINS notifications
+                        try {
+                            const adminResponse = await axios.get(
+                                `http://localhost:8100/api/admin/notification/private?userID=${userId}&type=ALL_ADMINS&page=${currentSystemPage}&size=${itemsPerPage}`,
+                                {
+                                    headers: {
+                                        Authorization: `Bearer ${token}`,
+                                        "Content-Type": "application/json",
+                                    },
+                                }
+                            );
+                            
+                            const adminData = adminResponse.data;
+                            console.log("Admin notifications response:", adminData);
+                            
+                            if (adminData.code === 200) {
+                                // Map the notifications to our format and add to collected notifications
+                                const adminNotifications = adminData.data.notifications.map(notif => ({
+                                    ...notif,
+                                    type: "system",
+                                    isRead: notif.isRead // Handle different property name
+                                }));
+                                allSystemNotifications = [...allSystemNotifications, ...adminNotifications];
+                                totalSystemNotificationsCount += adminData.data.totalNotifications || 0;
+                            }
+                        } catch (error) {
+                            console.error("Error fetching admin notifications:", error);
+                        }
+                        
+                        // Fetch REPORT notifications with null userID
+                        try {
+                            const reportResponse = await axios.get(
+                                `http://localhost:8100/api/admin/notification/private?type=REPORT&page=${currentSystemPage}&size=${itemsPerPage}`,
+                                {
+                                    headers: {
+                                        Authorization: `Bearer ${token}`,
+                                        "Content-Type": "application/json",
+                                    },
+                                }
+                            );
+                            
+                            const reportData = reportResponse.data;
+                            console.log("Report notifications response:", reportData);
+                            
+                            if (reportData.code === 200) {
+                                // Map the notifications to our format and add to collected notifications
+                                const reportNotifications = reportData.data.notifications.map(notif => ({
+                                    ...notif,
+                                    type: "REPORT", // Use the specific type for reports
+                                    isRead: notif.isRead // Handle different property name
+                                }));
+                                allSystemNotifications = [...allSystemNotifications, ...reportNotifications];
+                                totalSystemNotificationsCount += reportData.data.totalNotifications || 0;
+                            }
+                        } catch (error) {
+                            console.error("Error fetching report notifications:", error);
+                        }
+                    }
+                    
+                    // Fetch other notification types using the public API
+                    for (const type of fetchNotificationTypes) {
+                        // Skip ALL_ADMINS as it's already handled with the admin API
+                        if (role === "ADMIN" && type === "ALL_ADMINS") continue;
+                        
+                        try {
+                            const systemResponse = await axios.get(
+                                `http://localhost:8100/api/user/public-notifications?userId=${userId}&type=${type}&page=${currentSystemPage}&size=${itemsPerPage}`,
+                                {
+                                    headers: {
+                                        Authorization: `Bearer ${token}`,
+                                        "Content-Type": "application/json",
+                                    },
+                                }
+                            );
+                            
+                            const systemData = systemResponse.data;
+                            console.log(`${type} notifications response:`, systemData);
+                            
+                            if (systemData.code === 200) {
+                                // Map the notifications to our format and add to collected notifications
+                                const typeNotifications = systemData.data.notifications.map(notif => ({
+                                    ...notif,
+                                    type: "system",
+                                    isRead: notif.isRead // Handle different property name
+                                }));
+                                allSystemNotifications = [...allSystemNotifications, ...typeNotifications];
+                                totalSystemNotificationsCount += systemData.data.totalNotifications || 0;
+                            }
+                        } catch (error) {
+                            console.error(`Error fetching ${type} notifications:`, error);
+                        }
+                    }
+                    
+                    // Sort all notifications by date
+                    const sortedSystemNotifications = allSystemNotifications
+                        .sort((a, b) => new Date(b.sentDate) - new Date(a.sentDate));
+                    
+                    // Apply pagination manually since we combined multiple API calls
+                    const paginatedSystemNotifications = sortedSystemNotifications.slice(0, itemsPerPage);
+                    
+                    setSystemNotifications(paginatedSystemNotifications);
+                    setTotalSystemNotifications(totalSystemNotificationsCount);
+                    
+                    const unreadSystemCount = paginatedSystemNotifications.filter(
+                        (notif) => !notif.isRead
+                    ).length;
+                    setMessageCount((prev) => prev + unreadSystemCount);
+                    console.log("Updated systemNotifications:", paginatedSystemNotifications);
+                } catch (error) {
+                    console.error("Error fetching system notifications:", error);
                 }
             } catch (error) {
                 console.error("Error fetching notifications:", error);
@@ -137,7 +300,7 @@ const ChatButton = () => {
                     ].sort((a, b) => new Date(b.sentDate) - new Date(a.sentDate)));
                     setMessageCount((prev) => prev + (!newNotification.isRead ? 1 : 0));
                     console.log("Added to updateNotifications:", newNotification);
-                } else if (newNotification.type === "system" && !isDuplicate(systemNotifications)) {
+                } else if (systemNotificationTypes.includes(newNotification.type.toLowerCase()) && !isDuplicate(systemNotifications)) {
                     setSystemNotifications((prev) => [
                         ...prev,
                         newNotification,
@@ -156,7 +319,22 @@ const ChatButton = () => {
         console.log("Current state - Job:", jobNotifications, "Update:", updateNotifications, "System:", systemNotifications);
 
         return () => disconnectWebSocket();
-    }, [currentUpdatePage, currentJobPage]);
+    }, [currentUpdatePage, currentJobPage, currentSystemPage]);
+
+    // Combine and sort notifications whenever job or update notifications change
+    useEffect(() => {
+        const combined = [...jobNotifications, ...updateNotifications]
+            .sort((a, b) => new Date(b.sentDate) - new Date(a.sentDate));
+        
+        // Calculate total for pagination
+        setTotalCombinedNotifications(totalJobNotifications + totalUpdateNotifications);
+        
+        // Apply pagination to combined notifications
+        const startIndex = currentCombinedPage * itemsPerPage;
+        const paginatedNotifications = combined.slice(startIndex, startIndex + itemsPerPage);
+        
+        setCombinedNotifications(paginatedNotifications);
+    }, [jobNotifications, updateNotifications, currentCombinedPage]);
 
     const toggleNotifications = () => {
         setShowNotifications(!showNotifications);
@@ -174,41 +352,18 @@ const ChatButton = () => {
             try {
                 let response;
                 if (notification.type === "update") {
-                    response = await fetch(
+                    response = await axios.put(
                         `http://localhost:8100/api/v1/updateNotification/mark-as-read/${notification.id}`,
+                        {},
                         {
-                            method: "PUT",
                             headers: {
                                 "Content-Type": "application/json",
                                 Authorization: `Bearer ${localStorage.getItem("token")}`,
                             },
                         }
                     );
-                } else if (notification.type === "job") {
-                    response = await fetch(
-                        `http://localhost:8100/api/v1/Notification/${notification.id}/mark-as-read`,
-                        {
-                            method: "PUT",
-                            headers: {
-                                "Content-Type": "application/json",
-                                Authorization: `Bearer ${localStorage.getItem("token")}`,
-                            },
-                        }
-                    );
-                } else if (notification.type === "system") {
-                    // No mark-as-read API for system notifications, update state manually
-                    console.log("Skipping mark-as-read for system notification:", notification.id);
-                    setSystemNotifications((prev) =>
-                        prev.map((notif) =>
-                            notif.id === notification.id ? { ...notif, isRead: true } : notif
-                        ).sort((a, b) => new Date(b.sentDate) - new Date(a.sentDate))
-                    );
-                    setMessageCount((prev) => prev - 1);
-                    //return; // Exit early to avoid the fetch block
-                }
-
-                if (response && response.ok) {
-                    if (notification.type === "update") {
+                    
+                    if (response && response.status === 200) {
                         setUpdateNotifications((prev) =>
                             prev
                                 .map((notif) =>
@@ -216,7 +371,21 @@ const ChatButton = () => {
                                 )
                                 .sort((a, b) => new Date(b.sentDate) - new Date(a.sentDate))
                         );
-                    } else if (notification.type === "job") {
+                        setMessageCount((prev) => prev - 1);
+                    }
+                } else if (notification.type === "job") {
+                    response = await axios.put(
+                        `http://localhost:8100/api/v1/Notification/${notification.id}/mark-as-read`,
+                        {},
+                        {
+                            headers: {
+                                "Content-Type": "application/json",
+                                Authorization: `Bearer ${localStorage.getItem("token")}`,
+                            },
+                        }
+                    );
+                    
+                    if (response && response.status === 200) {
                         setJobNotifications((prev) =>
                             prev
                                 .map((notif) =>
@@ -224,16 +393,55 @@ const ChatButton = () => {
                                 )
                                 .sort((a, b) => new Date(b.sentDate) - new Date(a.sentDate))
                         );
+                        setMessageCount((prev) => prev - 1);
                     }
-                    setMessageCount((prev) => prev - 1);
-                } else if (response) {
-                    console.error("Failed to mark notification as read:", await response.text());
+                // Check if notification type is any of the system notification types
+                } else if (systemNotificationTypes.includes(notification.type.toLowerCase())) {
+                    // Make API call to mark system notification as read
+                    try {
+                        response = await axios.put(
+                            `http://localhost:8100/api/user/notification/mark-as-read/${notification.id}`,
+                            {},
+                            {
+                                headers: {
+                                    "Content-Type": "application/json",
+                                    Authorization: `Bearer ${localStorage.getItem("token")}`,
+                                },
+                            }
+                        );
+                        
+                        console.log(`Marking ${notification.type} notification as read:`, notification.id, response);
+                    } catch (markError) {
+                        console.error(`API call failed for marking ${notification.type} notification as read:`, markError);
+                    }
+                    
+                    // Always update the UI state regardless of API response
+                    // This ensures the user sees the notification as read immediately
+                    setSystemNotifications((prev) =>
+                        prev.map((notif) =>
+                            notif.id === notification.id ? { ...notif, isRead: true } : notif
+                        ).sort((a, b) => new Date(b.sentDate) - new Date(a.sentDate))
+                    );
+                    
+                    // Decrease the message count
+                    setMessageCount((prev) => Math.max(0, prev - 1));
                 }
             } catch (error) {
-                console.error("Error marking notification as read:", error);
+                console.error("Error handling notification click:", error);
+                
+                // If API fails but the notification is a system type, still mark as read in UI
+                if (systemNotificationTypes.includes(notification.type.toLowerCase())) {
+                    setSystemNotifications((prev) =>
+                        prev.map((notif) =>
+                            notif.id === notification.id ? { ...notif, isRead: true } : notif
+                        ).sort((a, b) => new Date(b.sentDate) - new Date(a.sentDate))
+                    );
+                    setMessageCount((prev) => Math.max(0, prev - 1));
+                }
             }
         }
-
+    
+        // Handle navigation logic for different notification types
         if (notification.job) {
             setShowNotifications(false);
             
@@ -261,9 +469,9 @@ const ChatButton = () => {
                 window.location.href = `/job-details?jobId=${notification.job}`;
             }
         }
-
-        if(notification.type === "system"){
-            
+    
+        // Special handling for REPORT type notifications
+        if (notification.type.toLowerCase() === "report") {
             // Get role from JWT token
             const token = localStorage.getItem("token");
             if (token) {
@@ -273,7 +481,7 @@ const ChatButton = () => {
                     
                     // Redirect based on user role
                     if (role === "ADMIN"){
-                        window.location.href = `/a-report?userId=${notification.user}`;
+                        window.location.href = `/a-report?userId=${notification.recipientId}`;
                         setShowNotifications(false);
                     }
                 } catch (error) {
@@ -281,19 +489,44 @@ const ChatButton = () => {
                 }
             }
         }
+    
+        // Add any other special navigation handling for system notification types here
+        // For example:
+        // if (notification.type.toLowerCase() === "broadcast" && notification.actionUrl) {
+        //     window.location.href = notification.actionUrl;
+        //     setShowNotifications(false);
+        // }
     };
 
     const handlePageChange = (page, type) => {
-        if (type === "update") {
+        if (type === "combined") {
+            setCurrentCombinedPage(page);
+        } else if (type === "update") {
             setCurrentUpdatePage(page);
         } else if (type === "job") {
             setCurrentJobPage(page);
+        } else if (type === "system") {
+            setCurrentSystemPage(page);
         }
     };
 
     const renderPagination = (type) => {
-        const currentPage = type === "update" ? currentUpdatePage : currentJobPage;
-        const totalItems = type === "update" ? totalUpdateNotifications : totalJobNotifications;
+        let currentPage, totalItems;
+        
+        if (type === "combined") {
+            currentPage = currentCombinedPage;
+            totalItems = totalCombinedNotifications;
+        } else if (type === "update") {
+            currentPage = currentUpdatePage;
+            totalItems = totalUpdateNotifications;
+        } else if (type === "job") {
+            currentPage = currentJobPage;
+            totalItems = totalJobNotifications;
+        } else if (type === "system") {
+            currentPage = currentSystemPage;
+            totalItems = totalSystemNotifications;
+        }
+        
         const totalPages = Math.ceil(totalItems / itemsPerPage);
         
         if (totalPages <= 1) return null; // Don't show pagination if only one page
@@ -308,8 +541,21 @@ const ChatButton = () => {
                     Prev
                 </button>
                 {Array.from({ length: Math.min(totalPages, 3) }, (_, i) => {
-                    const pageNum = i + Math.max(0, currentPage - 1);
-                    if (pageNum < totalPages) {
+                    // Calculate page numbers to show based on current page position
+                    let pageNum;
+                    if (currentPage === 0) {
+                        // At first page, show pages 0, 1, 2
+                        pageNum = i;
+                    } else if (currentPage === totalPages - 1) {
+                        // At last page, show last 3 pages
+                        pageNum = totalPages - 3 + i;
+                    } else {
+                        // In middle, center around current page
+                        pageNum = i + Math.max(0, currentPage - 1);
+                    }
+                    
+                    // Only render if page number is valid
+                    if (pageNum >= 0 && pageNum < totalPages) {
                         return (
                             <button
                                 key={pageNum}
@@ -378,35 +624,32 @@ const ChatButton = () => {
 
                     <div className="space-y-2 divide-y divide-gray-100">
                         {activeTab === "updates" ? (
-                            (jobNotifications.length > 0 || updateNotifications.length > 0 ? (
-                                [...jobNotifications, ...updateNotifications]
-                                    //.filter(notif => notif.type === "job" || notif.type === "update") // Add explicit filter
-                                    .sort((a, b) => new Date(b.sentDate) - new Date(a.sentDate))
-                                    .map((notif) => (
-                                        <div
-                                            key={`${notif.type}-${notif.id}`}
-                                            className={`py-2 sm:py-3 px-2 cursor-pointer rounded-lg transition-all duration-200 ${
-                                                notif.isRead 
-                                                    ? "bg-gray-50 hover:bg-gray-100" 
-                                                    : "bg-blue-50 hover:bg-blue-100 border-l-4 border-blue-500"
-                                            }`}
-                                            onClick={() => handleNotificationClick(notif)}
-                                        >
-                                            <p className={`text-xs sm:text-sm mb-1 ${
-                                                notif.isRead ? "text-gray-500" : "text-gray-800 font-medium"
-                                            }`}>
-                                                {notif.message}
-                                            </p>
-                                            <div className="flex items-center">
-                                                <small className="text-[10px] sm:text-xs text-gray-400">
-                                                    {new Date(notif.sentDate).toLocaleString()}
-                                                </small>
-                                                {!notif.isRead && (
-                                                    <span className="ml-auto h-2 w-2 bg-blue-500 rounded-full"></span>
-                                                )}
-                                            </div>
+                            (combinedNotifications.length > 0 ? (
+                                combinedNotifications.map((notif) => (
+                                    <div
+                                        key={`${notif.type}-${notif.id}`}
+                                        className={`py-2 sm:py-3 px-2 cursor-pointer rounded-lg transition-all duration-200 ${
+                                            notif.isRead 
+                                                ? "bg-gray-50 hover:bg-gray-100" 
+                                                : "bg-blue-50 hover:bg-blue-100 border-l-4 border-blue-500"
+                                        }`}
+                                        onClick={() => handleNotificationClick(notif)}
+                                    >
+                                        <p className={`text-xs sm:text-sm mb-1 ${
+                                            notif.isRead ? "text-gray-500" : "text-gray-800 font-medium"
+                                        }`}>
+                                            {notif.message}
+                                        </p>
+                                        <div className="flex items-center">
+                                            <small className="text-[10px] sm:text-xs text-gray-400">
+                                                {new Date(notif.sentDate).toLocaleString()}
+                                            </small>
+                                            {!notif.isRead && (
+                                                <span className="ml-auto h-2 w-2 bg-blue-500 rounded-full"></span>
+                                            )}
                                         </div>
-                                    ))
+                                    </div>
+                                ))
                             ) : (
                                 <div className="flex flex-col items-center justify-center py-6 sm:py-8 text-center">
                                     <p className="text-gray-500 text-xs sm:text-sm mb-2">No updates available</p>
@@ -424,39 +667,48 @@ const ChatButton = () => {
                                     </svg>
                                 </div>
                             ) : (
-                                systemNotifications
-                                    //.filter((notif) => notif.type === "system")
-                                    .sort((a, b) => new Date(b.sentDate) - new Date(a.sentDate))
-                                    .map((notif) => (
-                                        <div
-                                            key={`${notif.type}-${notif.id}`}
-                                            className={`py-2 sm:py-3 px-2 cursor-pointer rounded-lg transition-all duration-200 ${
-                                                notif.isRead 
-                                                    ? "bg-gray-50 hover:bg-gray-100" 
-                                                    : "bg-yellow-50 hover:bg-yellow-100 border-l-4 border-yellow-500"
-                                            }`}
-                                            onClick={() => handleNotificationClick(notif)}
-                                        >
-                                            <p className={`text-xs sm:text-sm mb-1 ${
-                                                notif.isRead ? "text-gray-500" : "text-gray-800 font-medium"
-                                            }`}>
-                                                {notif.message}
-                                            </p>
-                                            <div className="flex items-center">
-                                                <small className="text-[10px] sm:text-xs text-gray-400">
-                                                    {new Date(notif.sentDate).toLocaleString()}
-                                                </small>
-                                                {!notif.isRead && (
-                                                    <span className="ml-auto h-2 w-2 bg-yellow-500 rounded-full"></span>
-                                                )}
-                                            </div>
-                                        </div>
-                                    ))
+                                <>
+                                    <div className="space-y-2 divide-y divide-gray-100">
+                                        {systemNotifications
+                                            .sort((a, b) => new Date(b.sentDate) - new Date(a.sentDate))
+                                            .map((notif) => (
+                                                <div
+                                                    key={`${notif.type}-${notif.id}`}
+                                                    className={`py-2 sm:py-3 px-2 cursor-pointer rounded-lg transition-all duration-200 ${
+                                                        notif.isRead 
+                                                            ? "bg-gray-50 hover:bg-gray-100" 
+                                                            : "bg-yellow-50 hover:bg-yellow-100 border-l-4 border-yellow-500"
+                                                    }`}
+                                                    onClick={() => handleNotificationClick(notif)}
+                                                >
+                                                    <p className={`text-xs sm:text-sm mb-1 ${
+                                                        notif.isRead ? "text-gray-500" : "text-gray-800 font-medium"
+                                                    }`}>
+                                                        {notif.message}
+                                                    </p>
+                                                    <div className="flex items-center">
+                                                        <small className="text-[10px] sm:text-xs text-gray-400">
+                                                            {new Date(notif.sentDate).toLocaleString()}
+                                                        </small>
+                                                        {!notif.isRead && (
+                                                            <span className="ml-auto h-2 w-2 bg-yellow-500 rounded-full"></span>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            ))}
+                                    </div>
+                                    {renderPagination("system")}
+                                </>
                             )
                         )}
                     </div>
 
-                    {activeTab === "updates" && renderPagination("update")}
+                    {activeTab === "updates" && totalCombinedNotifications > itemsPerPage && (
+                        <div className="mt-4">
+                            <div className="text-xs text-gray-500 mb-1 text-center">Notifications</div>
+                            {renderPagination("combined")}
+                        </div>
+                    )}
                 </div>
             )}
         </div>

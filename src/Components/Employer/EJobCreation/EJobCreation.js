@@ -159,19 +159,21 @@ export default function JobCreationForm() {
   };
 
   const validateTimes = () => {
-    // New validation: Check if start time is before end time
     const startTimeInMinutes = formData.startTime.hour * 60 + formData.startTime.minute;
     const endTimeInMinutes = formData.endTime.hour * 60 + formData.endTime.minute;
+    
     if (startTimeInMinutes >= endTimeInMinutes) {
       setErrors({ ...errors, timeRange: "Start time must be before end time" });
       return false;
     }
-    return true; // Add this line to return true when validation passes
+    
+    return true;
   }
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setNotification({ message: "", status: "" }); // Clear previous notifications
 
     if (!validateForm()) {
       setIsSubmitting(false);
@@ -185,7 +187,6 @@ export default function JobCreationForm() {
     }
 
     if (!validateTimes()) {
-      setErrors({ ...errors, timeRange: "Start time must be before end time" });
       setIsSubmitting(false);
       return;
     }
@@ -219,13 +220,14 @@ export default function JobCreationForm() {
       });
       
       setSubmittedData(response.data);
+      
       // Show success notification
       setNotification({
         message: "Job created successfully!",
         status: "success"
       });
       
-      // Reset form
+      // Reset form completely except for employer ID
       setFormData({
         jobDescription: "",
         jobTitle: "",
@@ -239,17 +241,17 @@ export default function JobCreationForm() {
         employer: formData.employer,
         status: true
       });
+      
+      // Clear all errors
+      setErrors({});
+      
     } catch (error) {
       console.error('API Error:', error);
+      
       // Show error notification
       setNotification({
         message: error.response?.data?.message || "Failed to create job. Please try again.",
         status: "error"
-      });
-      
-      setErrors({ 
-        ...errors, 
-        submit: error.response?.data?.message || "Failed to create job. Please try again." 
       });
     } finally {
       setIsSubmitting(false);
@@ -476,11 +478,14 @@ export default function JobCreationForm() {
 
       {/* Notification Box */}
       {notification.message && (
-        <SubmitNotiBox 
-          message={notification.message} 
-          status={notification.status} 
-          duration={5000}
-        />
+        <div className="fixed bottom-4 right-4">
+          <SubmitNotiBox 
+            message={notification.message} 
+            status={notification.status} 
+            duration={5000}
+            onClose={() => setNotification({ message: "", status: "" })}
+          />
+        </div>
       )}
     </div>
   );

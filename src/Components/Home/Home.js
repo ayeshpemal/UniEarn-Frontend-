@@ -65,6 +65,14 @@ export function Home() {
     }
   }, [currentPage, isSearchResult]);
 
+  // Add this useEffect to handle pagination during search
+  useEffect(() => {
+    // If we're in search mode and the page changes, we need to refresh the search results
+    if (isSearchResult && !loading) {
+      searchJobs();
+    }
+  }, [currentPage]);
+
   const searchJobs = async () => {
     setLoading(true);
     setSearchError(null);

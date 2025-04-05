@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { X } from "lucide-react";
@@ -11,12 +11,33 @@ const ADDRESS_OPTIONS = [
     "TRINCOMALEE", "VAUNIYA"
 ];
 
+const UNIVERSITY_OPTIONS = [
+    { name: "University of Peradeniya", suffix: "pdn.ac.lk" },
+    { name: "University of Ruhuna", suffix: "ruh.ac.lk" },
+    { name: "University of Jaffna", suffix: "jfn.ac.lk" },
+    { name: "University of Moratuwa", suffix: "uom.lk" },
+    { name: "University of Kelaniya", suffix: "kln.ac.lk" },
+    { name: "University of Sri Jayewardenepura", suffix: "sjp.ac.lk" },
+    { name: "University of Colombo", suffix: "cmb.ac.lk" },
+    { name: "Eastern University", suffix: "esn.ac.lk" },
+    { name: "South Eastern University", suffix: "seu.ac.lk" },
+    { name: "Rajarata University", suffix: "rjt.ac.lk" },
+    { name: "Sabaragamuwa University", suffix: "sab.ac.lk" },
+    { name: "Wayamba University", suffix: "wyb.ac.lk" },
+    { name: "Uva Wellassa University", suffix: "uwu.ac.lk" },
+    { name: "University of Vavuniya", suffix: "vau.ac.lk" },
+    { name: "The Open University", suffix: "ou.ac.lk" },
+    { name: "University of the Visual & Performing Arts", suffix: "vpa.ac.lk" }
+];
+
 const Signup = () => {
     const navigate = useNavigate();
     const [showVerificationPopup, setShowVerificationPopup] = useState(false);
     const [showErrorPopup, setShowErrorPopup] = useState(false);
     const [errorMessage, setErrorMessage] = useState("");
     const [isResendSuccess, setIsResendSuccess] = useState(false);
+    const [emailPrefix, setEmailPrefix] = useState("");
+    const [emailSuffix, setEmailSuffix] = useState("");
 
     const [formData, setFormData] = useState({
         userName: "",
@@ -33,22 +54,47 @@ const Signup = () => {
         preferences: [],
     });
 
+    useEffect(() => {
+        // Update the email field when university changes
+        if (emailPrefix && emailSuffix) {
+            setFormData((prev) => ({
+                ...prev,
+                email: `${emailPrefix}${emailSuffix}`,
+            }));
+        }
+    }, [emailPrefix, emailSuffix]);
+
     const handleInputChange = (e) => {
         const { name, value } = e.target;
 
-        setFormData((prev) => {
-            if (name === "contactNumbers") {
-                return {
+        if (name === "university") {
+            const selectedUniversity = UNIVERSITY_OPTIONS.find(uni => uni.name === value);
+            setEmailSuffix(selectedUniversity ? selectedUniversity.suffix : "");
+            setFormData((prev) => ({
+                ...prev,
+                university: value,
+                // Reset email if university changes
+                email: emailPrefix ? `${emailPrefix}${selectedUniversity ? selectedUniversity.suffix : ""}` : "",
+            }));
+        } else if (name === "emailPrefix") {
+            setEmailPrefix(value);
+            if (emailSuffix) {
+                setFormData((prev) => ({
                     ...prev,
-                    contactNumbers: value.split(",").map((num) => num.trim()),
-                };
-            } else {
-                return {
-                    ...prev,
-                    [name]: value,
-                };
+                    email: `${value}${emailSuffix}`,
+                }));
             }
-        });
+        } else if (name === "contactNumbers") {
+            setFormData((prev) => ({
+                ...prev,
+                contactNumbers: value.split(",").map((num) => num.trim()),
+            }));
+        } else {
+            setFormData((prev) => ({
+                ...prev,
+                [name]: value,
+            }));
+        }
     };
 
     const handleSubmit = async (e) => {
@@ -158,27 +204,40 @@ const Signup = () => {
                                 value={formData.university}
                             >
                                 <option value="">Choose Your University</option>
-                                <option value="University of Colombo">University of Colombo</option>
-                                <option value="University of Peradeniya">University of Peradeniya</option>
-                                <option value="University of Sri Jayewardenepura">University of Sri Jayewardenepura</option>
-                                <option value="University of Kelaniya">University of Kelaniya</option>
-                                <option value="University of Moratuwa">University of Moratuwa</option>
-                                <option value="University of Jaffna">University of Jaffna</option>
-                                <option value="University of Ruhuna">University of Ruhuna</option>
-                                <option value="Other">Other</option>
+                                {UNIVERSITY_OPTIONS.map((uni) => (
+                                    <option key={uni.name} value={uni.name}>
+                                        {uni.name}
+                                    </option>
+                                ))}
                             </select>
                         </div>
 
                         {/* Email */}
-                        <div>
-                            <input
-                                type="email"
-                                placeholder="University Email"
-                                className="form-input w-full px-4 py-3 rounded-lg text-color focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                name="email"
-                                required
-                                onChange={handleInputChange}
-                                value={formData.email}
+                        <div className="sm:col-span-2">
+                            <div className="mb-1 text-xs text-white">
+                                Please enter your student ID or username (everything  before {emailSuffix})
+                            </div>
+                            <div className="flex rounded-lg overflow-hidden form-input p-0">
+                                <input
+                                    type="text"
+                                    placeholder="Student ID/Username"
+                                    className="w-full px-4 py-3 outline-none border-0 text-color bg-transparent flex-1"
+                                    name="emailPrefix"
+                                    required
+                                    onChange={handleInputChange}
+                                    value={emailPrefix}
+                                    disabled={!emailSuffix}
+                                />
+                                {emailSuffix && (
+                                    <div className="bg-transparent px-4 py-3 text-color flex items-center border-0">
+                                        {emailSuffix}
+                                    </div>
+                                )}
+                            </div>
+                            <input 
+                                type="hidden" 
+                                name="email" 
+                                value={formData.email} 
                             />
                         </div>
 

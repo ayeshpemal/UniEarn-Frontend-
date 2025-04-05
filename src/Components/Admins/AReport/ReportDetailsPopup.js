@@ -42,6 +42,76 @@ const ReportDetailsPopup = ({
     );
   };
 
+  // Report Type information component
+  const ReportTypeBadge = ({ reportType }) => {
+    // Map report types to their penalty scores and descriptions
+    const reportTypeInfo = {
+      'Harassment_and_Safety_Issues': {
+        penalty: 8,
+        description: 'Sexual Harassment, Verbal Abuse, Threatening Behavior, etc.',
+        color: 'bg-red-500'
+      },
+      'Fraud_and_Payment_Issues': {
+        penalty: 7,
+        description: 'Non-payment for Work, Delayed Payments, Payment Amount Disputes, etc.',
+        color: 'bg-orange-500'
+      },
+      'Inappropriate_Content': {
+        penalty: 6,
+        description: 'Inappropriate Images/Videos, Offensive Language, Adult Content, etc.',
+        color: 'bg-yellow-500'
+      },
+      'Identity_Misrepresentation': {
+        penalty: 5,
+        description: 'Fake Company/Business, False University Affiliation, Impersonating Another User, etc.',
+        color: 'bg-indigo-500'
+      },
+      'Job_Misrepresentation': {
+        penalty: 4,
+        description: 'False Job Description, Hidden Job Requirements, Misleading Salary Information, etc.',
+        color: 'bg-blue-500'
+      },
+      'Professional_Conduct_Issues': {
+        penalty: 3,
+        description: 'No-show at Work, Unprofessional Communication, Excessive Personal Questions, etc.',
+        color: 'bg-cyan-500'
+      },
+      'Work_Environment_Concerns': {
+        penalty: 2,
+        description: 'Miscommunication, Schedule Conflicts, Task Completion Disagreements, etc.',
+        color: 'bg-teal-500'
+      },
+      'Other': {
+        penalty: 1,
+        description: 'For any issues that don\'t fit into above categories',
+        color: 'bg-gray-500'
+      }
+    };
+    
+    const info = reportTypeInfo[reportType] || {
+      penalty: '-',
+      description: 'Unknown report type',
+      color: 'bg-gray-500'
+    };
+    
+    const formattedType = reportType?.replace(/_/g, ' ') || 'Unknown';
+    
+    return (
+      <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
+        <div className="flex items-center justify-between mb-2">
+          <span className="font-medium text-gray-800">{formattedType}</span>
+          <span className={`${info.color} text-white text-xs font-bold px-2.5 py-1 rounded-full flex items-center`}>
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 mr-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+            Penalty Score: {info.penalty}
+          </span>
+        </div>
+        <p className="text-sm text-gray-600">{info.description}</p>
+      </div>
+    );
+  };
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4 overflow-y-auto backdrop-blur-sm">
       <div 
@@ -86,6 +156,17 @@ const ReportDetailsPopup = ({
                 {formatDate(report.reportDate)}
               </p>
             </div>
+          </div>
+          
+          {/* Report Type Section - NEW */}
+          <div className="mb-6">
+            <div className="flex items-center mb-2">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-purple-700 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              <h4 className="font-medium text-purple-700">Report Type</h4>
+            </div>
+            <ReportTypeBadge reportType={report.reportType} />
           </div>
           
           {/* Users Information */}

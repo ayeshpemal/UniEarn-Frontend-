@@ -70,6 +70,9 @@ const ANotification = () => {
                 case "students":
                     endpoint = "http://localhost:8100/api/admin/notification/send-to-all-students";
                     break;
+                case "admins":
+                    endpoint = "http://localhost:8100/api/admin/notification/send-to-all-admins";
+                    break;
                 case "specific":
                     endpoint = `http://localhost:8100/api/admin/notification/send-to-user/${userId}`;
                     break;
@@ -235,7 +238,7 @@ const ANotification = () => {
                     {/* Recipient Selection - Enhanced cards with icons */}
                     <div className="mb-6">
                         <h3 className="text-lg font-medium text-gray-700 mb-3">Select Recipients</h3>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
                             <div 
                                 onClick={() => setRecipientType("broadcast")}
                                 className={`p-4 border rounded-lg flex flex-col items-center cursor-pointer transition-all ${
@@ -278,6 +281,20 @@ const ANotification = () => {
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l9-5-9-5-9 5 9 5zm0 0l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14zm-4 6v-7.5l4-2.222" />
                                 </svg>
                                 <span className="font-medium">All Students</span>
+                            </div>
+                            
+                            <div 
+                                onClick={() => setRecipientType("admins")}
+                                className={`p-4 border rounded-lg flex flex-col items-center cursor-pointer transition-all ${
+                                    recipientType === "admins"
+                                        ? "bg-blue-50 border-blue-300 shadow-sm text-blue-700"
+                                        : "bg-white hover:bg-gray-50 border-gray-200 text-gray-700"
+                                }`}
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <span className="font-medium">All Admins</span>
                             </div>
                             
                             <div 
@@ -396,6 +413,12 @@ const ANotification = () => {
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                                     </svg>
                                     <span><strong>All Students:</strong> Send a notification only to student accounts</span>
+                                </li>
+                                <li className="flex items-start">
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-blue-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                    <span><strong>All Admins:</strong> Send a notification only to admin accounts</span>
                                 </li>
                                 <li className="flex items-start">
                                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-blue-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
