@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { FaTrash, FaPlus } from "react-icons/fa";
 import axios from "axios";
 import { jwtDecode } from "jwt-decode";
+import SubmitNotiBox from "../../SubmitNotiBox/SubmitNotiBox";
 
 const LOCATIONS = [
   "AMPARA", "ANURADHAPURA", "BADULLA", "BATTICALOA", "COLOMBO", "GALLE",
@@ -38,6 +39,7 @@ export default function JobCreationForm() {
   const [errors, setErrors] = useState({});
   const [submittedData, setSubmittedData] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [notification, setNotification] = useState({ message: "", status: "" });
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -156,9 +158,22 @@ export default function JobCreationForm() {
     );
   };
 
+  const validateTimes = () => {
+    const startTimeInMinutes = formData.startTime.hour * 60 + formData.startTime.minute;
+    const endTimeInMinutes = formData.endTime.hour * 60 + formData.endTime.minute;
+    
+    if (startTimeInMinutes >= endTimeInMinutes) {
+      setErrors({ ...errors, timeRange: "Start time must be before end time" });
+      return false;
+    }
+    
+    return true;
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setNotification({ message: "", status: "" }); // Clear previous notifications
 
     if (!validateForm()) {
       setIsSubmitting(false);
@@ -171,6 +186,11 @@ export default function JobCreationForm() {
       return;
     }
 
+    if (!validateTimes()) {
+      setIsSubmitting(false);
+      return;
+    }
+
     const token = localStorage.getItem('token');
     if (!token) {
       setErrors({ ...errors, auth: "Authentication required" });
@@ -178,16 +198,16 @@ export default function JobCreationForm() {
       return;
     }
 
-    // Format the data for the API, converting startTime and endTime to strings
+    // Format the data for the API
     const formattedData = {
       ...formData,
       jobLocations: formData.jobLocations.map(loc => ({
         ...loc,
-        startDate: new Date(loc.startDate).toISOString(),
-        endDate: new Date(loc.endDate).toISOString()
+        startDate: `${loc.startDate}T00:00:00`, // Fixed time 00:00:00
+        endDate: `${loc.endDate}T06:00:00`      // Fixed time 06:00:00
       })),
-      startTime: formatTimeForAPI(formData.startTime), // "HH:mm:ss"
-      endTime: formatTimeForAPI(formData.endTime),     // "HH:mm:ss"
+      startTime: formatTimeForAPI(formData.startTime), // Keep original dynamic time
+      endTime: formatTimeForAPI(formData.endTime),     // Keep original dynamic time
       employer: Number(formData.employer)
     };
 
@@ -200,6 +220,14 @@ export default function JobCreationForm() {
       });
       
       setSubmittedData(response.data);
+      
+      // Show success notification
+      setNotification({
+        message: "Job created successfully!",
+        status: "success"
+      });
+      
+      // Reset form completely except for employer ID
       setFormData({
         jobDescription: "",
         jobTitle: "",
@@ -213,11 +241,17 @@ export default function JobCreationForm() {
         employer: formData.employer,
         status: true
       });
+      
+      // Clear all errors
+      setErrors({});
+      
     } catch (error) {
       console.error('API Error:', error);
-      setErrors({ 
-        ...errors, 
-        submit: error.response?.data?.message || "Failed to create job. Please try again." 
+      
+      // Show error notification
+      setNotification({
+        message: error.response?.data?.message || "Failed to create job. Please try again.",
+        status: "error"
       });
     } finally {
       setIsSubmitting(false);
@@ -336,6 +370,10 @@ export default function JobCreationForm() {
           </div>
         </div>
 
+        {errors.timeRange && (
+          <div className="text-red-500 text-sm mt-1 text-center">{errors.timeRange}</div>
+        )}
+
         {/* Required Gender */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Required Gender</label>
@@ -429,16 +467,24 @@ export default function JobCreationForm() {
           {isSubmitting ? 'Submitting...' : 'Create Job'}
         </button>
 
-        {errors.submit && <p className="text-red-500 text-sm text-center">{errors.submit}</p>}
+        {Object.keys(errors).length > 0 && errors.submit && (
+          <SubmitNotiBox
+            message={errors.submit}
+            status="error"
+            duration={5000}
+          />
+        )}
       </form>
 
-      {/* Display Submitted Data */}
-      {submittedData && (
-        <div className="mt-8 p-6 bg-gray-100 rounded-xl">
-          <h3 className="text-xl font-semibold mb-3 text-gray-800">Job Created Successfully!</h3>
-          <pre className="text-sm bg-white p-4 rounded-lg overflow-auto max-h-96">
-            {JSON.stringify(submittedData, null, 2)}
-          </pre>
+      {/* Notification Box */}
+      {notification.message && (
+        <div className="fixed bottom-4 right-4">
+          <SubmitNotiBox 
+            message={notification.message} 
+            status={notification.status} 
+            duration={5000}
+            onClose={() => setNotification({ message: "", status: "" })}
+          />
         </div>
       )}
     </div>

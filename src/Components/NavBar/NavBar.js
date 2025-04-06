@@ -42,7 +42,7 @@ const NavBar = () => {
                     <NavLink to="/profile" className="hover:underline flex items-center gap-1">
                         <User size={20} /> Profile
                     </NavLink>
-                    <NavLink to="/contact-us" className="hover:underline flex items-center gap-1">
+                    <NavLink to="/p-contact-us" className="hover:underline flex items-center gap-1">
                         <Phone size={20} /> Contact
                     </NavLink>
                     <button
@@ -83,7 +83,7 @@ const NavBar = () => {
                     <NavLink to="/profile" className="hover:underline flex items-center gap-2" onClick={() => setMenuOpen(false)}>
                         <User size={24} /> Profile
                     </NavLink>
-                    <NavLink to="/contact-us" className="hover:underline flex items-center gap-2" onClick={() => setMenuOpen(false)}>
+                    <NavLink to="/p-contact-us" className="hover:underline flex items-center gap-2" onClick={() => setMenuOpen(false)}>
                         <Phone size={24} /> Contact
                     </NavLink>
                     <button

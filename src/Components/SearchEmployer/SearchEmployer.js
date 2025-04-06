@@ -1,28 +1,145 @@
 import axios from "axios";
 import React, { useState, useEffect } from "react";
 import { jwtDecode } from "jwt-decode";
-import SearchEmployerBar from "../SearchEmployerBar/SearchEmployerBar"; // Assuming this is the correct import path
+import SearchEmployerBar from "../SearchEmployerBar/SearchEmployerBar";
+import { ChevronLeft, ChevronRight, UserCheck, User, Loader, Building } from "lucide-react";
 
-// Hero Section Component
-const HeroSectionEmployer = ({ onSearchResults }) => {
+// Hero Section Component with enhanced styling
+const HeroSectionEmployer = ({ onSearchResults, currentPage }) => {
   return (
     <div>
       <header
-        className="relative flex flex-col justify-center items-center text-white text-align h-[70vh] bg-cover bg-center px-6"
+        className="relative h-[60vh] bg-cover bg-center"
         style={{ backgroundImage: 'url("https://images.unsplash.com/photo-1559136555-9303baea8ebd?auto=format&fit=crop&q=80")' }}
       >
-        <div className="absolute inset-0 bg-black bg-opacity-50" />
-        <div className="relative z-10 text-center">
-          <h1 className="text-4xl md:text-6xl font-bold text-white">
-            Connect with <br />
-            <span className="text-blue-400">Employers</span>
-          </h1>
-          <SearchEmployerBar onSearchResults={onSearchResults} />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/80 to-black/40 backdrop-blur-[1px]">
+          <div className="max-w-7xl mx-auto h-full flex flex-col justify-end pb-24 px-4 sm:px-6">
+            <div className="animate-fadeIn">
+              <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-white tracking-tight drop-shadow-md mt-20">
+                Connect with <br />
+                <span className="text-blue-400 drop-shadow-lg">Employers</span>
+              </h1>
+            </div>
+            <SearchEmployerBar onSearchResults={onSearchResults} currentPage={currentPage} />
+          </div>
         </div>
       </header>
     </div>
   );
 };
+
+// Simplified Pagination Component
+const Pagination = ({ currentPage, totalPages, onPageChange }) => {
+  return (
+    <div className="flex items-center justify-center mt-8 mb-4">
+      <div className="inline-flex rounded-md shadow-sm">
+        <button
+          onClick={() => onPageChange(currentPage - 1)}
+          disabled={currentPage === 0}
+          className={`px-4 py-2 text-sm font-medium rounded-l-md border ${
+            currentPage === 0 
+              ? "bg-gray-100 text-gray-400 cursor-not-allowed border-gray-200" 
+              : "bg-white text-blue-600 hover:bg-blue-50 border-gray-200"
+          }`}
+          aria-label="Previous page"
+        >
+          <ChevronLeft size={18} />
+        </button>
+        
+        <div className="px-4 py-2 text-sm font-medium bg-white text-gray-700 border-t border-b border-gray-200">
+          Page {currentPage + 1} of {Math.max(1, totalPages)}
+        </div>
+        
+        <button
+          onClick={() => onPageChange(currentPage + 1)}
+          disabled={currentPage >= totalPages - 1}
+          className={`px-4 py-2 text-sm font-medium rounded-r-md border ${
+            currentPage >= totalPages - 1 
+              ? "bg-gray-100 text-gray-400 cursor-not-allowed border-gray-200" 
+              : "bg-white text-blue-600 hover:bg-blue-50 border-gray-200"
+          }`}
+          aria-label="Next page"
+        >
+          <ChevronRight size={18} />
+        </button>
+      </div>
+    </div>
+  );
+};
+
+// Employer Card Component for cleaner code organization
+const EmployerCard = ({ employer, profilePicture, isFollowing, onFollowToggle, defaultProfilePicture }) => {
+  // Generate a UI Avatar URL based on company name
+  const uiAvatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(employer.companyName)}&background=random`;
+  
+  return (
+    <div className="bg-white rounded-lg shadow-md overflow-hidden transition-all duration-300 hover:shadow-lg transform hover:-translate-y-1">
+      <div className="p-6 flex flex-col items-center text-center">
+        <div className="relative">
+          <img
+            src={profilePicture || uiAvatarUrl}
+            alt={employer.companyName}
+            className="w-24 h-24 rounded-full object-cover mb-4 border-2 border-gray-200"
+            onError={(e) => (e.target.src = uiAvatarUrl)}
+          />
+          {isFollowing && (
+            <div className="absolute -right-1 -bottom-1 bg-green-500 text-white p-1 rounded-full">
+              <UserCheck size={16} />
+            </div>
+          )}
+        </div>
+        <h3 className="text-lg font-medium text-gray-900">{employer.companyName}</h3>
+        <p className="text-sm text-gray-600 mb-2">{employer.companyDetails}</p>
+        <p className="text-xs text-gray-500 mb-4">{employer.location}</p>
+        
+        <button
+          onClick={() => onFollowToggle(employer.userId)}
+          className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 w-full flex items-center justify-center ${
+            isFollowing
+              ? "bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-300"
+              : "bg-blue-600 text-white hover:bg-blue-700"
+          }`}
+        >
+          {isFollowing ? (
+            <>
+              <UserCheck size={16} className="mr-2" /> Following
+            </>
+          ) : (
+            <>
+              <User size={16} className="mr-2" /> Follow
+            </>
+          )}
+        </button>
+      </div>
+    </div>
+  );
+};
+
+// Loading state component
+const LoadingState = () => (
+  <div className="flex flex-col items-center justify-center py-12">
+    <Loader size={40} className="text-blue-500 animate-spin mb-4" />
+    <p className="text-gray-600">Loading employers...</p>
+  </div>
+);
+
+// No results component
+const NoResults = ({ searchTerm }) => (
+  <div className="text-center py-12 px-4">
+    <div className="bg-blue-50 rounded-lg p-8 max-w-md mx-auto">
+      <Building size={48} className="text-blue-400 mx-auto mb-4" />
+      <h3 className="text-xl font-medium text-gray-900 mb-2">No employers found</h3>
+      <p className="text-gray-600 mb-4">
+        {searchTerm 
+          ? `We couldn't find any employers matching "${searchTerm}"`
+          : "Try searching for employers by company name"}
+      </p>
+      <p className="text-sm text-gray-500">
+        Try using different keywords or check your spelling
+      </p>
+    </div>
+  </div>
+);
 
 // Main Employers Page Component
 const EmployersPage = () => {
@@ -30,6 +147,11 @@ const EmployersPage = () => {
   const [followingStatus, setFollowingStatus] = useState({});
   const [currentStudentId, setCurrentStudentId] = useState(null);
   const [profilePictureUrls, setProfilePictureUrls] = useState({});
+  const [currentPage, setCurrentPage] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+  const [currentSearchTerm, setCurrentSearchTerm] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const EMPLOYERS_PER_PAGE = 10;
 
   // Extract current student ID from JWT token on mount
   useEffect(() => {
@@ -38,7 +160,7 @@ const EmployersPage = () => {
       try {
         const decoded = jwtDecode(token);
         console.log("Decoded JWT:", decoded);
-        const userId = decoded.user_id; // Matches token structure: "user_id": 1
+        const userId = decoded.user_id;
         if (!userId) {
           throw new Error("User ID not found in token");
         }
@@ -51,6 +173,27 @@ const EmployersPage = () => {
       alert("No authentication token found. Please log in.");
     }
   }, []);
+
+  // Handle search results and calculate pagination
+  const handleSearchResults = (results, searchTerm) => {
+    setSearchResults(results);
+    setCurrentSearchTerm(searchTerm);
+    setIsLoading(false);
+    
+    // Calculate total pages based on total employers
+    // If your API doesn't return a totalEmployers count, you can estimate it
+    const totalEmployers = results.totalEmployers || results.employers?.length || 0;
+    const calculatedTotalPages = Math.ceil(totalEmployers / EMPLOYERS_PER_PAGE);
+    setTotalPages(calculatedTotalPages || 1); // Ensure at least 1 page
+  };
+
+  // Handle page change
+  const handlePageChange = (newPage) => {
+    if (newPage >= 0 && newPage < totalPages) {
+      setIsLoading(true);
+      setCurrentPage(newPage);
+    }
+  };
 
   // Update following status and fetch profile pictures when search results change
   useEffect(() => {
@@ -69,22 +212,27 @@ const EmployersPage = () => {
       const fetchProfilePictureUrls = async () => {
         const urls = {};
         for (const employer of filteredEmployers) {
-          try {
-            const response = await axios.get(
-              `http://localhost:8100/api/user/${employer.userId}/profile-picture`,
-              {
-                headers: {
-                  "Authorization": `Bearer ${localStorage.getItem("token")}`,
-                  "Content-Type": "application/json",
-                },
-              }
-            );
-            console.log(`Profile picture response for user ${employer.userId}:`, response.data);
-            const pictureUrl = response.data.data || null;
-            urls[employer.userId] = pictureUrl;
-          } catch (error) {
-            console.error(`Failed to fetch profile picture URL for user ${employer.userId}:`, error.response?.data || error.message);
-            urls[employer.userId] = null;
+          // Check if the user already has a profile picture URL
+          if (employer.profilePictureUrl) {
+            urls[employer.userId] = employer.profilePictureUrl;
+          } else {
+            try {
+              const response = await axios.get(
+                `http://localhost:8100/api/user/${employer.userId}/profile-picture`,
+                {
+                  headers: {
+                    "Authorization": `Bearer ${localStorage.getItem("token")}`,
+                    "Content-Type": "application/json",
+                  },
+                }
+              );
+              console.log(`Profile picture response for user ${employer.userId}:`, response.data);
+              const pictureUrl = response.data.data || null;
+              urls[employer.userId] = pictureUrl;
+            } catch (error) {
+              console.error(`Failed to fetch profile picture URL for user ${employer.userId}:`, error.response?.data || error.message);
+              urls[employer.userId] = null;
+            }
           }
         }
         setProfilePictureUrls(urls);
@@ -129,7 +277,15 @@ const EmployersPage = () => {
           ...prev,
           [targetEmployerId]: !isFollowing,
         }));
-        alert(`${isFollowing ? "Unfollowed" : "Followed"} employer successfully!`);
+        
+        // Toast notification instead of alert for better UX
+        const message = isFollowing ? "Unfollowed employer" : "Following employer";
+        // You can replace this with a toast library of your choice
+        const toast = document.createElement("div");
+        toast.className = `fixed bottom-4 right-4 bg-${isFollowing ? 'gray' : 'blue'}-600 text-white px-4 py-2 rounded-lg shadow-lg z-50`;
+        toast.textContent = message;
+        document.body.appendChild(toast);
+        setTimeout(() => document.body.removeChild(toast), 3000);
       }
     } catch (error) {
       console.error("Follow/Unfollow error:", error.response?.data || error.message);
@@ -140,60 +296,67 @@ const EmployersPage = () => {
   const defaultProfilePicture = "https://images.unsplash.com/photo-1633332755192-727a05c4013d?auto=format&fit=crop&q=80";
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-gray-50">
       {/* Hero Section */}
-      <HeroSectionEmployer onSearchResults={setSearchResults} />
+      <HeroSectionEmployer onSearchResults={handleSearchResults} currentPage={currentPage} />
 
       {/* Employers List */}
-      <section className="container mx-auto px-4 py-8">
-        {searchResults ? (
+      <section className="container mx-auto px-4 py-10">
+        {isLoading ? (
+          <LoadingState />
+        ) : searchResults ? (
           (() => {
-            const filteredEmployers = searchResults.employers.filter(
+            const filteredEmployers = searchResults.employers?.filter(
               (employer) => employer.userId !== currentStudentId
-            );
+            ) || [];
+            
             if (filteredEmployers.length > 0) {
               return (
-                <div>
-                  <h2 className="text-2xl font-semibold mb-6 text-gray-800">
-                    Found {filteredEmployers.length} Employer(s)
+                <div className="animate-fadeIn">
+                  <h2 className="text-2xl font-semibold text-gray-800 mb-8">
+                    Found {searchResults.totalEmployers || filteredEmployers.length} Employer{(searchResults.totalEmployers || filteredEmployers.length) !== 1 ? 's' : ''}
+                    {currentSearchTerm && (
+                      <span className="text-lg font-normal ml-2 text-gray-600">for "{currentSearchTerm}"</span>
+                    )}
                   </h2>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                  
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                     {filteredEmployers.map((employer) => (
-                      <div
+                      <EmployerCard
                         key={employer.userId}
-                        className="bg-white rounded-lg shadow-md p-4 flex flex-col items-center text-center"
-                      >
-                        <img
-                          src={profilePictureUrls[employer.userId] || defaultProfilePicture}
-                          alt={employer.companyName}
-                          className="w-24 h-24 rounded-full object-cover mb-4"
-                          onError={(e) => (e.target.src = defaultProfilePicture)}
-                        />
-                        <h3 className="text-lg font-medium text-gray-900">{employer.companyName}</h3>
-                        <p className="text-sm text-gray-600 mb-2">{employer.companyDetails}</p>
-                        <p className="text-sm text-gray-600 mb-4">{employer.location}</p>
-                        <button
-                          onClick={() => handleFollowToggle(employer.userId)}
-                          className={`px-4 py-2 rounded-full text-sm font-medium transition-colors duration-200 ${
-                            followingStatus[employer.userId]
-                              ? "bg-gray-500 text-white hover:bg-gray-600"
-                              : "bg-blue-600 text-white hover:bg-blue-700"
-                          }`}
-                          disabled={!currentStudentId}
-                        >
-                          {followingStatus[employer.userId] ? "Following" : "Follow"}
-                        </button>
-                      </div>
+                        employer={employer}
+                        profilePicture={profilePictureUrls[employer.userId]}
+                        isFollowing={followingStatus[employer.userId]}
+                        onFollowToggle={handleFollowToggle}
+                        defaultProfilePicture={defaultProfilePicture}
+                      />
                     ))}
                   </div>
+                  
+                  {/* Pagination Controls */}
+                  {(searchResults.totalEmployers > EMPLOYERS_PER_PAGE || totalPages > 1) && (
+                    <Pagination 
+                      currentPage={currentPage}
+                      totalPages={totalPages}
+                      onPageChange={handlePageChange}
+                    />
+                  )}
                 </div>
               );
             } else {
-              return <p className="text-center text-gray-600">No employers found.</p>;
+              return <NoResults searchTerm={currentSearchTerm} />;
             }
           })()
         ) : (
-          <p className="text-center text-gray-600">Search for employers to see results here.</p>
+          <div className="text-center py-16">
+            <div className="bg-white rounded-xl p-8 max-w-2xl mx-auto shadow-sm border border-gray-100">
+              <h2 className="text-2xl font-semibold text-gray-800 mb-4">Find Your Professional Network</h2>
+              <p className="text-gray-600 mb-6">
+                Connect with employers and companies looking for talent like you.
+                Start by searching a company name above.
+              </p>
+            </div>
+          </div>
         )}
       </section>
     </div>
