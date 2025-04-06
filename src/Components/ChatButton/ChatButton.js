@@ -5,6 +5,7 @@ import { jwtDecode } from "jwt-decode";
 import { v4 as uuidv4 } from "uuid"; // Add uuid package for generating unique IDs
 import axios from "axios"; // Import axios
 
+const baseUrl = window._env_.BASE_URL;
 const ChatButton = () => {
     const [messageCount, setMessageCount] = useState(0);
     const [showNotifications, setShowNotifications] = useState(false);
@@ -70,7 +71,7 @@ const ChatButton = () => {
                 console.log("Fetching update notifications for userId:", userId);
                 try {
                     const updateResponse = await axios.get(
-                        `http://localhost:8100/api/v1/updateNotification/get-update-notifications/${userId}?page=${currentUpdatePage}&size=${itemsPerPage}`,
+                        `${baseUrl}/api/v1/updateNotification/get-update-notifications/${userId}?page=${currentUpdatePage}&size=${itemsPerPage}`,
                         {
                             headers: {
                                 Authorization: `Bearer ${token}`,
@@ -105,7 +106,7 @@ const ChatButton = () => {
                     console.log("Fetching job notifications for userId:", userId);
                     try {
                         const jobResponse = await axios.get(
-                            `http://localhost:8100/api/v1/Notification/get-job-notifications/${userId}?page=${currentJobPage}&size=${itemsPerPage}`,
+                            `${baseUrl}/api/v1/Notification/get-job-notifications/${userId}?page=${currentJobPage}&size=${itemsPerPage}`,
                             {
                                 headers: {
                                     Authorization: `Bearer ${token}`,
@@ -160,7 +161,7 @@ const ChatButton = () => {
                         // Fetch ALL_ADMINS notifications
                         try {
                             const adminResponse = await axios.get(
-                                `http://localhost:8100/api/admin/notification/private?userID=${userId}&type=ALL_ADMINS&page=${currentSystemPage}&size=${itemsPerPage}`,
+                                `${baseUrl}/api/admin/notification/private?userID=${userId}&type=ALL_ADMINS&page=${currentSystemPage}&size=${itemsPerPage}`,
                                 {
                                     headers: {
                                         Authorization: `Bearer ${token}`,
@@ -189,7 +190,7 @@ const ChatButton = () => {
                         // Fetch REPORT notifications with null userID
                         try {
                             const reportResponse = await axios.get(
-                                `http://localhost:8100/api/admin/notification/private?type=REPORT&page=${currentSystemPage}&size=${itemsPerPage}`,
+                                `${baseUrl}/api/admin/notification/private?type=REPORT&page=${currentSystemPage}&size=${itemsPerPage}`,
                                 {
                                     headers: {
                                         Authorization: `Bearer ${token}`,
@@ -223,7 +224,7 @@ const ChatButton = () => {
                         
                         try {
                             const systemResponse = await axios.get(
-                                `http://localhost:8100/api/user/public-notifications?userId=${userId}&type=${type}&page=${currentSystemPage}&size=${itemsPerPage}`,
+                                `${baseUrl}/api/user/public-notifications?userId=${userId}&type=${type}&page=${currentSystemPage}&size=${itemsPerPage}`,
                                 {
                                     headers: {
                                         Authorization: `Bearer ${token}`,
@@ -353,7 +354,7 @@ const ChatButton = () => {
                 let response;
                 if (notification.type === "update") {
                     response = await axios.put(
-                        `http://localhost:8100/api/v1/updateNotification/mark-as-read/${notification.id}`,
+                        `${baseUrl}/api/v1/updateNotification/mark-as-read/${notification.id}`,
                         {},
                         {
                             headers: {
@@ -375,7 +376,7 @@ const ChatButton = () => {
                     }
                 } else if (notification.type === "job") {
                     response = await axios.put(
-                        `http://localhost:8100/api/v1/Notification/${notification.id}/mark-as-read`,
+                        `${baseUrl}/api/v1/Notification/${notification.id}/mark-as-read`,
                         {},
                         {
                             headers: {
@@ -400,7 +401,7 @@ const ChatButton = () => {
                     // Make API call to mark system notification as read
                     try {
                         response = await axios.put(
-                            `http://localhost:8100/api/user/notification/mark-as-read/${notification.id}`,
+                            `${baseUrl}/api/user/notification/mark-as-read/${notification.id}`,
                             {},
                             {
                                 headers: {
@@ -425,6 +426,23 @@ const ChatButton = () => {
                     
                     // Decrease the message count
                     setMessageCount((prev) => Math.max(0, prev - 1));
+                    
+                    // Get role from JWT token
+                    const token = localStorage.getItem("token");
+                    if (token) {
+                        try {
+                            const decodedToken = jwtDecode(token);
+                            const role = decodedToken.role || "";
+                            
+                            // Redirect based on user role
+                            if (role === "ADMIN"){
+                                window.location.href = `/a-report?userId=${notification.recipientId}`;
+                                setShowNotifications(false);
+                            }
+                        } catch (error) {
+                            console.error("Error decoding token for redirection:", error);
+                        }
+                    }
                 }
             } catch (error) {
                 console.error("Error handling notification click:", error);

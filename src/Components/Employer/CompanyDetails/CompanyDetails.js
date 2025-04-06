@@ -5,6 +5,7 @@ import { jwtDecode } from 'jwt-decode';
 import ReportPopup from '../../ReportPopup/ReportPopup';
 import SubmitNotiBox from '../../SubmitNotiBox/SubmitNotiBox'; // Add this import
 
+const baseUrl = window._env_.BASE_URL;
 // Define preference options
 const PREFERENCE_OPTIONS = [
     'CASHIER', 'SALESMEN', 'RETAIL', 'TUTORING', 'CATERING', 'EVENT_BASED',
@@ -84,6 +85,11 @@ function App() {
         show: false
     });
 
+    // Add validation state
+    const [validationErrors, setValidationErrors] = useState({
+        contactNumbers: ''
+    });
+
     // Check view mode and set initial state
     useEffect(() => {
         const params = new URLSearchParams(window.location.search);
@@ -130,7 +136,7 @@ function App() {
                 }
 
                 const userResponse = await axios.get(
-                    `http://localhost:8100/api/user/get-user-by-id/${userId}`,
+                    `${baseUrl}/api/user/get-user-by-id/${userId}`,
                     { headers: { 'Authorization': `Bearer ${token}` } }
                 );
                 
@@ -139,7 +145,7 @@ function App() {
                 let profilePictureUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(userData.userName)}&background=random`;
                 try {
                     const profilePictureResponse = await axios.get(
-                        `http://localhost:8100/api/user/${userId}/profile-picture`,
+                        `${baseUrl}/api/user/${userId}/profile-picture`,
                         { headers: { 'Authorization': `Bearer ${token}` } }
                     );
                     
@@ -193,7 +199,7 @@ function App() {
                 }
 
                 const response = await axios.get(
-                    `http://localhost:8100/api/v1/rating/received/${userId}?page=${feedbackPage}&size=${feedbackPageSize}`,
+                    `${baseUrl}/api/v1/rating/received/${userId}?page=${feedbackPage}&size=${feedbackPageSize}`,
                     { headers: { 'Authorization': `Bearer ${token}` } }
                 );
                 
@@ -228,7 +234,17 @@ function App() {
     }, []);
 
     const handleInputChange = (field, value) => {
+        // Special handling for mobile number to only allow digits
+        if (field === 'contactNumbers' && !/^\d*$/.test(value)) {
+            return; // Don't update state if non-digit characters are entered
+        }
+    
         setFormData(prev => ({ ...prev, [field]: value }));
+        
+        // Clear error when user starts typing
+        if (validationErrors[field]) {
+            setValidationErrors(prev => ({ ...prev, [field]: '' }));
+        }
     };
 
     const handlePasswordUpdateChange = (field, value) => {
@@ -287,6 +303,11 @@ function App() {
         const sortedCategories = [...formData.categories].sort();
         const sortedOriginalCategories = [...originalFormData.categories].sort();
         
+        // Don't allow saving if mobile number is empty
+        if (!formData.contactNumbers.trim()) {
+            return false;
+        }
+        
         return (
             formData.contactNumbers !== originalFormData.contactNumbers ||
             formData.location !== originalFormData.location ||
@@ -297,6 +318,29 @@ function App() {
     };
 
     const handleSave = async () => {
+        // Validate required fields
+        const newValidationErrors = {
+            contactNumbers: !formData.contactNumbers.trim() ? 'Mobile Number is required' : '',
+        };
+        
+        setValidationErrors(newValidationErrors);
+        
+        // If there are validation errors, don't proceed
+        if (newValidationErrors.contactNumbers) {
+            setNotification({
+                message: 'Mobile Number is required',
+                status: 'error',
+                show: true
+            });
+            
+            // Hide notification after 5 seconds
+            setTimeout(() => {
+                setNotification(prev => ({ ...prev, show: false }));
+            }, 5000);
+            
+            return;
+        }
+        
         try {
             const token = localStorage.getItem('token');
             const decodedToken = jwtDecode(token);
@@ -311,7 +355,7 @@ function App() {
                 };
 
                 await axios.put(
-                    `http://localhost:8100/api/user/update/${userId}`,
+                    `${baseUrl}/api/user/update/${userId}`,
                     updateData,
                     {
                         headers: {
@@ -327,7 +371,7 @@ function App() {
                 formDataForUpload.append('file', selectedProfilePictureFile);
 
                 const response = await axios.put(
-                    `http://localhost:8100/api/user/${userId}/profile-picture`,
+                    `${baseUrl}/api/user/${userId}/profile-picture`,
                     formDataForUpload,
                     {
                         headers: {
@@ -394,7 +438,7 @@ function App() {
             };
 
             await axios.put(
-                `http://localhost:8100/api/user/update-password/${userId}`,
+                `${baseUrl}/api/user/update-password/${userId}`,
                 updateData,
                 {
                     headers: {
@@ -469,7 +513,7 @@ function App() {
             const raterId = decodedToken.user_id;
 
             await axios.post(
-                `http://localhost:8100/api/v1/rating/create`,
+                `${baseUrl}/api/v1/rating/create`,
                 {
                     raterId: raterId,
                     ratedId: parseInt(viewUserId),
@@ -681,6 +725,8 @@ function App() {
                             value={formData.contactNumbers}
                             disabled={!isEditing || isViewMode}
                             onChange={(value) => handleInputChange('contactNumbers', value)}
+                            error={validationErrors.contactNumbers}
+                            required={true}
                         />
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">Address</label>
@@ -706,6 +752,25 @@ function App() {
                                 />
                             )}
                         </div>
+                        
+                        {/* Add Company Details field here - available in both view and edit modes */}
+                        <div className="col-span-1 sm:col-span-2">
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Company Details</label>
+                            {isEditing && !isViewMode ? (
+                                <textarea
+                                    value={formData.companyDetails}
+                                    onChange={(e) => handleInputChange('companyDetails', e.target.value)}
+                                    className="w-full p-2 sm:p-3 border rounded-lg bg-gray-50 text-sm sm:text-base"
+                                    rows={4}
+                                    placeholder="Describe your company"
+                                ></textarea>
+                            ) : (
+                                <div className="w-full p-3 border rounded-lg bg-gray-50 text-sm min-h-[100px] whitespace-pre-wrap">
+                                    {formData.companyDetails || 'No company details available'}
+                                </div>
+                            )}
+                        </div>
+                        
                         {!isViewMode && (
                             <>
                                 <ProfileField
@@ -943,17 +1008,22 @@ function App() {
     );
 }
 
-function ProfileField({ label, value, type = 'text', disabled = false, onChange = null }) {
+function ProfileField({ label, value, type = 'text', disabled = false, onChange = null, error = '', required = false }) {
     return (
         <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">{label}</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+                {label} {required && <span className="text-red-500">*</span>}
+            </label>
             <input
                 type={type}
                 value={value}
                 disabled={disabled}
                 onChange={onChange ? (e) => onChange(e.target.value) : undefined}
-                className="w-full p-2 sm:p-3 border rounded-lg bg-gray-50 text-sm sm:text-base"
+                className={`w-full p-2 sm:p-3 border rounded-lg bg-gray-50 text-sm sm:text-base ${
+                    error ? 'border-red-500' : 'border-gray-300'
+                }`}
             />
+            {error && <p className="mt-1 text-sm text-red-500">{error}</p>}
         </div>
     );
 }

@@ -7,6 +7,7 @@ import html2pdf from 'html2pdf.js';
 
 // Register ChartJS components
 ChartJS.register(ArcElement, Tooltip, Legend, BarElement, CategoryScale, LinearScale);
+const baseUrl = window._env_.BASE_URL;
 
 const ESummary = () => {
   const [summaryData, setSummaryData] = useState(null);
@@ -94,7 +95,7 @@ const ESummary = () => {
 
       try {
         const response = await axios.get(
-          `http://localhost:8100/api/employer/analysis/brief-summary/${employerId}?startDate=${new Date(startDate).toISOString()}&endDate=${new Date(endDate).toISOString()}`,
+          `${baseUrl}/api/employer/analysis/brief-summary/${employerId}?startDate=${new Date(startDate).toISOString()}&endDate=${new Date(endDate).toISOString()}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,

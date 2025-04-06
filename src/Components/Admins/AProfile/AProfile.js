@@ -4,6 +4,7 @@ import axios from 'axios';
 import { jwtDecode } from 'jwt-decode';
 import SubmitNotiBox from '../../SubmitNotiBox/SubmitNotiBox'; // Add this import
 
+const baseUrl = window._env_.BASE_URL;
 function App() {
     const [isEditing, setIsEditing] = useState(false);
     const [isViewMode, setIsViewMode] = useState(false);
@@ -54,7 +55,7 @@ function App() {
                 const userId = isViewMode ? viewUserId : decodedToken.user_id;
 
                 const userResponse = await axios.get(
-                    `http://localhost:8100/api/user/get-user-by-id/${userId}`,
+                    `${baseUrl}/api/user/get-user-by-id/${userId}`,
                     { headers: { 'Authorization': `Bearer ${token}` } }
                 );
                 
@@ -63,7 +64,7 @@ function App() {
                 let profilePictureUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(userData.userName)}&background=random`;
                 try {
                     const profilePictureResponse = await axios.get(
-                        `http://localhost:8100/api/user/${userId}/profile-picture`,
+                        `${baseUrl}/api/user/${userId}/profile-picture`,
                         { headers: { 'Authorization': `Bearer ${token}` } }
                     );
                     
@@ -159,7 +160,7 @@ function App() {
                 };
 
                 await axios.put(
-                    `http://localhost:8100/api/user/update/${userId}`,
+                    `${baseUrl}/api/user/update/${userId}`,
                     updateData,
                     {
                         headers: {
@@ -175,7 +176,7 @@ function App() {
                 formDataForUpload.append('file', selectedProfilePictureFile);
 
                 const response = await axios.put(
-                    `http://localhost:8100/api/user/${userId}/profile-picture`,
+                    `${baseUrl}/api/user/${userId}/profile-picture`,
                     formDataForUpload,
                     {
                         headers: {
@@ -239,7 +240,7 @@ function App() {
             };
 
             await axios.put(
-                `http://localhost:8100/api/user/update-password/${userId}`,
+                `${baseUrl}/api/user/update-password/${userId}`,
                 updateData,
                 {
                     headers: {

@@ -4,6 +4,7 @@ import { jwtDecode } from "jwt-decode";
 import { Link } from "react-router-dom";
 import ASearchEmployerBar from "../ASearchEmployerBar/ASearchEmployerBar";
 
+const baseUrl = window._env_.BASE_URL;
 // Hero Section Component
 const HeroSectionEmployer = ({ onSearchResults, onSearchTermChange }) => {
   return (
@@ -79,7 +80,7 @@ const EmployersPage = () => {
       setIsLoading(true);
       try {
         const response = await axios.get(
-          `http://localhost:8100/api/employers?page=${currentPage}`,
+          `${baseUrl}/api/employers?page=${currentPage}`,
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -130,7 +131,7 @@ const EmployersPage = () => {
           try {
             // Fetch profile picture from API
             const response = await axios.get(
-              `http://localhost:8100/api/user/${employer.userId}/profile-picture`,
+              `${baseUrl}/api/user/${employer.userId}/profile-picture`,
               {
                 headers: {
                   Authorization: `Bearer ${token}`,
@@ -175,7 +176,7 @@ const EmployersPage = () => {
     setIsLoading(true);
     try {
       const response = await axios.get(
-        `http://localhost:8100/api/employers/search?query=${encodeURIComponent(searchTerm)}&page=${page}`,
+        `${baseUrl}/api/employers/search?query=${encodeURIComponent(searchTerm)}&page=${page}`,
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,

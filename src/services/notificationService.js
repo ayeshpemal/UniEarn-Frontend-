@@ -3,6 +3,7 @@ import { Client } from '@stomp/stompjs';
 import { jwtDecode } from 'jwt-decode';
 
 let stompClient = null;
+const baseUrl = window._env_.BASE_URL;
 
 export const connectWebSocket = (username, onMessageReceived, jwtToken) => {
     // Decode the JWT token to get the user's role
@@ -16,7 +17,7 @@ export const connectWebSocket = (username, onMessageReceived, jwtToken) => {
         return; // Exit if token cannot be decoded
     }
 
-    const socket = new SockJS('http://localhost:8100/ws');
+    const socket = new SockJS(`${baseUrl}/ws`);
     stompClient = new Client({
         webSocketFactory: () => socket,
         connectHeaders: {

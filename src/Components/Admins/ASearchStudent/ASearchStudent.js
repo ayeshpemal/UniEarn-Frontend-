@@ -4,6 +4,7 @@ import { jwtDecode } from "jwt-decode";
 import { Link } from "react-router-dom";
 import ASearchStudentBar from "../ASearchStudentBar/ASearchStudentBar";
 
+const baseUrl = window._env_.BASE_URL;
 // Hero Section Component
 const HeroSectionStudent = ({ onSearchResults, onSearchTermChange }) => {
   return (
@@ -78,7 +79,7 @@ const StudentsPage = () => {
       setIsLoading(true);
       try {
         const response = await axios.get(
-          `http://localhost:8100/api/student?page=${currentPage}`,
+          `${baseUrl}/api/student?page=${currentPage}`,
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -130,7 +131,7 @@ const StudentsPage = () => {
             try {
               // Student has a profile picture URL, fetch it from the API
               const response = await axios.get(
-                `http://localhost:8100/api/user/${student.userId}/profile-picture`,
+                `${baseUrl}/api/user/${student.userId}/profile-picture`,
                 {
                   headers: {
                     Authorization: `Bearer ${token}`,
@@ -179,7 +180,7 @@ const StudentsPage = () => {
     setIsLoading(true);
     try {
       const response = await axios.get(
-        `http://localhost:8100/api/student/search?query=${encodeURIComponent(searchTerm)}&page=${page}`,
+        `${baseUrl}/api/student/search?query=${encodeURIComponent(searchTerm)}&page=${page}`,
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,

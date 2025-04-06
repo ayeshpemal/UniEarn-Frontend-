@@ -4,6 +4,7 @@ import GroupTeam from "./GroupTeam";
 import Student from "./Student";
 import axios from "axios";
 
+const baseUrl = window._env_.BASE_URL;
 const Application = () => {
   // State variables
   const [job, setJob] = useState(null);
@@ -31,7 +32,7 @@ const Application = () => {
   const fetchProfilePicture = async (userId) => {
     try {
       const response = await axios.get(
-        `http://localhost:8100/api/user/${userId}/profile-picture`,
+        `${baseUrl}/api/user/${userId}/profile-picture`,
         {
           headers: {
             Authorization: `Bearer ${getToken()}`
@@ -74,7 +75,7 @@ const Application = () => {
   const fetchJobDetails = async () => {
     try {
       const response = await axios.get(
-        `http://localhost:8100/api/v1/jobs/getjob/${jobId}`,
+        `${baseUrl}/api/v1/jobs/getjob/${jobId}`,
         {
           headers: {
             Authorization: `Bearer ${getToken()}`
@@ -116,7 +117,7 @@ const Application = () => {
   const fetchStudentApplications = async (page) => {
     try {
       const response = await axios.get(
-        `http://localhost:8100/api/v1/application/student-applications/job/${jobId}?page=${page}&pageSize=${itemsPerPage}`,
+        `${baseUrl}/api/v1/application/student-applications/job/${jobId}?page=${page}&pageSize=${itemsPerPage}`,
         {
           headers: {
             Authorization: `Bearer ${getToken()}`
@@ -196,7 +197,7 @@ const Application = () => {
   const fetchGroupApplications = async (page) => {
     try {
       const response = await axios.get(
-        `http://localhost:8100/api/v1/application/group-applications/job/${jobId}?page=${page}&pageSize=${itemsPerPage}`,
+        `${baseUrl}/api/v1/application/group-applications/job/${jobId}?page=${page}&pageSize=${itemsPerPage}`,
         {
           headers: {
             Authorization: `Bearer ${getToken()}`
@@ -298,7 +299,7 @@ const Application = () => {
   const updateApplicationStatus = async (applicationId) => {
     try {
       const response = await axios.put(
-        `http://localhost:8100/api/employers/applications/select/${applicationId}`,
+        `${baseUrl}/api/employers/applications/select/${applicationId}`,
         null,
         {
           headers: {

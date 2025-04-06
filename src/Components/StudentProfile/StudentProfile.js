@@ -5,6 +5,7 @@ import { jwtDecode } from 'jwt-decode';
 import ReportPopup from '../ReportPopup/ReportPopup';
 import SubmitNotiBox from '../SubmitNotiBox/SubmitNotiBox'; // Add this import
 
+const baseUrl = window._env_.BASE_URL;
 // Define preference options
 const PREFERENCE_OPTIONS = [
     'CASHIER', 'SALESMEN', 'RETAIL', 'TUTORING', 'CATERING', 'EVENT_BASED',
@@ -85,6 +86,12 @@ function App() {
         show: false
     });
 
+    // Add a new state for validation errors
+    const [validationErrors, setValidationErrors] = useState({
+        displayName: '',
+        mobileNo: ''
+    });
+
     // Check view mode and set initial state
     useEffect(() => {
         const params = new URLSearchParams(window.location.search);
@@ -123,7 +130,7 @@ function App() {
                 }
 
                 const userResponse = await axios.get(
-                    `http://localhost:8100/api/user/get-user-by-id/${userId}`,
+                    `${baseUrl}/api/user/get-user-by-id/${userId}`,
                     { headers: { 'Authorization': `Bearer ${token}` } }
                 );
                 
@@ -132,7 +139,7 @@ function App() {
                 let profilePictureUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(userData.userName)}&background=random`;
                 try {
                     const profilePictureResponse = await axios.get(
-                        `http://localhost:8100/api/user/${userId}/profile-picture`,
+                        `${baseUrl}/api/user/${userId}/profile-picture`,
                         { headers: { 'Authorization': `Bearer ${token}` } }
                     );
                     
@@ -199,7 +206,7 @@ function App() {
                 }
 
                 const response = await axios.get(
-                    `http://localhost:8100/api/v1/rating/received/${userId}?page=${feedbackPage}&size=${feedbackPageSize}`,
+                    `${baseUrl}/api/v1/rating/received/${userId}?page=${feedbackPage}&size=${feedbackPageSize}`,
                     { headers: { 'Authorization': `Bearer ${token}` } }
                 );
                 
@@ -233,8 +240,19 @@ function App() {
         }
     }, []);
 
+    // Modify the handleInputChange function to validate mobile number
     const handleInputChange = (field, value) => {
+        // Special handling for mobile number to only allow digits
+        if (field === 'mobileNo' && !/^\d*$/.test(value)) {
+            return; // Don't update state if non-digit characters are entered
+        }
+
         setFormData(prev => ({ ...prev, [field]: value }));
+        
+        // Clear error when user starts typing
+        if (validationErrors[field]) {
+            setValidationErrors(prev => ({ ...prev, [field]: '' }));
+        }
     };
 
     const handlePasswordUpdateChange = (field, value) => {
@@ -287,22 +305,52 @@ function App() {
         }
     };
 
+    // Modify the hasUserDataChanges function to include validation
     const hasUserDataChanges = () => {
         if (!originalFormData) return false;
         
         const sortedPreferences = [...formData.preferences].sort();
         const sortedOriginalPreferences = [...originalFormData.preferences].sort();
         
+        // Check if required fields are empty
+        const hasEmptyRequiredFields = !formData.displayName.trim() || !formData.mobileNo.trim();
+        
         return (
-            formData.displayName !== originalFormData.displayName ||
+            !hasEmptyRequiredFields &&
+            (formData.displayName !== originalFormData.displayName ||
             formData.mobileNo !== originalFormData.mobileNo ||
             formData.address !== originalFormData.address ||
             JSON.stringify(sortedPreferences) !== JSON.stringify(sortedOriginalPreferences) ||
-            selectedProfilePictureFile !== null
+            selectedProfilePictureFile !== null)
         );
     };
     
+    // Update the handleSave function to add more validation for mobile number
     const handleSave = async () => {
+        // Validate required fields
+        const newValidationErrors = {
+            displayName: !formData.displayName.trim() ? 'Display Name is required' : '',
+            mobileNo: !formData.mobileNo.trim() 
+                ? 'Mobile Number is required' 
+                : !/^\d+$/.test(formData.mobileNo) 
+                    ? 'Mobile Number must contain only numbers' 
+                    : formData.mobileNo.length < 10 || formData.mobileNo.length > 15
+                        ? 'Mobile Number must be between 10-15 digits'
+                        : ''
+        };
+        
+        setValidationErrors(newValidationErrors);
+        
+        // If there are validation errors, don't proceed
+        if (newValidationErrors.displayName || newValidationErrors.mobileNo) {
+            setNotification({
+                message: 'Please correct all errors before saving',
+                status: 'error',
+                show: true
+            });
+            return;
+        }
+        
         try {
             const token = localStorage.getItem('token');
             const decodedToken = jwtDecode(token);
@@ -321,7 +369,7 @@ function App() {
                 };
 
                 await axios.put(
-                    `http://localhost:8100/api/user/update/${userId}`,
+                    `${baseUrl}/api/user/update/${userId}`,
                     updateData,
                     {
                         headers: {
@@ -337,7 +385,7 @@ function App() {
                 formDataForUpload.append('file', selectedProfilePictureFile);
 
                 const response = await axios.put(
-                    `http://localhost:8100/api/user/${userId}/profile-picture`,
+                    `${baseUrl}/api/user/${userId}/profile-picture`,
                     formDataForUpload,
                     {
                         headers: {
@@ -394,7 +442,7 @@ function App() {
             };
 
             await axios.put(
-                `http://localhost:8100/api/user/update-password/${userId}`,
+                `${baseUrl}/api/user/update-password/${userId}`,
                 updateData,
                 {
                     headers: {
@@ -452,7 +500,7 @@ function App() {
             const raterId = decodedToken.user_id;
 
             await axios.post(
-                `http://localhost:8100/api/v1/rating/create`,
+                `${baseUrl}/api/v1/rating/create`,
                 {
                     raterId: raterId,
                     ratedId: parseInt(viewUserId),
@@ -642,6 +690,8 @@ function App() {
                             value={formData.displayName}
                             disabled={!isEditing || isViewMode}
                             onChange={(value) => handleInputChange('displayName', value)}
+                            error={validationErrors.displayName}
+                            required={true}
                         />
                         <ProfileField
                             label="University"
@@ -660,6 +710,9 @@ function App() {
                             value={formData.mobileNo}
                             disabled={!isEditing || isViewMode}
                             onChange={(value) => handleInputChange('mobileNo', value)}
+                            error={validationErrors.mobileNo}
+                            required={true}
+                            pattern="[0-9]*" // HTML5 pattern attribute as an additional layer of validation
                         />
                         
                         {/* Only show address and preferences if not in view mode */}
@@ -926,17 +979,24 @@ function App() {
     );
 }
 
-function ProfileField({ label, value, type = 'text', disabled = false, onChange = null }) {
+// Modify the ProfileField component to accept pattern for input validation
+function ProfileField({ label, value, type = 'text', disabled = false, onChange = null, error = '', required = false, pattern = null }) {
     return (
         <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">{label}</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+                {label} {required && <span className="text-red-500">*</span>}
+            </label>
             <input
                 type={type}
                 value={value}
                 disabled={disabled}
                 onChange={onChange ? (e) => onChange(e.target.value) : undefined}
-                className="w-full p-2 sm:p-3 border rounded-lg bg-gray-50 text-sm sm:text-base"
+                pattern={pattern}
+                className={`w-full p-2 sm:p-3 border rounded-lg bg-gray-50 text-sm sm:text-base ${
+                    error ? 'border-red-500' : 'border-gray-300'
+                }`}
             />
+            {error && <p className="mt-1 text-sm text-red-500">{error}</p>}
         </div>
     );
 }

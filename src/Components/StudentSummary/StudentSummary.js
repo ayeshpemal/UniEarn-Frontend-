@@ -7,6 +7,7 @@ import html2pdf from 'html2pdf.js';
 
 // Register ChartJS components
 ChartJS.register(ArcElement, Tooltip, Legend, BarElement, CategoryScale, LinearScale);
+const baseUrl = window._env_.BASE_URL;
 
 const ApplicationSummary = () => {
   const [summaryData, setSummaryData] = useState(null);
@@ -94,7 +95,7 @@ const ApplicationSummary = () => {
 
       try {
         const response = await axios.post(
-          `http://localhost:8100/api/v1/application/student/summary`,
+          `${baseUrl}/api/v1/application/student/summary`,
           {
             studentId: userId,
             startDate: new Date(startDate).toISOString(),

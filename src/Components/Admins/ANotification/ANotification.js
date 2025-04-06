@@ -3,6 +3,7 @@ import axios from "axios";
 import { useLocation } from "react-router-dom";
 import SubmitNotiBox from "../../../Components/SubmitNotiBox/SubmitNotiBox";
 
+const baseUrl = window._env_.BASE_URL;
 const ANotification = () => {
     const [message, setMessage] = useState("");
     const [recipientType, setRecipientType] = useState("broadcast");
@@ -62,22 +63,22 @@ const ANotification = () => {
             
             switch (recipientType) {
                 case "broadcast":
-                    endpoint = "http://localhost:8100/api/admin/notification/broadcast";
+                    endpoint = `${baseUrl}/api/admin/notification/broadcast`;
                     break;
                 case "employers":
-                    endpoint = "http://localhost:8100/api/admin/notification/send-to-all-employers";
+                    endpoint = `${baseUrl}/api/admin/notification/send-to-all-employers`;
                     break;
                 case "students":
-                    endpoint = "http://localhost:8100/api/admin/notification/send-to-all-students";
+                    endpoint = `${baseUrl}/api/admin/notification/send-to-all-students`;
                     break;
                 case "admins":
-                    endpoint = "http://localhost:8100/api/admin/notification/send-to-all-admins";
+                    endpoint = `${baseUrl}/api/admin/notification/send-to-all-admins`;
                     break;
                 case "specific":
-                    endpoint = `http://localhost:8100/api/admin/notification/send-to-user/${userId}`;
+                    endpoint = `${baseUrl}/api/admin/notification/send-to-user/${userId}`;
                     break;
                 default:
-                    endpoint = "http://localhost:8100/api/admin/notification/broadcast";
+                    endpoint = `${baseUrl}/api/admin/notification/broadcast`;
             }
             
             const response = await axios.post(endpoint, message, {
