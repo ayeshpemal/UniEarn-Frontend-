@@ -426,6 +426,23 @@ const ChatButton = () => {
                     
                     // Decrease the message count
                     setMessageCount((prev) => Math.max(0, prev - 1));
+                    
+                    // Get role from JWT token
+                    const token = localStorage.getItem("token");
+                    if (token) {
+                        try {
+                            const decodedToken = jwtDecode(token);
+                            const role = decodedToken.role || "";
+                            
+                            // Redirect based on user role
+                            if (role === "ADMIN"){
+                                window.location.href = `/a-report?userId=${notification.recipientId}`;
+                                setShowNotifications(false);
+                            }
+                        } catch (error) {
+                            console.error("Error decoding token for redirection:", error);
+                        }
+                    }
                 }
             } catch (error) {
                 console.error("Error handling notification click:", error);
