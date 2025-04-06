@@ -85,6 +85,11 @@ function App() {
         show: false
     });
 
+    // Add validation state
+    const [validationErrors, setValidationErrors] = useState({
+        contactNumbers: ''
+    });
+
     // Check view mode and set initial state
     useEffect(() => {
         const params = new URLSearchParams(window.location.search);
@@ -229,7 +234,17 @@ function App() {
     }, []);
 
     const handleInputChange = (field, value) => {
+        // Special handling for mobile number to only allow digits
+        if (field === 'contactNumbers' && !/^\d*$/.test(value)) {
+            return; // Don't update state if non-digit characters are entered
+        }
+    
         setFormData(prev => ({ ...prev, [field]: value }));
+        
+        // Clear error when user starts typing
+        if (validationErrors[field]) {
+            setValidationErrors(prev => ({ ...prev, [field]: '' }));
+        }
     };
 
     const handlePasswordUpdateChange = (field, value) => {
@@ -288,6 +303,11 @@ function App() {
         const sortedCategories = [...formData.categories].sort();
         const sortedOriginalCategories = [...originalFormData.categories].sort();
         
+        // Don't allow saving if mobile number is empty
+        if (!formData.contactNumbers.trim()) {
+            return false;
+        }
+        
         return (
             formData.contactNumbers !== originalFormData.contactNumbers ||
             formData.location !== originalFormData.location ||
@@ -298,6 +318,29 @@ function App() {
     };
 
     const handleSave = async () => {
+        // Validate required fields
+        const newValidationErrors = {
+            contactNumbers: !formData.contactNumbers.trim() ? 'Mobile Number is required' : '',
+        };
+        
+        setValidationErrors(newValidationErrors);
+        
+        // If there are validation errors, don't proceed
+        if (newValidationErrors.contactNumbers) {
+            setNotification({
+                message: 'Mobile Number is required',
+                status: 'error',
+                show: true
+            });
+            
+            // Hide notification after 5 seconds
+            setTimeout(() => {
+                setNotification(prev => ({ ...prev, show: false }));
+            }, 5000);
+            
+            return;
+        }
+        
         try {
             const token = localStorage.getItem('token');
             const decodedToken = jwtDecode(token);
@@ -682,6 +725,8 @@ function App() {
                             value={formData.contactNumbers}
                             disabled={!isEditing || isViewMode}
                             onChange={(value) => handleInputChange('contactNumbers', value)}
+                            error={validationErrors.contactNumbers}
+                            required={true}
                         />
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">Address</label>
@@ -963,17 +1008,22 @@ function App() {
     );
 }
 
-function ProfileField({ label, value, type = 'text', disabled = false, onChange = null }) {
+function ProfileField({ label, value, type = 'text', disabled = false, onChange = null, error = '', required = false }) {
     return (
         <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">{label}</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+                {label} {required && <span className="text-red-500">*</span>}
+            </label>
             <input
                 type={type}
                 value={value}
                 disabled={disabled}
                 onChange={onChange ? (e) => onChange(e.target.value) : undefined}
-                className="w-full p-2 sm:p-3 border rounded-lg bg-gray-50 text-sm sm:text-base"
+                className={`w-full p-2 sm:p-3 border rounded-lg bg-gray-50 text-sm sm:text-base ${
+                    error ? 'border-red-500' : 'border-gray-300'
+                }`}
             />
+            {error && <p className="mt-1 text-sm text-red-500">{error}</p>}
         </div>
     );
 }
