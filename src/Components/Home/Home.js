@@ -23,7 +23,8 @@ export function Home() {
   const [selectedLocation, setSelectedLocation] = useState("COLOMBO");
   const [selectedJob, setSelectedJob] = useState("CASHIER");
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedDate, setSelectedDate] = useState("");
+  const [fromDate, setFromDate] = useState("");
+  const [toDate, setToDate] = useState("");
 
   useEffect(() => {
     const fetchJobs = async () => {
@@ -42,7 +43,7 @@ export function Home() {
         }
 
         const response = await axios.get(
-          `http://localhost:8100/api/v1/jobs/studentpreferedjobs?student_id=${userId}&page=${currentPage}`,
+          `http://localhost:8100/api/v1/jobs/search?location=${selectedLocation}&categories=${selectedJob}&keyword=${searchTerm}${fromDate ? `&startDateFrom=${fromDate}` : ''}${toDate ? `&startDateTo=${toDate}` : ''}&page=${currentPage}`,
           { headers: { Authorization: `Bearer ${initialToken}` } }
         );
         const jobsList = response.data?.data?.jobList || [];
@@ -86,7 +87,7 @@ export function Home() {
     try {
       const token = localStorage.getItem('token');
       const response = await axios.get(
-        `http://localhost:8100/api/v1/jobs/search?location=${selectedLocation}&categories=${selectedJob}&keyword=${searchTerm}${selectedDate ? `&startDate=${selectedDate}` : ''}&page=${currentPage}`,
+        `http://localhost:8100/api/v1/jobs/search?location=${selectedLocation}&categories=${selectedJob}&keyword=${searchTerm}${fromDate ? `&startDateFrom=${fromDate}` : ''}${toDate ? `&startDateTo=${toDate}` : ''}&page=${currentPage}`,
         { headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` } }
       );
       const searchResults = response.data?.data?.jobList || [];
@@ -104,6 +105,10 @@ export function Home() {
   };
 
   const handleSearch = () => {
+    if (fromDate > toDate) {
+      alert("Please enter valid time duration!");
+      return;
+    }    
     setCurrentPage(0);
     searchJobs();
   };
@@ -176,8 +181,10 @@ export function Home() {
               setSelectedJob={handleJobCategoryChange}
               searchTerm={searchTerm}
               setSearchTerm={setSearchTerm}
-              selectedDate={selectedDate}
-              setSelectedDate={setSelectedDate}
+              fromDate={fromDate}
+              setFromDate={setFromDate}
+              toDate={toDate}
+              setToDate={setToDate}
               handleSearch={handleSearch}
             />
             {searchError && (
