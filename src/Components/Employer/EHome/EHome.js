@@ -413,7 +413,7 @@ const EHome = () => {
         <SubmitNotiBox 
           message={notification.message}
           status={notification.status}
-          duration={4000}
+          duration={3000}
         />
       )}
       
