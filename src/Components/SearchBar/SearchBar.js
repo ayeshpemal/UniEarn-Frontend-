@@ -20,8 +20,10 @@ const SearchBar = ({
   setSelectedJob,
   searchTerm,
   setSearchTerm,
-  selectedDate,
-  setSelectedDate,
+  fromDate,
+  setFromDate,
+  toDate,
+  setToDate,
   handleSearch,
 }) => {
   const today = new Date().toISOString().split('T')[0];
@@ -29,20 +31,20 @@ const SearchBar = ({
   // Job dropdown state
   const [isJobDropdownOpen, setIsJobDropdownOpen] = useState(false);
   const [selectedJobs, setSelectedJobs] = useState(selectedJob ? selectedJob.split(',') : []);
-  
+
   // Location dropdown state
   const [isLocationDropdownOpen, setIsLocationDropdownOpen] = useState(false);
   const [locationSearchTerm, setLocationSearchTerm] = useState('');
   const [filteredLocations, setFilteredLocations] = useState(locations);
-  
+
   // Refs for closing dropdowns when clicking outside
   const jobDropdownRef = useRef(null);
   const locationDropdownRef = useRef(null);
-  
+
   // Filter locations based on search term
   useEffect(() => {
     if (locationSearchTerm) {
-      const filtered = locations.filter(location => 
+      const filtered = locations.filter(location =>
         location.toLowerCase().includes(locationSearchTerm.toLowerCase())
       );
       setFilteredLocations(filtered);
@@ -50,7 +52,7 @@ const SearchBar = ({
       setFilteredLocations(locations);
     }
   }, [locationSearchTerm]);
-  
+
   // Close dropdowns when clicking outside
   useEffect(() => {
     function handleClickOutside(event) {
@@ -61,23 +63,23 @@ const SearchBar = ({
         setIsLocationDropdownOpen(false);
       }
     }
-    
+
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
-  
+
   // Handle key press for search input
   const handleKeyPress = (e) => {
     if (e.key === 'Enter') {
       handleSearch();
     }
   };
-  
+
   return (
-    <div className="mt-6 w-full max-w-4xl mx-auto bg-white rounded-full shadow-md p-2 sm:p-3 flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-3">
+    <div className="mt-6 w-full max-w-5xl mx-auto bg-white rounded-full shadow-md p-2 sm:p-3 flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-3">
       {/* Location Dropdown - Improved */}
       <div className="relative w-full sm:w-auto" ref={locationDropdownRef}>
-        <button 
+        <button
           type="button"
           className="w-full sm:w-28 md:w-32 px-2 py-1.5 sm:px-3 sm:py-2 border rounded-full text-gray-700 bg-gray-50 focus:outline-none text-sm sm:text-base truncate flex justify-between items-center"
           onClick={() => setIsLocationDropdownOpen(!isLocationDropdownOpen)}
@@ -85,7 +87,7 @@ const SearchBar = ({
           {selectedLocation ? selectedLocation.replace(/_/g, " ") : "Any Location"}
           <span className="ml-1">▼</span>
         </button>
-        
+
         {isLocationDropdownOpen && (
           <div className="absolute z-10 mt-1 w-56 bg-white border rounded-md shadow-lg max-h-60 overflow-y-auto">
             <div className="sticky top-0 bg-gray-100 px-2 py-2 border-b">
@@ -100,9 +102,9 @@ const SearchBar = ({
                 />
               </div>
             </div>
-            
+
             <div className="p-1">
-              <div 
+              <div
                 className="px-3 py-1.5 hover:bg-gray-100 rounded cursor-pointer text-gray-800"
                 onClick={() => {
                   setSelectedLocation("");
@@ -111,10 +113,10 @@ const SearchBar = ({
               >
                 Any Location
               </div>
-              
+
               {filteredLocations.map((location, index) => (
-                <div 
-                  key={index} 
+                <div
+                  key={index}
                   className="px-3 py-1.5 hover:bg-gray-100 rounded cursor-pointer text-gray-800"
                   onClick={() => {
                     setSelectedLocation(location);
@@ -124,7 +126,7 @@ const SearchBar = ({
                   {location.replace(/_/g, " ")}
                 </div>
               ))}
-              
+
               {filteredLocations.length === 0 && (
                 <div className="px-3 py-2 text-gray-500 text-sm italic">
                   No locations found
@@ -137,7 +139,7 @@ const SearchBar = ({
 
       {/* Job Dropdown - Improved */}
       <div className="relative w-full sm:w-auto" ref={jobDropdownRef}>
-        <button 
+        <button
           type="button"
           className="w-full sm:w-28 md:w-32 px-2 py-1.5 sm:px-3 sm:py-2 border rounded-full text-gray-700 bg-gray-50 focus:outline-none text-sm sm:text-base truncate flex justify-between items-center"
           onClick={() => setIsJobDropdownOpen(!isJobDropdownOpen)}
@@ -145,13 +147,13 @@ const SearchBar = ({
           {selectedJobs.length > 0 ? `${selectedJobs.length} selected` : "Any Job"}
           <span className="ml-1">▼</span>
         </button>
-        
+
         {isJobDropdownOpen && (
           <div className="absolute z-10 mt-1 w-56 bg-white border rounded-md shadow-lg max-h-60 overflow-y-auto">
             <div className="sticky top-0 bg-gray-100 px-4 py-2 font-medium border-b text-gray-800">
               Job Categories
             </div>
-            
+
             <div className="p-2">
               <div className="mb-2 flex flex-wrap gap-1">
                 <button
@@ -173,10 +175,10 @@ const SearchBar = ({
                   Select All
                 </button>
               </div>
-              
+
               {jobs.map((job, index) => (
-                <div 
-                  key={index} 
+                <div
+                  key={index}
                   className="px-3 py-1.5 hover:bg-gray-100 rounded text-gray-800"
                 >
                   <label className="flex items-center cursor-pointer">
@@ -203,29 +205,63 @@ const SearchBar = ({
           </div>
         )}
       </div>
-      
-      {/* Date Selector */}
-      <div className="relative flex items-center w-full sm:w-auto">
-        <Calendar size={16} className="absolute left-3 text-gray-500 sm:size-18" />
+
+      {/* FromDate Selector */}
+      <div className="flex items-center w-full sm:w-auto border rounded-full text-gray-700 bg-gray-50 px-3 py-1.5 sm:py-2">
+        <Calendar size={16} className="text-gray-500 sm:size-18 mr-2" />
+
+        <div className="text-gray-600 text-sm sm:text-base mr-2">From: </div>
+
         <input
+          name="startDate"
           type="date"
-          className="w-full pl-9 pr-3 py-1.5 sm:py-2 border rounded-full text-gray-700 bg-gray-50 focus:outline-none text-sm sm:text-base"
-          value={selectedDate || ""}
-          max={today}
-          onChange={(e) => setSelectedDate(e.target.value)}
-          placeholder="Select date"
+          className="bg-gray-50 text-sm sm:text-base focus:outline-none"
+          value={fromDate || ""}
+          min={today}
+          onChange={(e) => setFromDate(e.target.value)}
+          placeholder="Select Start date"
           onKeyPress={handleKeyPress}
         />
-        {selectedDate && (
-          <button 
-            className="absolute right-3 text-gray-400 hover:text-gray-600"
-            onClick={() => setSelectedDate("")}
+
+        {fromDate && (
+          <button
+            className="ml-auto text-gray-400 hover:text-gray-600"
+            onClick={() => setFromDate("")}
             title="Clear date"
           >
             ×
           </button>
         )}
       </div>
+
+      {/* StartDate Selector */}
+      <div className="flex items-center w-full sm:w-auto border rounded-full text-gray-700 bg-gray-50 px-3 py-1.5 sm:py-2">
+        <Calendar size={16} className="text-gray-500 sm:size-18 mr-2" />
+
+        <div className="text-gray-600 text-sm sm:text-base mr-2">To: </div>
+
+        <input
+          name="startDate"
+          type="date"
+          className="bg-gray-50 text-sm sm:text-base focus:outline-none"
+          value={toDate || ""}
+          min={today}
+          onChange={(e) => setToDate(e.target.value)}
+          placeholder="Select Start date"
+          onKeyPress={handleKeyPress}
+        />
+
+        {toDate && (
+          <button
+            className="ml-auto text-gray-400 hover:text-gray-600"
+            onClick={() => setToDate("")}
+            title="Clear date"
+          >
+            ×
+          </button>
+        )}
+      </div>
+
 
       {/* Search Input with Enter key functionality */}
       <div className="relative flex items-center w-full sm:flex-1">
