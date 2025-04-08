@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import { jwtDecode } from "jwt-decode";
 import SearchStudentBar from "../SearchStudentBar/SearchStdentBar";
 import { ChevronLeft, ChevronRight, UserCheck, User, Loader } from "lucide-react"; // Added more icons
+import SubmitNotiBox from "../SubmitNotiBox/SubmitNotiBox";
 
 const baseUrl = window._env_.BASE_URL;
 // Hero Section Component with enhanced styling
@@ -153,6 +154,11 @@ const StudentsPage = () => {
   const [currentSearchTerm, setCurrentSearchTerm] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const STUDENTS_PER_PAGE = 10;
+  const [notification, setNotification] = useState({
+    message: "",
+    status: "",
+    visible: false
+  });
 
   // Extract current student ID from JWT token on mount
   useEffect(() => {
@@ -242,7 +248,12 @@ const StudentsPage = () => {
 
   const handleFollowToggle = async (targetStudentId) => {
     if (!currentStudentId) {
-      alert("Please log in to follow students.");
+      // Show notification instead of alert
+      setNotification({
+        message: "Please log in to follow students.",
+        status: "error",
+        visible: true
+      });
       return;
     }
 
@@ -270,18 +281,22 @@ const StudentsPage = () => {
           [targetStudentId]: !isFollowing,
         }));
         
-        // Toast notification instead of alert for better UX
-        const message = isFollowing ? "Unfollowed student" : "Following student";
-        // You can replace this with a toast library of your choice
-        const toast = document.createElement("div");
-        toast.className = `fixed bottom-4 right-4 bg-${isFollowing ? 'gray' : 'blue'}-600 text-white px-4 py-2 rounded-lg shadow-lg z-50`;
-        toast.textContent = message;
-        document.body.appendChild(toast);
-        setTimeout(() => document.body.removeChild(toast), 3000);
+        // Use SubmitNotiBox instead of toast
+        setNotification({
+          message: isFollowing ? "Successfully unfollowed student" : "Successfully following student",
+          status: "success",
+          visible: true
+        });
       }
     } catch (error) {
       console.error("Follow/Unfollow error:", error.response?.data || error.message);
-      alert(error.response?.data?.message || `${isFollowing ? "Unfollow" : "Follow"} failed. Please try again.`);
+      
+      // Show error notification
+      setNotification({
+        message: error.response?.data?.message || `${isFollowing ? "Unfollow" : "Follow"} failed. Please try again.`,
+        status: "error",
+        visible: true
+      });
     }
   };
 
@@ -351,6 +366,15 @@ const StudentsPage = () => {
           </div>
         )}
       </section>
+
+      {/* Add SubmitNotiBox for notifications */}
+      {notification.visible && (
+        <SubmitNotiBox 
+          message={notification.message} 
+          status={notification.status} 
+          duration={3000} 
+        />
+      )}
     </div>
   );
 };
