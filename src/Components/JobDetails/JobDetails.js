@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
 import axios from "axios";
 import ReportPopup from "../ReportPopup/ReportPopup";
+import SubmitNotiBox from "../SubmitNotiBox/SubmitNotiBox";
 
 const baseUrl = window._env_.BASE_URL;
 const JobDetails = () => {
@@ -27,6 +28,7 @@ const JobDetails = () => {
   const [showTeamMembersPopup, setShowTeamMembersPopup] = useState(false);
   const [teamMembers, setTeamMembers] = useState([]);
   const [teamLeader, setTeamLeader] = useState(null);
+  const [showNotification, setShowNotification] = useState(null);
   
   const pageSize = 10;
 
@@ -288,7 +290,7 @@ const JobDetails = () => {
       return;
     }
     if (!appliedUsers.some(user => user.userId === student.userId)) {
-      setAppliedUsers([...appliedUsers, { ...student, displayName: student.userName }]);
+      setAppliedUsers([...appliedUsers, { ...student, displayName: student.displayName }]);
     }
   };
 
@@ -321,6 +323,16 @@ const JobDetails = () => {
     const jobId = searchParams.get("jobId");
     if (!jobId) {
       setErrorMessage({ header: "Job ID Error", message: "No job ID provided." });
+      return;
+    }
+
+    // Show notification when not enough team members are added
+    if (job.requiredWorkers > 1 && appliedUsers.length < job.requiredWorkers) {
+      setShowNotification({
+        message: `Please add ${job.requiredWorkers - appliedUsers.length} more team member${job.requiredWorkers - appliedUsers.length > 1 ? 's' : ''} to apply.`,
+        status: "error",
+        duration: 5000
+      });
       return;
     }
 
@@ -616,24 +628,32 @@ const JobDetails = () => {
       }
       if (status === "INACTIVE" && applicationStatus.memberStatus) {
         return (
-          <div>
+          <div className="flex flex-col sm:flex-row gap-3 w-full">
             <button
-            className="bg-yellow-500 text-white px-6 py-3 rounded-lg font-medium opacity-90 w-full sm:w-auto cursor-not-allowed flex items-center justify-center"
-            disabled
+              className="bg-yellow-500 text-white px-6 py-3 rounded-lg font-medium opacity-90 w-full sm:w-auto cursor-not-allowed flex items-center justify-center"
+              disabled
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
               <p>Applied - Pending</p>
             </button>
-            <div className="flex items-center mt-2">
+            <button
+              onClick={() => handleShowTeamMembers(applicationStatus.application.teamId)}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition duration-200 w-full sm:w-auto flex items-center justify-center"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+              </svg>
+              Team Members
+            </button>
+            <div className="flex items-center mt-2 sm:mt-0">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" style={{ color: 'red' }}>
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
               <p className="text-red-600">Other members should confirm</p>
             </div>
           </div>
-          
         );
       }
       if (status === "PENDING") {
@@ -976,11 +996,24 @@ const JobDetails = () => {
                 </>
               )}
               <button
-                onClick={handleApply}
-                className="bg-blue-600 text-white px-4 py-2 rounded-lg"
-                disabled={job.requiredWorkers !== appliedUsers.length}
+                onClick={() => {
+                  if (job.requiredWorkers > 1 && appliedUsers.length < job.requiredWorkers) {
+                    setShowNotification({
+                      message: `Please add ${job.requiredWorkers - appliedUsers.length} more team member${job.requiredWorkers - appliedUsers.length > 1 ? 's' : ''} to apply.`,
+                      status: "error",
+                      duration: 5000
+                    });
+                  } else {
+                    handleApply();
+                  }
+                }}
+                className={`${job.requiredWorkers === appliedUsers.length 
+                  ? "bg-blue-600 hover:bg-blue-700" 
+                  : "bg-blue-500"} text-white px-4 py-2 rounded-lg transition-colors`}
               >
-                Apply
+                {job.requiredWorkers > 1 && appliedUsers.length < job.requiredWorkers
+                  ? `Add ${job.requiredWorkers - appliedUsers.length} more member${job.requiredWorkers - appliedUsers.length > 1 ? 's' : ''}`
+                  : "Apply"}
               </button>
             </div>
           )}
@@ -1006,7 +1039,7 @@ const JobDetails = () => {
                     key={student.userId}
                     className="flex justify-between items-center py-2 border-b"
                   >
-                    <span>{student.userName}</span>
+                    <span>{student.displayName}</span>
                     <button
                       onClick={() => handleAddStudent(student)}
                       className="bg-blue-500 text-white px-3 py-1 rounded-lg"
@@ -1113,7 +1146,7 @@ const JobDetails = () => {
                   <div className="h-8 w-8 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold mr-3">
                     {teamLeader?.userName?.charAt(0) || "?"}
                   </div>
-                  <span>{teamLeader?.userName || "Unknown"}</span>
+                  <span>{teamLeader?.displayName || "Unknown"}</span>
                 </div>
               </div>
               
@@ -1126,7 +1159,7 @@ const JobDetails = () => {
                         <div className="h-8 w-8 bg-gray-500 rounded-full flex items-center justify-center text-white font-bold mr-3">
                           {member.userName.charAt(0)}
                         </div>
-                        <span className="cursor-pointer hover:underline">{member.userName}</span>
+                        <span className="cursor-pointer hover:underline">{member.displayName}</span>
                       </div>
                     </div>
                   ))}
@@ -1143,6 +1176,13 @@ const JobDetails = () => {
             </button>
           </div>
         </div>
+      )}
+      {showNotification && (
+        <SubmitNotiBox 
+          message={showNotification.message}
+          status={showNotification.status}
+          duration={showNotification.duration || 3000}
+        />
       )}
     </div>
   );
