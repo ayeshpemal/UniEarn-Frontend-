@@ -113,15 +113,20 @@ const AdminStats = ({ statsData, loading }) => {
 
   const chartOptions = {
     responsive: true,
+    maintainAspectRatio: false,
     plugins: {
       legend: {
-        position: "top",
+        position: "right",
+        align: "start",
         labels: {
-          padding: 20,
-          boxWidth: 15,
-          font: { size: 14 },
+          padding: 10,
+          boxWidth: 12,
+          font: { size: 11 },
           color: "#6B7280",
         },
+        // Make legend scrollable when there are many items
+        maxHeight: 220,
+        overflow: 'auto',
       },
       title: {
         display: true,
@@ -341,23 +346,23 @@ const AdminStats = ({ statsData, loading }) => {
                 </div>
               </div>
 
-              {/* Pie Charts - Improved responsiveness */}
+              {/* Pie Charts - Improved with scrollable legends and better container heights */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 avoid-break-inside">
                 <div className="bg-white p-4 rounded-lg shadow">
                   <h3 className="font-medium text-gray-700 mb-2 text-center">Jobs by Category</h3>
-                  <div className="h-64 sm:h-80 mx-auto">
+                  <div className="h-[350px] relative"> {/* Increased fixed height */}
                     <Pie
-                      data={{ ...categoryChartData, options: { ...chartOptions, title: { ...chartOptions.title, text: "Jobs by Category" } } }}
-                      options={{ ...chartOptions, maintainAspectRatio: true }}
+                      data={categoryChartData}
+                      options={chartOptions}
                     />
                   </div>
                 </div>
                 <div className="bg-white p-4 rounded-lg shadow">
                   <h3 className="font-medium text-gray-700 mb-2 text-center">Jobs by Location</h3>
-                  <div className="h-64 sm:h-80 mx-auto">
+                  <div className="h-[350px] relative"> {/* Increased fixed height */}
                     <Pie
-                      data={{ ...locationChartData, options: { ...chartOptions, title: { ...chartOptions.title, text: "Jobs by Location" } } }}
-                      options={{ ...chartOptions, maintainAspectRatio: true }}
+                      data={locationChartData}
+                      options={chartOptions}
                     />
                   </div>
                 </div>
