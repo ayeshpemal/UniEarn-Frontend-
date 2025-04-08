@@ -288,7 +288,7 @@ const JobDetails = () => {
       return;
     }
     if (!appliedUsers.some(user => user.userId === student.userId)) {
-      setAppliedUsers([...appliedUsers, { ...student, displayName: student.userName }]);
+      setAppliedUsers([...appliedUsers, { ...student, displayName: student.displayName }]);
     }
   };
 
