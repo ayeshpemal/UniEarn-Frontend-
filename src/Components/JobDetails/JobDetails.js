@@ -1006,7 +1006,7 @@ const JobDetails = () => {
                     key={student.userId}
                     className="flex justify-between items-center py-2 border-b"
                   >
-                    <span>{student.userName}</span>
+                    <span>{student.displayName}</span>
                     <button
                       onClick={() => handleAddStudent(student)}
                       className="bg-blue-500 text-white px-3 py-1 rounded-lg"
