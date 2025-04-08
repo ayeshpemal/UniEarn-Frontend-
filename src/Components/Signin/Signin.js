@@ -5,6 +5,7 @@ import axios from "axios";
 import { jwtDecode } from "jwt-decode";
 import SubmitNotiBox from "../SubmitNotiBox/SubmitNotiBox";
 
+const baseUrl = window._env_.BASE_URL;
 const Signin = () => {
     const navigate = useNavigate();
     const [formData, setFormData] = useState({
@@ -72,7 +73,7 @@ const Signin = () => {
         
         try {
             const response = await axios.post(
-                "http://localhost:8100/api/user/login",
+                `${baseUrl}/api/user/login`,
                 formData,
                 {
                     headers: {
@@ -137,7 +138,7 @@ const Signin = () => {
         setIsLoading(true);
         try {
             const response = await axios.get(
-                `http://localhost:8100/api/user/resend-verification-email?username=${formData.userName}`,
+                `${baseUrl}/api/user/resend-verification-email?username=${formData.userName}`,
                 {
                     headers: { "Content-Type": "application/json" },
                 }
@@ -179,7 +180,7 @@ const Signin = () => {
         try {
             const encodedEmail = encodeURIComponent(forgotPasswordEmail);
             const response = await axios.post(
-                `http://localhost:8100/api/auth/forgot-password?email=${encodedEmail}`,
+                `${baseUrl}/api/auth/forgot-password?email=${encodedEmail}`,
                 {
                     headers: { "Content-Type": "application/json" },
                 }

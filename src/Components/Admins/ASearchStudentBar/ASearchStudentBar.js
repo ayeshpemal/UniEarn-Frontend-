@@ -3,10 +3,11 @@ import { Search } from "lucide-react";
 import React, { useState, useEffect } from "react";
 import { jwtDecode } from "jwt-decode";
 
+const baseUrl = window._env_.BASE_URL;
 const searchStudents = async (searchTerm, userId, page = 0) => {
   try {
     const response = await axios.get(
-      `http://localhost:8100/api/student/search?query=${encodeURIComponent(searchTerm)}&page=${page}`,
+      `${baseUrl}/api/student/search?query=${encodeURIComponent(searchTerm)}&page=${page}`,
       {
         headers: {
           "Content-Type": "application/json",

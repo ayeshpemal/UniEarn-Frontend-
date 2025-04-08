@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { Lock, Check } from "lucide-react";
 import axios from "axios";
 
+const baseUrl = window._env_.BASE_URL;
 const ResetPassword = () => {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
@@ -64,10 +65,10 @@ const ResetPassword = () => {
                 newPassword: formData.newPassword,
             };
             console.log("Request Body:", requestBody); // Debug: Check the request body
-            console.log("API URL:", "http://localhost:8100/api/auth/reset-password"); // Debug: Check the URL
+            console.log("API URL:", `${baseUrl}/api/auth/reset-password`); // Debug: Check the URL
 
             const response = await axios.post(
-                "http://localhost:8100/api/auth/reset-password",
+                `${baseUrl}/api/auth/reset-password`,
                 requestBody,
                 {
                     headers: {

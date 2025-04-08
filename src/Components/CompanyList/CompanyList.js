@@ -13,6 +13,7 @@ import { useEffect } from "react";
 //     logo: companyLogo,
 // });
 
+const baseUrl = window._env_.BASE_URL;
 const Company = () => {
 
     const [employers, setEmployers] = useState([]);
@@ -30,7 +31,7 @@ const Company = () => {
         const fetchEmployers = async () => {
             try {
         
-                const response = await axios.get(`http://localhost:8100/api/v1/jobs/studentpreferedjobs?student_id=${userId}&page=0`);//this should be the endpoint for fetching employers
+                const response = await axios.get(`${baseUrl}/api/v1/jobs/studentpreferedjobs?student_id=${userId}&page=0`);//this should be the endpoint for fetching employers
                 console.log(response);
                 const employers = response.data?.data?.employerList || [];
                 setEmployers(employers);

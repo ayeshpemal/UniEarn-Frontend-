@@ -4,6 +4,7 @@ import axios from "axios";
 import { jwtDecode } from "jwt-decode";
 import SubmitNotiBox from "../../SubmitNotiBox/SubmitNotiBox";
 
+const baseUrl = window._env_.BASE_URL;
 const LOCATIONS = [
   "AMPARA", "ANURADHAPURA", "BADULLA", "BATTICALOA", "COLOMBO", "GALLE",
   "GAMPAHA", "HAMBANTOTA", "JAFFNA", "KALUTARA", "KANDY", "KEGALLE",
@@ -19,7 +20,7 @@ const JOB_CATEGORIES = [
   "WEB_DEVELOPER", "OTHER"
 ];
 
-const API_URL = "http://localhost:8100/api/v1/jobs/addjob";
+const API_URL = `${baseUrl}/api/v1/jobs/addjob`;
 
 export default function JobCreationForm() {
   const [formData, setFormData] = useState({

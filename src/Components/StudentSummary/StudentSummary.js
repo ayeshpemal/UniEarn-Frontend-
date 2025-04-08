@@ -7,6 +7,7 @@ import html2pdf from 'html2pdf.js';
 
 // Register ChartJS components
 ChartJS.register(ArcElement, Tooltip, Legend, BarElement, CategoryScale, LinearScale);
+const baseUrl = window._env_.BASE_URL;
 
 const ApplicationSummary = () => {
   const [summaryData, setSummaryData] = useState(null);
@@ -94,7 +95,7 @@ const ApplicationSummary = () => {
 
       try {
         const response = await axios.post(
-          `http://localhost:8100/api/v1/application/student/summary`,
+          `${baseUrl}/api/v1/application/student/summary`,
           {
             studentId: userId,
             startDate: new Date(startDate).toISOString(),
@@ -177,14 +178,40 @@ const ApplicationSummary = () => {
 
   const barOptions = {
     responsive: true,
+    maintainAspectRatio: false,  // Allow chart to fill container
     plugins: {
       legend: { position: "top", labels: { color: "#6B7280" } },
       title: { display: true, text: "Applications by Category", color: "#6B7280" },
+      tooltip: {
+        callbacks: {
+          title: function(tooltipItems) {
+            // Display full category name in tooltip
+            return tooltipItems[0].label;
+          }
+        }
+      }
     },
     scales: {
-      y: { beginAtZero: true, title: { display: true, text: "Count", color: "#6B7280" }, ticks: { color: "#6B7280" } },
-      x: { title: { display: true, text: "Categories", color: "#6B7280" }, ticks: { color: "#6B7280" } },
-    },
+      y: { 
+        beginAtZero: true, 
+        title: { display: true, text: "Count", color: "#6B7280" }, 
+        ticks: { color: "#6B7280" } 
+      },
+      x: { 
+        title: { display: true, text: "Categories", color: "#6B7280" }, 
+        ticks: { 
+          color: "#6B7280",
+          autoSkip: false,      // Prevent skipping labels
+          maxRotation: 45,      // Rotate labels to fit
+          minRotation: 45,      // Ensure consistent rotation
+          callback: function(value, index) {
+            // Truncate long category names but show full name on hover
+            const label = this.getLabelForValue(index);
+            return label.length > 15 ? label.substring(0, 12) + '...' : label;
+          }
+        } 
+      }
+    }
   };
 
   return (
@@ -285,23 +312,38 @@ const ApplicationSummary = () => {
               <>
                 {/* Summary Stats */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8 avoid-break-inside">
-                  <div className="bg-white border border-gray-200 p-4 rounded-lg text-center shadow-sm">
+                  <div className="bg-white border border-gray-200 p-4 rounded-lg text-center shadow-sm relative group">
+                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-1 bg-gray-700 text-white text-xs sm:text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 w-[180px] sm:w-[220px] z-10 pointer-events-none text-center">
+                      Team applications that are not confirmed by other members. These applications cannot be seen by companies.
+                    </div>
                     <p className="text-lg font-semibold text-gray-500">Inactive</p>
                     <p className="text-2xl text-gray-500">{summaryData.inactive}</p>
                   </div>
-                  <div className="bg-white border border-gray-200 p-4 rounded-lg text-center shadow-sm">
+                  <div className="bg-white border border-gray-200 p-4 rounded-lg text-center shadow-sm relative group">
+                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-1 bg-gray-700 text-white text-xs sm:text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 w-[180px] sm:w-[220px] z-10 pointer-events-none text-center">
+                      Pending applications that can be seen by companies.
+                    </div>
                     <p className="text-lg font-semibold text-orange-500">Pending</p>
                     <p className="text-2xl text-orange-500">{summaryData.pending}</p>
                   </div>
-                  <div className="bg-white border border-gray-200 p-4 rounded-lg text-center shadow-sm">
+                  <div className="bg-white border border-gray-200 p-4 rounded-lg text-center shadow-sm relative group">
+                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-1 bg-gray-700 text-white text-xs sm:text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 w-[180px] sm:w-[220px] z-10 pointer-events-none text-center">
+                      Applications that have been accepted by companies.
+                    </div>
                     <p className="text-lg font-semibold text-purple-500">Accepted</p>
                     <p className="text-2xl text-purple-500">{summaryData.accepted}</p>
                   </div>
-                  <div className="bg-white border border-gray-200 p-4 rounded-lg text-center shadow-sm">
+                  <div className="bg-white border border-gray-200 p-4 rounded-lg text-center shadow-sm relative group">
+                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-1 bg-gray-700 text-white text-xs sm:text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 w-[180px] sm:w-[220px] z-10 pointer-events-none text-center">
+                      Applications that have been rejected by companies.
+                    </div>
                     <p className="text-lg font-semibold text-pink-500">Rejected</p>
                     <p className="text-2xl text-pink-500">{summaryData.rejected}</p>
                   </div>
-                  <div className="bg-white border border-gray-200 p-4 rounded-lg text-center shadow-sm">
+                  <div className="bg-white border border-gray-200 p-4 rounded-lg text-center shadow-sm relative group">
+                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-1 bg-gray-700 text-white text-xs sm:text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 w-[180px] sm:w-[220px] z-10 pointer-events-none text-center">
+                      Applications that have been accepted by companies and confirmed by the student.
+                    </div>
                     <p className="text-lg font-semibold text-teal-500">Confirmed</p>
                     <p className="text-2xl text-teal-500">{summaryData.confirmed}</p>
                   </div>
@@ -319,7 +361,7 @@ const ApplicationSummary = () => {
                   <div className="bg-white p-4 rounded-lg shadow">
                     <Pie data={pieData} options={pieOptions} />
                   </div>
-                  <div className="bg-white p-4 rounded-lg shadow">
+                  <div className="bg-white p-4 rounded-lg shadow" style={{ minHeight: "400px" }}>
                     <Bar data={barData} options={barOptions} />
                   </div>
                 </div>

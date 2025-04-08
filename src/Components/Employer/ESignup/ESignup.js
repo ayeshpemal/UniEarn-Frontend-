@@ -1,11 +1,19 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import { X } from "lucide-react";
+import { X, Loader2 } from "lucide-react";
+import SubmitNotiBox from "../../SubmitNotiBox/SubmitNotiBox";
 
+const baseUrl = window._env_.BASE_URL;
 const EmployerSignUp = () => {
     const navigate = useNavigate();
     const [showVerificationPopup, setShowVerificationPopup] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
+    const [notification, setNotification] = useState({
+        message: "",
+        status: "",
+        show: false
+    });
 
     const [formData, setFormData] = useState({
         userName: "",
@@ -72,28 +80,75 @@ const EmployerSignUp = () => {
         e.preventDefault();
         console.log(formData);
 
-        if (formData.password !== formData.confirmPassword) {
-            alert("Passwords do not match!");
-            return;
-        }
+        // Always reset notification first
+        setNotification({
+            message: "",
+            status: "",
+            show: false
+        });
 
-        try {
-            console.log("Sending request to register employer...");
-            const response = await axios.post(
-                "http://localhost:8100/api/user/register",
-                formData,
-                { headers: { "Content-Type": "application/json" } }
-            );
-            console.log("API Response:", response);
-
-            if (response.status === 201) {
-                console.log(response.data);
-                setShowVerificationPopup(true);
+        // Add a small delay to ensure state update before showing new notification
+        setTimeout(() => {
+            // Client-side validations
+            if (formData.password !== formData.confirmPassword) {
+                setNotification({
+                    message: "Passwords do not match!",
+                    status: "error",
+                    show: true
+                });
+                return;
             }
-        } catch (error) {
-            alert(error.response?.data?.message || "Registration failed. Please try again.");
-            console.log(error.response?.data);
-        }
+
+            if (formData.categories.length === 0) {
+                setNotification({
+                    message: "Please select at least one job category",
+                    status: "error",
+                    show: true
+                });
+                return;
+            }
+
+            const submitForm = async () => {
+                try {
+                    setIsLoading(true);
+                    console.log("Sending request to register employer...");
+                    const response = await axios.post(
+                        `${baseUrl}/api/user/register`,
+                        formData,
+                        { headers: { "Content-Type": "application/json" } }
+                    );
+                    console.log("API Response:", response);
+
+                    if (response.status === 201) {
+                        console.log(response.data);
+                        setNotification({
+                            message: "Registration successful! Please check your email for verification.",
+                            status: "success",
+                            show: true
+                        });
+                        setShowVerificationPopup(true);
+                    }
+                } catch (error) {
+                    console.error("Registration error:", error);
+                    
+                    // Detailed error handling
+                    const errorMessage = error.response?.data?.message || 
+                                        error.response?.data?.error || 
+                                        error.message || 
+                                        "Registration failed. Please try again.";
+                    
+                    setNotification({
+                        message: errorMessage,
+                        status: "error",
+                        show: true
+                    });
+                } finally {
+                    setIsLoading(false);
+                }
+            };
+
+            submitForm();
+        }, 10); // Small delay to ensure state updates properly
     };
 
     const handleNextButton = () => {
@@ -110,6 +165,15 @@ const EmployerSignUp = () => {
             className="relative w-full min-h-screen bg-cover bg-center flex items-center justify-center"
             style={{ backgroundImage: "url('./Background.png')" }}
         >
+            {/* Show notification if active */}
+            {notification.show && (
+                <SubmitNotiBox 
+                    message={notification.message} 
+                    status={notification.status} 
+                    duration={5000} 
+                />
+            )}
+            
             {/* Dark Overlay */}
             <div className="absolute inset-0 bg-black bg-opacity-50 z-10"></div>
 
@@ -282,8 +346,19 @@ const EmployerSignUp = () => {
 
                         {/* Submit Button */}
                         <div className="col-span-1 md:col-span-2 mt-6 text-center">
-                            <button type="submit" className="bg-gradient-to-r from-purple-500 to-blue-500 text-white py-3 px-6 rounded-lg font-bold hover:opacity-90 w-full sm:w-auto">
-                                Submit
+                            <button 
+                                type="submit" 
+                                className="bg-gradient-to-r from-purple-500 to-blue-500 text-white py-3 px-6 rounded-lg font-bold hover:opacity-90 w-full sm:w-auto disabled:opacity-70"
+                                disabled={isLoading}
+                            >
+                                {isLoading ? (
+                                    <span className="flex items-center justify-center">
+                                        <Loader2 className="animate-spin mr-2 h-5 w-5" />
+                                        Processing...
+                                    </span>
+                                ) : (
+                                    "Submit"
+                                )}
                             </button>
                         </div>
                     </form>

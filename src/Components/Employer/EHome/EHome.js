@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { jwtDecode } from 'jwt-decode';
 import axios from 'axios';
+import SubmitNotiBox from '../../../Components/SubmitNotiBox/SubmitNotiBox';
 
+const baseUrl = window._env_.BASE_URL;
 const EHome = () => {
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -10,6 +12,14 @@ const EHome = () => {
   const [totalPages, setTotalPages] = useState(0);
   const jobsPerPage = 10;
   const [activeTab, setActiveTab] = useState('PENDING'); // New state for tab navigation
+  const [notification, setNotification] = useState({ visible: false, message: '', status: '' });
+  // Add state for confirmation dialog
+  const [confirmDialog, setConfirmDialog] = useState({
+    visible: false,
+    jobId: null,
+    title: '',
+    message: ''
+  });
 
   // Add this effect to scroll to top when component mounts
   useEffect(() => {
@@ -25,7 +35,7 @@ const EHome = () => {
         const userId = decodedToken.user_id;
 
         const response = await axios.get(
-          `http://localhost:8100/api/v1/jobs/get-jobs-by-user?user_id=${userId}&page=${currentPage}`,
+          `${baseUrl}/api/v1/jobs/get-jobs-by-user?user_id=${userId}&page=${currentPage}`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
 
@@ -53,29 +63,58 @@ const EHome = () => {
   };
 
   const handleCancelJob = async (jobId) => {
-    if (window.confirm('Are you sure you want to cancel this job?')) {
-      try {
-        const token = localStorage.getItem('token');
-        const response = await axios.put(
-          `http://localhost:8100/api/v1/jobs/set-status?job_id=${jobId}&status=CANCEL`, 
-          {}, // Empty body for PUT request
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
-        
-        // Update the job status locally
-        setJobs((prevJobs) => 
-          Array.isArray(prevJobs) 
-            ? prevJobs.map(job => job.jobId === jobId ? {...job, jobStatus: 'CANCEL'} : job)
-            : []
-        );
-        alert('Job cancelled successfully');
-      } catch (err) {
-        if(err.status === 400){
-          alert(err.response.data.message);
-          return;
-        }
+    // Show confirmation dialog instead of window.confirm
+    setConfirmDialog({
+      visible: true,
+      jobId: jobId,
+      title: 'Cancel Job',
+      message: 'Are you sure you want to cancel this job? This action cannot be undone.'
+    });
+  };
+
+  // New function to handle the actual cancellation after confirmation
+  const confirmCancelJob = async () => {
+    const jobId = confirmDialog.jobId;
+    
+    // Hide the confirmation dialog
+    setConfirmDialog({ ...confirmDialog, visible: false });
+    
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.put(
+        `${baseUrl}/api/v1/jobs/set-status?job_id=${jobId}&status=CANCEL`, 
+        {}, // Empty body for PUT request
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      
+      // Update the job status locally
+      setJobs((prevJobs) => 
+        Array.isArray(prevJobs) 
+          ? prevJobs.map(job => job.jobId === jobId ? {...job, jobStatus: 'CANCEL'} : job)
+          : []
+      );
+      
+      // Show success notification
+      setNotification({
+        visible: true,
+        message: 'Job cancelled successfully',
+        status: 'success'
+      });
+    } catch (err) {
+      // Show error notification with specific message if available
+      if(err.response && err.response.status === 400){
+        setNotification({
+          visible: true,
+          message: err.response.data.message || 'Failed to cancel job',
+          status: 'error'
+        });
+      } else {
         console.error('Failed to cancel job:', err);
-        alert('Failed to cancel job. Please try again.');
+        setNotification({
+          visible: true,
+          message: 'Failed to cancel job. Please try again.',
+          status: 'error'
+        });
       }
     }
   };
@@ -314,8 +353,73 @@ const EHome = () => {
     }
   };
 
+  // Custom confirmation dialog component
+  const ConfirmationDialog = () => {
+    if (!confirmDialog.visible) return null;
+    
+    return (
+      <div className="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+          {/* Background overlay */}
+          <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"></div>
+          
+          {/* Modal panel */}
+          <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+            <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+              <div className="sm:flex sm:items-start">
+                <div className="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
+                  <svg className="h-6 w-6 text-red-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                  </svg>
+                </div>
+                <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+                  <h3 className="text-lg leading-6 font-medium text-gray-900" id="modal-title">
+                    {confirmDialog.title}
+                  </h3>
+                  <div className="mt-2">
+                    <p className="text-sm text-gray-500">
+                      {confirmDialog.message}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+              <button 
+                type="button" 
+                className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm"
+                onClick={confirmCancelJob}
+              >
+                Cancel Job
+              </button>
+              <button 
+                type="button" 
+                className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
+                onClick={() => setConfirmDialog({ ...confirmDialog, visible: false })}
+              >
+                Go Back
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Show notification when visible */}
+      {notification.visible && (
+        <SubmitNotiBox 
+          message={notification.message}
+          status={notification.status}
+          duration={3000}
+        />
+      )}
+      
+      {/* Render confirmation dialog */}
+      <ConfirmationDialog />
+      
       <section className="container mx-auto p-4 sm:p-6 md:p-8 lg:p-10">
         <div className="mb-8">
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-4">My Jobs</h1>

@@ -4,6 +4,7 @@ import axios from "axios";
 import { jwtDecode } from "jwt-decode";
 import SubmitNotiBox from "../SubmitNotiBox/SubmitNotiBox";
 
+const baseUrl = window._env_.BASE_URL;
 const Contact = () => {
     const [formData, setFormData] = useState({
         firstName: "",
@@ -63,7 +64,6 @@ const Contact = () => {
         
         try { 
             // Get base URL from config.js
-            const baseUrl = window._env_?.BASE_URL || "http://localhost:8100";
             console.log("API Base URL:", baseUrl);
             
             // Send email through API using the configured base URL
