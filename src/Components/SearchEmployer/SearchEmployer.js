@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import { jwtDecode } from "jwt-decode";
 import SearchEmployerBar from "../SearchEmployerBar/SearchEmployerBar";
 import { ChevronLeft, ChevronRight, UserCheck, User, Loader, Building } from "lucide-react";
+import SubmitNotiBox from "../SubmitNotiBox/SubmitNotiBox";
 
 const baseUrl = window._env_.BASE_URL;
 // Hero Section Component with enhanced styling
@@ -153,6 +154,12 @@ const EmployersPage = () => {
   const [currentSearchTerm, setCurrentSearchTerm] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const EMPLOYERS_PER_PAGE = 10;
+  // Add notification state
+  const [notification, setNotification] = useState({
+    message: "",
+    status: "",
+    visible: false
+  });
 
   // Extract current student ID from JWT token on mount
   useEffect(() => {
@@ -244,7 +251,12 @@ const EmployersPage = () => {
 
   const handleFollowToggle = async (targetEmployerId) => {
     if (!currentStudentId) {
-      alert("Please log in to follow employers.");
+      // Replace alert with notification
+      setNotification({
+        message: "Please log in to follow employers.",
+        status: "error",
+        visible: true
+      });
       return;
     }
 
@@ -279,18 +291,22 @@ const EmployersPage = () => {
           [targetEmployerId]: !isFollowing,
         }));
         
-        // Toast notification instead of alert for better UX
-        const message = isFollowing ? "Unfollowed employer" : "Following employer";
-        // You can replace this with a toast library of your choice
-        const toast = document.createElement("div");
-        toast.className = `fixed bottom-4 right-4 bg-${isFollowing ? 'gray' : 'blue'}-600 text-white px-4 py-2 rounded-lg shadow-lg z-50`;
-        toast.textContent = message;
-        document.body.appendChild(toast);
-        setTimeout(() => document.body.removeChild(toast), 3000);
+        // Replace custom toast with SubmitNotiBox
+        setNotification({
+          message: isFollowing ? "Successfully unfollowed employer" : "Successfully following employer",
+          status: "success",
+          visible: true
+        });
       }
     } catch (error) {
       console.error("Follow/Unfollow error:", error.response?.data || error.message);
-      alert(error.response?.data?.message || `${isFollowing ? "Unfollow" : "Follow"} failed. Please try again.`);
+      
+      // Show error notification instead of alert
+      setNotification({
+        message: error.response?.data?.message || `${isFollowing ? "Unfollow" : "Follow"} failed. Please try again.`,
+        status: "error",
+        visible: true
+      });
     }
   };
 
@@ -360,6 +376,15 @@ const EmployersPage = () => {
           </div>
         )}
       </section>
+
+      {/* Add SubmitNotiBox component */}
+      {notification.visible && (
+        <SubmitNotiBox 
+          message={notification.message} 
+          status={notification.status} 
+          duration={3000} 
+        />
+      )}
     </div>
   );
 };
