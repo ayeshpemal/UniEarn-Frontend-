@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
 import axios from "axios";
 
+const baseUrl = window._env_.BASE_URL;
 const Activities = () => {
   const navigate = useNavigate();
   const [activities, setActivities] = useState({
@@ -20,7 +21,7 @@ const Activities = () => {
   const [totalCount, setTotalCount] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("all");
-  const itemsPerPage = 5;
+  const itemsPerPage = 10;
 
   useEffect(() => {
     fetchActivities();
@@ -39,7 +40,7 @@ const Activities = () => {
       const userId = decodedToken.user_id;
 
       const response = await axios.get(
-        `http://localhost:8100/api/v1/jobs/get-jobs-by-user?user_id=${userId}&page=${currentPage}`,
+        `${baseUrl}/api/v1/jobs/get-jobs-by-user?user_id=${userId}&page=${currentPage}`,
         {
           headers: {
             Authorization: `Bearer ${token}`

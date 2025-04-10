@@ -47,6 +47,10 @@ import ASearchStudent from './Components/Admins/ASearchStudent/ASearchStudent';
 import Landing from './Components/Landing/Landing';
 import EJobApplications from './Components/Employer/EJobApplications/EJobApplications';
 import ESummary from './Components/Employer/ESummary/ESummary';
+import AReport from './Components/Admins/AReport/AReport';
+import ANotification from './Components/Admins/ANotification/ANotification';
+import ManageAdmin from './Components/Admins/ManageAdmin/ManageAdmin';
+import CreateUsers from './Components/Admins/CreateUsers/CreateUsers';
 
 function App() {
     const location = useLocation();
@@ -65,14 +69,18 @@ function App() {
         "/", "/hero", "/sign-in", "/sign-up", "/pin", "/verify", "/company", "/e-home", "/profile", 
         "/activities", "/job-details", "/apply-job", "/contact-us", "/company-rating", "/e-hero", 
         "/e-sign-in", "/e-sign-up", "/e-job-create", "/e-job-edit", "/e-contact-us", "/admins/stats", 
-        "/search-student", "/activities/summary", "/reset-password", "/home", "/e-profile","/e-summary" 
+        "/search-student", "/activities/summary", "/reset-password", "/home", "/e-profile","/e-summary",
+        "/p-contact-us","/a-home","/admin/stats","/a-profile","/a-company","/a-student","/a-report",
+        "/a-notification","/e-job-details","/create-users1219"
     ];
     
     const searchBarCompany = [
         "/", "/hero", "/sign-in", "/sign-up", "/home", "/profile", "/verify", "/e-home", "/activities", 
         "/job-details", "/apply-job", "/contact-us", "/company-rating", "/e-hero", "/e-sign-in", 
         "/e-sign-up", "/e-job-create", "/e-job-edit", "/e-contact-us", "/admins/stats", "/search-student", 
-        "/company", "/activities/summary", "/reset-password", "/e-profile","/e-summary" 
+        "/company", "/activities/summary", "/reset-password", "/e-profile","/e-summary","/p-contact-us",
+        "/a-home","/admin/stats","/a-profile","/a-company","/a-student","/a-report","/a-notification",
+        "/e-job-details","/create-users1219"
     ];
 
     const eChatButton = [
@@ -84,9 +92,10 @@ function App() {
     const eSearchBarHome = [
         "/", "/home", "/hero", "/sign-in", "/sign-up", "/pin", "/verify", "/company", "/profile", 
         "/activities", "/job-details", "/apply-job", "/contact-us", "/company-rating", "/e-hero", 
-        "/e-sign-in", "/e-sign-up", "/e-contact-us", "/admins/stats", "/company", "/activities", 
+        "/e-sign-in", "/e-sign-up", "/e-contact-us", "/admins/stats", , "/activities", 
         "/search-student", "/job-details", "/activities/summary", "/reset-password", "/e-profile",
-        "/e-summary" 
+        "/e-summary","/p-contact-us","/a-home","/admin/stats","/a-profile","/a-company","/a-student",
+        "/a-report","/a-notification","/e-job-details","/create-users1219"
     ];
     
     const eSearchBarCompany = [
@@ -94,7 +103,9 @@ function App() {
         "/activities", "/job-details", "/apply-job", "/contact-us", "/company-rating", "/e-hero", 
         "/e-sign-in", "/e-sign-up", "/e-contact-us", "/admins/stats", "/company", "/activities", 
         "/profile", "/search-student", "/job-details", "/e-job-create", "/e-job-edit", "/activities/summary", 
-        "/reset-password","/e-profile","/e-summary" 
+        "/reset-password","/e-profile","/e-summary","/p-contact-us","/a-home","/admin/stats","/a-profile",
+        "/a-company","/a-student","/a-report","/a-notification","/e-job-details","/create-users1219"
+
     ];
 
     // Define all valid routes explicitly
@@ -102,10 +113,10 @@ function App() {
         "/", "/hero", "/sign-in", "/sign-up", "/e-sign-in", "/e-sign-up", "/e-hero",
         "/verify", "/reset-password", "/admins", "/admins/stats", "/e-home",
         "/e-job-create", "/e-job-edit", "/e-profile", "/e-contact-us", "/home",
-        "/companyList", "/search-student", "/activities/summary", "/company",
-        "/profile", "/activities", "/confirm", "/job-details", "/apply-job",
-        "/contact-us", "/log-out", "/company-details/:employerId",
-        "/searched-results/:selectedLocation/:selectedJob/:searchTerm"
+        "/search-student", "/activities/summary", "/company","/profile", "/activities", 
+        "/job-details", "/apply-job","/contact-us", "/log-out","/p-contact-us","/a-home",
+        "/admin/stats","/a-profile","/a-company","/a-student","/a-report","/a-notification",
+        "/e-job-details","/e-summary","/create-users1219"
     ];
 
     // Check if the current path is valid (simplified check, ignoring params for now)
@@ -161,29 +172,38 @@ function App() {
     }, [location.pathname]);
 
     const publicRoutes = [
-        "/e-hero", "/e-sign-in", "/e-sign-up", "/sign-in", 
+        "/e-hero", "/e-sign-up", "/sign-in", 
         "/verify", "/sign-up", "/reset-password", "/hero",
-        "/"
+        "/","/contact-us"
     ];
 
     const isPublicRoute = publicRoutes.includes(location.pathname);
 
-    const ProtectedRoute = ({ children, redirectTo = "/sign-in" }) => {
+    // Updated role-based ProtectedRoute component
+    const ProtectedRoute = ({ children, redirectTo = "/sign-in", allowedRoles = null }) => {
         if (loading) {
             return <div>Loading...</div>;
         }
-
+    
+        // Check if user is authenticated
         if (!isAuthenticated && !isPublicRoute) {
             console.log('Redirecting to sign-in. Auth:', isAuthenticated, 'Public:', isPublicRoute);
             return <Navigate to={redirectTo} replace />;
         }
+    
+        // If allowedRoles is specified, check if user has permission
+        if (isAuthenticated && allowedRoles && !allowedRoles.includes(userRole)) {
+            console.log(`Access denied. User role ${userRole} not in allowed roles:`, allowedRoles);
+            return <NotFound />; // Show NotFound instead of redirecting
+        }
+    
         return children;
     };
 
     return (
         <div className="App">
             {/* ChatButton and NavBar logic */}
-            {!isPublicRoute && <ChatButton />}
+            {!isPublicRoute && isAuthenticated && <ChatButton />}
             {!isPublicRoute && isAuthenticated && (
                 userRole === 'STUDENT' ? <NavBar /> : 
                 userRole === 'EMPLOYER' ? <ENavBar /> :
@@ -198,48 +218,45 @@ function App() {
 
             <Routes>
                 {/* Public Routes */}
+                <Route path="/" element={<Landing />} />
                 <Route path="/hero" element={<Hero />} />
+                <Route path="/e-hero" element={<EHero />} />
                 <Route path="/sign-in" element={<Signin />} />
                 <Route path="/sign-up" element={<Signup />} />
-                <Route path="/e-sign-in" element={<ESignin />} />
                 <Route path="/e-sign-up" element={<ESignup />} />
-                <Route path="/e-hero" element={<EHero />} />
                 <Route path="/verify" element={<JobPreferences />} />
                 <Route path="/reset-password" element={<ResetPassword />} />
-                <Route path="/" element={<Landing />} />
+                <Route path="/contact-us" element={<ContactUs />} />
 
-                {/* Protected Routes */}
-                <Route path="/a-home" element={<ProtectedRoute><Admins /></ProtectedRoute>} />
-                <Route path="/admin/stats" element={<ProtectedRoute><AdminStats /></ProtectedRoute>} />
-                <Route path="/a-profile" element={<ProtectedRoute><AProfile /></ProtectedRoute>} />
-                <Route path="/a-company" element={<ProtectedRoute><ASearchEmployer /></ProtectedRoute>} />
-                <Route path="/a-student" element={<ProtectedRoute><ASearchStudent /></ProtectedRoute>} />
+                {/* Admin Protected Routes - Only ADMIN can access */}
+                <Route path="/a-home" element={<ProtectedRoute allowedRoles={['ADMIN']}><Admins /></ProtectedRoute>} />
+                <Route path="/admin/stats" element={<ProtectedRoute allowedRoles={['ADMIN']}><AdminStats /></ProtectedRoute>} />
+                <Route path="/a-profile" element={<ProtectedRoute allowedRoles={['ADMIN']}><AProfile /></ProtectedRoute>} />
+                <Route path="/a-company" element={<ProtectedRoute allowedRoles={['ADMIN']}><ASearchEmployer /></ProtectedRoute>} />
+                <Route path="/a-student" element={<ProtectedRoute allowedRoles={['ADMIN']}><ASearchStudent /></ProtectedRoute>} />
+                <Route path="/a-admins" element={<ProtectedRoute allowedRoles={['ADMIN']}><ManageAdmin /></ProtectedRoute>} />
+                <Route path="/a-report" element={<ProtectedRoute allowedRoles={['ADMIN']}><AReport /></ProtectedRoute>} />
+                <Route path="/a-notification" element={<ProtectedRoute allowedRoles={['ADMIN']}><ANotification /></ProtectedRoute>} />
+                <Route path="/create-users1219" element={<ProtectedRoute allowedRoles={['ADMIN']}><CreateUsers /></ProtectedRoute>} />
                 
-                {/* Employer Protected Routes */}
-                <Route path="/e-home" element={<ProtectedRoute><EHome /></ProtectedRoute>} />
-                <Route path="/e-job-create" element={<ProtectedRoute><EJobCreation /></ProtectedRoute>} />
-                <Route path="/e-job-edit" element={<ProtectedRoute><EJobUpdate /></ProtectedRoute>} />
+                {/* Employer Protected Routes - Only EMPLOYER can access (except e-profile) */}
+                <Route path="/e-home" element={<ProtectedRoute allowedRoles={['EMPLOYER']}><EHome /></ProtectedRoute>} />
+                <Route path="/e-job-create" element={<ProtectedRoute allowedRoles={['EMPLOYER']}><EJobCreation /></ProtectedRoute>} />
+                <Route path="/e-job-edit" element={<ProtectedRoute allowedRoles={['EMPLOYER']}><EJobUpdate /></ProtectedRoute>} />
                 <Route path="/e-profile" element={<ProtectedRoute><CompanyDetails /></ProtectedRoute>} />
-                <Route path="/e-contact-us" element={<ProtectedRoute><ContactUs /></ProtectedRoute>} />
-                <Route path="e-job-details" element={<ProtectedRoute><EJobApplications /></ProtectedRoute>} />
-                <Route path="/e-summary" element={<ProtectedRoute><ESummary /></ProtectedRoute>} />
+                <Route path="e-job-details" element={<ProtectedRoute allowedRoles={['EMPLOYER']}><EJobApplications /></ProtectedRoute>} />
+                <Route path="/e-summary" element={<ProtectedRoute allowedRoles={['EMPLOYER']}><ESummary /></ProtectedRoute>} />
 
-                {/* Student Protected Routes */}
-                <Route path="/home" element={<ProtectedRoute><Home /></ProtectedRoute>} />
-                <Route path="/companyList" element={<ProtectedRoute><CompanyList /></ProtectedRoute>} />
-                <Route path="/search-student" element={<ProtectedRoute><SearchStudent /></ProtectedRoute>} />
-                <Route path="/activities/summary" element={<ProtectedRoute><StudentSummary /></ProtectedRoute>} />
-                <Route path="/company" element={<ProtectedRoute><SearchEmployer /></ProtectedRoute>} />
+                {/* Student Protected Routes - Only STUDENT can access (except profile and contact-us) */}
+                <Route path="/home" element={<ProtectedRoute allowedRoles={['STUDENT']}><Home /></ProtectedRoute>} />
+                <Route path="/search-student" element={<ProtectedRoute allowedRoles={['STUDENT']}><SearchStudent /></ProtectedRoute>} />
+                <Route path="/activities/summary" element={<ProtectedRoute allowedRoles={['STUDENT']}><StudentSummary /></ProtectedRoute>} />
+                <Route path="/company" element={<ProtectedRoute allowedRoles={['STUDENT']}><SearchEmployer /></ProtectedRoute>} />
                 <Route path="/profile" element={<ProtectedRoute><StudentProfile /></ProtectedRoute>} />
-                <Route path="/activities" element={<ProtectedRoute><Activities /></ProtectedRoute>} />
-                <Route path="/confirm" element={<ProtectedRoute><Application /></ProtectedRoute>} />
-                <Route path="/job-details" element={<ProtectedRoute><JobDetails /></ProtectedRoute>} />
-                <Route path="/apply-job" element={<ProtectedRoute><ApplyJob /></ProtectedRoute>} />
-                <Route path="/contact-us" element={<ProtectedRoute><ContactUs /></ProtectedRoute>} />
+                <Route path="/activities" element={<ProtectedRoute allowedRoles={['STUDENT']}><Activities /></ProtectedRoute>} />
+                <Route path="/job-details" element={<ProtectedRoute allowedRoles={['STUDENT']}><JobDetails /></ProtectedRoute>} />
+                <Route path="/p-contact-us" element={<ProtectedRoute><ContactUs /></ProtectedRoute>} />
                 <Route path="/log-out" element={<ProtectedRoute><LogoutPopup /></ProtectedRoute>} />
-                <Route path="/company-details/:employerId" element={<ProtectedRoute><CompanyDetails /></ProtectedRoute>} />
-                <Route path="/searched-results/:selectedLocation/:selectedJob/:searchTerm" 
-                    element={<ProtectedRoute><SearchResults /></ProtectedRoute>} />
 
                 {/* Catch-all Route for Not Found */}
                 <Route path="*" element={<NotFound />} />

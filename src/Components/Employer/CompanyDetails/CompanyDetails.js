@@ -3,7 +3,9 @@ import { ChevronDown, Star, Edit2, Camera, Save, Lock, Flag } from 'lucide-react
 import axios from 'axios';
 import { jwtDecode } from 'jwt-decode';
 import ReportPopup from '../../ReportPopup/ReportPopup';
+import SubmitNotiBox from '../../SubmitNotiBox/SubmitNotiBox'; // Add this import
 
+const baseUrl = window._env_.BASE_URL;
 // Define preference options
 const PREFERENCE_OPTIONS = [
     'CASHIER', 'SALESMEN', 'RETAIL', 'TUTORING', 'CATERING', 'EVENT_BASED',
@@ -76,6 +78,18 @@ function App() {
     const [currentUserId, setCurrentUserId] = useState(null);
     const [showReportTooltip, setShowReportTooltip] = useState(false);
 
+    // Add notification state
+    const [notification, setNotification] = useState({
+        message: '',
+        status: '',
+        show: false
+    });
+
+    // Add validation state
+    const [validationErrors, setValidationErrors] = useState({
+        contactNumbers: ''
+    });
+
     // Check view mode and set initial state
     useEffect(() => {
         const params = new URLSearchParams(window.location.search);
@@ -112,26 +126,26 @@ function App() {
             try {
                 const token = localStorage.getItem('token');
                 if (!token) throw new Error('No token found');
+                const decodedToken = jwtDecode(token);
                 
                 let userId;
                 if (isViewMode && viewUserId) {
                     userId = viewUserId;
                 } else {
-                    const decodedToken = jwtDecode(token);
                     userId = decodedToken.user_id;
                 }
 
                 const userResponse = await axios.get(
-                    `http://localhost:8100/api/user/get-user-by-id/${userId}`,
+                    `${baseUrl}/api/user/get-user-by-id/${userId}`,
                     { headers: { 'Authorization': `Bearer ${token}` } }
                 );
                 
                 const userData = userResponse.data.data;
 
-                let profilePictureUrl = 'https://images.unsplash.com/photo-1633332755192-727a05c4013d?auto=format&fit=crop&q=80';
+                let profilePictureUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(userData.userName)}&background=random`;
                 try {
                     const profilePictureResponse = await axios.get(
-                        `http://localhost:8100/api/user/${userId}/profile-picture`,
+                        `${baseUrl}/api/user/${userId}/profile-picture`,
                         { headers: { 'Authorization': `Bearer ${token}` } }
                     );
                     
@@ -185,7 +199,7 @@ function App() {
                 }
 
                 const response = await axios.get(
-                    `http://localhost:8100/api/v1/rating/received/${userId}?page=${feedbackPage}&size=${feedbackPageSize}`,
+                    `${baseUrl}/api/v1/rating/received/${userId}?page=${feedbackPage}&size=${feedbackPageSize}`,
                     { headers: { 'Authorization': `Bearer ${token}` } }
                 );
                 
@@ -220,7 +234,17 @@ function App() {
     }, []);
 
     const handleInputChange = (field, value) => {
+        // Special handling for mobile number to only allow digits
+        if (field === 'contactNumbers' && !/^\d*$/.test(value)) {
+            return; // Don't update state if non-digit characters are entered
+        }
+    
         setFormData(prev => ({ ...prev, [field]: value }));
+        
+        // Clear error when user starts typing
+        if (validationErrors[field]) {
+            setValidationErrors(prev => ({ ...prev, [field]: '' }));
+        }
     };
 
     const handlePasswordUpdateChange = (field, value) => {
@@ -279,6 +303,11 @@ function App() {
         const sortedCategories = [...formData.categories].sort();
         const sortedOriginalCategories = [...originalFormData.categories].sort();
         
+        // Don't allow saving if mobile number is empty
+        if (!formData.contactNumbers.trim()) {
+            return false;
+        }
+        
         return (
             formData.contactNumbers !== originalFormData.contactNumbers ||
             formData.location !== originalFormData.location ||
@@ -289,6 +318,29 @@ function App() {
     };
 
     const handleSave = async () => {
+        // Validate required fields
+        const newValidationErrors = {
+            contactNumbers: !formData.contactNumbers.trim() ? 'Mobile Number is required' : '',
+        };
+        
+        setValidationErrors(newValidationErrors);
+        
+        // If there are validation errors, don't proceed
+        if (newValidationErrors.contactNumbers) {
+            setNotification({
+                message: 'Mobile Number is required',
+                status: 'error',
+                show: true
+            });
+            
+            // Hide notification after 5 seconds
+            setTimeout(() => {
+                setNotification(prev => ({ ...prev, show: false }));
+            }, 5000);
+            
+            return;
+        }
+        
         try {
             const token = localStorage.getItem('token');
             const decodedToken = jwtDecode(token);
@@ -303,7 +355,7 @@ function App() {
                 };
 
                 await axios.put(
-                    `http://localhost:8100/api/user/update/${userId}`,
+                    `${baseUrl}/api/user/update/${userId}`,
                     updateData,
                     {
                         headers: {
@@ -319,7 +371,7 @@ function App() {
                 formDataForUpload.append('file', selectedProfilePictureFile);
 
                 const response = await axios.put(
-                    `http://localhost:8100/api/user/${userId}/profile-picture`,
+                    `${baseUrl}/api/user/${userId}/profile-picture`,
                     formDataForUpload,
                     {
                         headers: {
@@ -343,8 +395,32 @@ function App() {
                 profilePicture: formData.profilePicture,
             });
             setIsEditing(false);
+            
+            // Show success notification
+            setNotification({
+                message: 'Company profile updated successfully!',
+                status: 'success',
+                show: true
+            });
+            
+            // Hide notification after 5 seconds
+            setTimeout(() => {
+                setNotification(prev => ({ ...prev, show: false }));
+            }, 5000);
         } catch (error) {
             console.error('Error saving data:', error);
+            
+            // Show error notification
+            setNotification({
+                message: error.response?.data?.message || 'Failed to update company profile',
+                status: 'error',
+                show: true
+            });
+            
+            // Hide notification after 5 seconds
+            setTimeout(() => {
+                setNotification(prev => ({ ...prev, show: false }));
+            }, 5000);
         }
     };
 
@@ -362,7 +438,7 @@ function App() {
             };
 
             await axios.put(
-                `http://localhost:8100/api/user/update-password/${userId}`,
+                `${baseUrl}/api/user/update-password/${userId}`,
                 updateData,
                 {
                     headers: {
@@ -375,9 +451,32 @@ function App() {
             setPasswordUpdateData({ oldPassword: '', newPassword: '', confirmNewPassword: '' });
             setPasswordUpdateError('');
             setIsUpdatingPassword(false);
-            alert('Password updated successfully!');
+            
+            // Show success notification instead of alert
+            setNotification({
+                message: 'Password updated successfully!',
+                status: 'success',
+                show: true
+            });
+            
+            // Hide notification after 5 seconds
+            setTimeout(() => {
+                setNotification(prev => ({ ...prev, show: false }));
+            }, 5000);
         } catch (error) {
             setPasswordUpdateError(error.response?.data?.message || 'An error occurred while updating the password');
+            
+            // Show error notification
+            setNotification({
+                message: error.response?.data?.message || 'Failed to update password',
+                status: 'error',
+                show: true
+            });
+            
+            // Hide notification after 5 seconds
+            setTimeout(() => {
+                setNotification(prev => ({ ...prev, show: false }));
+            }, 5000);
         }
     };
 
@@ -394,7 +493,14 @@ function App() {
     // Add function to submit the rating
     const handleSubmitRating = async () => {
         if (ratingData.rating === 0) {
-            setRatingError('Please select a rating');
+            setNotification({
+                message: 'Please select a rating',
+                status: 'error',
+                show: true
+            });
+            setTimeout(() => {
+                setNotification(prev => ({ ...prev, show: false }));
+            }, 5000);
             return;
         }
 
@@ -407,7 +513,7 @@ function App() {
             const raterId = decodedToken.user_id;
 
             await axios.post(
-                `http://localhost:8100/api/v1/rating/create`,
+                `${baseUrl}/api/v1/rating/create`,
                 {
                     raterId: raterId,
                     ratedId: parseInt(viewUserId),
@@ -423,12 +529,29 @@ function App() {
                 }
             );
 
-            setRatingSuccess('Rating submitted successfully!');
-            setRatingError('');
-            // Refresh company data to show updated rating
-            window.location.href = `/e-profile?userId=${viewUserId}`;
+            // Show success notification
+            setNotification({
+                message: 'Rating submitted successfully!',
+                status: 'success',
+                show: true
+            });
+            
+            setTimeout(() => {
+                setNotification(prev => ({ ...prev, show: false }));
+                // Redirect after showing success message
+                window.location.href = `/e-profile?userId=${viewUserId}`;
+            }, 2000);
         } catch (error) {
-            setRatingError(error.response?.data?.message || 'Failed to submit rating');
+            // Show error notification
+            setNotification({
+                message: error.response?.data?.message || 'Failed to submit rating',
+                status: 'error',
+                show: true
+            });
+            
+            setTimeout(() => {
+                setNotification(prev => ({ ...prev, show: false }));
+            }, 5000);
         } finally {
             setIsSubmittingRating(false);
         }
@@ -456,6 +579,15 @@ function App() {
 
     return (
         <div className="min-h-screen bg-white">
+            {/* Add SubmitNotiBox component */}
+            {notification.show && (
+                <SubmitNotiBox
+                    message={notification.message}
+                    status={notification.status}
+                    duration={5000}
+                />
+            )}
+            
             {/* Updated Hero Section to match Activities component */}
             <div
                 className="relative h-[60vh] bg-cover bg-center"
@@ -593,6 +725,8 @@ function App() {
                             value={formData.contactNumbers}
                             disabled={!isEditing || isViewMode}
                             onChange={(value) => handleInputChange('contactNumbers', value)}
+                            error={validationErrors.contactNumbers}
+                            required={true}
                         />
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">Address</label>
@@ -618,6 +752,25 @@ function App() {
                                 />
                             )}
                         </div>
+                        
+                        {/* Add Company Details field here - available in both view and edit modes */}
+                        <div className="col-span-1 sm:col-span-2">
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Company Details</label>
+                            {isEditing && !isViewMode ? (
+                                <textarea
+                                    value={formData.companyDetails}
+                                    onChange={(e) => handleInputChange('companyDetails', e.target.value)}
+                                    className="w-full p-2 sm:p-3 border rounded-lg bg-gray-50 text-sm sm:text-base"
+                                    rows={4}
+                                    placeholder="Describe your company"
+                                ></textarea>
+                            ) : (
+                                <div className="w-full p-3 border rounded-lg bg-gray-50 text-sm min-h-[100px] whitespace-pre-wrap">
+                                    {formData.companyDetails || 'No company details available'}
+                                </div>
+                            )}
+                        </div>
+                        
                         {!isViewMode && (
                             <>
                                 <ProfileField
@@ -751,14 +904,6 @@ function App() {
                                     ></textarea>
                                 </div>
 
-                                {ratingError && (
-                                    <div className="text-red-500 text-sm">{ratingError}</div>
-                                )}
-
-                                {ratingSuccess && (
-                                    <div className="text-green-500 text-sm">{ratingSuccess}</div>
-                                )}
-
                                 <div>
                                     <button
                                         onClick={handleSubmitRating}
@@ -863,17 +1008,22 @@ function App() {
     );
 }
 
-function ProfileField({ label, value, type = 'text', disabled = false, onChange = null }) {
+function ProfileField({ label, value, type = 'text', disabled = false, onChange = null, error = '', required = false }) {
     return (
         <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">{label}</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+                {label} {required && <span className="text-red-500">*</span>}
+            </label>
             <input
                 type={type}
                 value={value}
                 disabled={disabled}
                 onChange={onChange ? (e) => onChange(e.target.value) : undefined}
-                className="w-full p-2 sm:p-3 border rounded-lg bg-gray-50 text-sm sm:text-base"
+                className={`w-full p-2 sm:p-3 border rounded-lg bg-gray-50 text-sm sm:text-base ${
+                    error ? 'border-red-500' : 'border-gray-300'
+                }`}
             />
+            {error && <p className="mt-1 text-sm text-red-500">{error}</p>}
         </div>
     );
 }

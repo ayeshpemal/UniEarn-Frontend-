@@ -2,7 +2,9 @@ import React, { useState } from "react";
 import { Mail, Phone, MapPin, Send, MessageSquare, HelpCircle } from "lucide-react";
 import axios from "axios";
 import { jwtDecode } from "jwt-decode";
+import SubmitNotiBox from "../SubmitNotiBox/SubmitNotiBox";
 
+const baseUrl = window._env_.BASE_URL;
 const Contact = () => {
     const [formData, setFormData] = useState({
         firstName: "",
@@ -13,8 +15,13 @@ const Contact = () => {
         message: "",
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [submitSuccess, setSubmitSuccess] = useState(false);
-    const [submitError, setSubmitError] = useState(null);
+    
+    // Replace success and error states with notification state
+    const [notification, setNotification] = useState({
+        message: "",
+        status: "",
+        visible: false
+    });
 
     const handleChange = (e) => {
         setFormData({
@@ -23,36 +30,55 @@ const Contact = () => {
         });
     };
 
+    // Function to show notifications
+    const showNotification = (message, status) => {
+        // Reset first if there's a notification already visible
+        if (notification.visible) {
+            setNotification({
+                message: "",
+                status: "",
+                visible: false
+            });
+            
+            // Small delay to ensure state update before showing new notification
+            setTimeout(() => {
+                setNotification({
+                    message,
+                    status,
+                    visible: true
+                });
+            }, 100);
+        } else {
+            // Otherwise just show the notification
+            setNotification({
+                message,
+                status,
+                visible: true
+            });
+        }
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setIsSubmitting(true);
-        setSubmitError(null);
         
-        try {
-            // Get token from localStorage
-            const token = localStorage.getItem('token');
-            if (!token) {
-                throw new Error("Authentication required. Please log in.");
-            }
+        try { 
+            // Get base URL from config.js
+            console.log("API Base URL:", baseUrl);
             
-            // Decode token to get user info if needed
-            const decodedToken = jwtDecode(token);
-            
-            // Send email through API
+            // Send email through API using the configured base URL
             const response = await axios.post(
-                "http://localhost:8100/api/email/send",
+                `${baseUrl}/api/email/send`,
                 {
                     ...formData,
-                    fullName: `${formData.firstName} ${formData.lastName}`,
-                    userId: decodedToken.user_id // Include user ID from token if needed
-                },
-                {
-                    headers: { Authorization: `Bearer ${token}` }
+                    fullName: `${formData.firstName} ${formData.lastName}`
                 }
             );
             
             console.log("Email sent successfully:", response.data);
-            setSubmitSuccess(true);
+            
+            // Show success notification using SubmitNotiBox
+            showNotification("Message sent successfully! We'll get back to you soon.", "success");
             
             // Reset form
             setFormData({
@@ -64,16 +90,15 @@ const Contact = () => {
                 message: "",
             });
             
-            // Reset success message after 3 seconds
-            setTimeout(() => {
-                setSubmitSuccess(false);
-            }, 3000);
         } catch (error) {
             console.error("Error sending email:", error);
-            setSubmitError(
+            
+            // Show error notification using SubmitNotiBox
+            showNotification(
                 error.response?.data?.message || 
                 error.message || 
-                "Failed to send message. Please try again."
+                "Failed to send message. Please try again.",
+                "error"
             );
         } finally {
             setIsSubmitting(false);
@@ -148,40 +173,6 @@ const Contact = () => {
                         <div className="p-6 sm:p-8">
                             <h2 className="text-2xl font-bold text-gray-800 mb-6">Send us a message</h2>
                             
-                            {submitSuccess && (
-                                <div className="mb-6 p-4 bg-green-50 border-l-4 border-green-500 rounded-md">
-                                    <div className="flex">
-                                        <div className="flex-shrink-0">
-                                            <svg className="h-5 w-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-                                            </svg>
-                                        </div>
-                                        <div className="ml-3">
-                                            <p className="text-sm font-medium text-green-800">
-                                                Message sent successfully! We'll get back to you soon.
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-                            
-                            {submitError && (
-                                <div className="mb-6 p-4 bg-red-50 border-l-4 border-red-500 rounded-md">
-                                    <div className="flex">
-                                        <div className="flex-shrink-0">
-                                            <svg className="h-5 w-5 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                            </svg>
-                                        </div>
-                                        <div className="ml-3">
-                                            <p className="text-sm font-medium text-red-800">
-                                                {submitError}
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-                            
                             <form onSubmit={handleSubmit} className="space-y-4">
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div>
@@ -194,6 +185,7 @@ const Contact = () => {
                                             required
                                             className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
                                             placeholder="Enter your first name"
+                                            disabled={isSubmitting}
                                         />
                                     </div>
                                     <div>
@@ -206,6 +198,7 @@ const Contact = () => {
                                             required
                                             className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
                                             placeholder="Enter your last name"
+                                            disabled={isSubmitting}
                                         />
                                     </div>
                                 </div>
@@ -220,6 +213,7 @@ const Contact = () => {
                                         required
                                         className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
                                         placeholder="example@email.com"
+                                        disabled={isSubmitting}
                                     />
                                 </div>
 
@@ -233,6 +227,7 @@ const Contact = () => {
                                         required
                                         className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
                                         placeholder="+94 77 000 0000"
+                                        disabled={isSubmitting}
                                     />
                                 </div>
 
@@ -247,7 +242,7 @@ const Contact = () => {
                                                     formData.subject === option 
                                                     ? "bg-blue-100 border border-blue-500 text-blue-700"
                                                     : "bg-gray-50 border border-gray-200 text-gray-700 hover:bg-gray-100"
-                                                }`}
+                                                } ${isSubmitting ? 'opacity-60 cursor-not-allowed' : ''}`}
                                             >
                                                 <input
                                                     type="radio"
@@ -256,6 +251,7 @@ const Contact = () => {
                                                     checked={formData.subject === option}
                                                     onChange={handleChange}
                                                     className="sr-only"
+                                                    disabled={isSubmitting}
                                                 />
                                                 <span className={`${formData.subject === option ? "font-medium" : ""}`}>
                                                     {option}
@@ -276,6 +272,7 @@ const Contact = () => {
                                         rows={4}
                                         className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
                                         placeholder="How can we help you?"
+                                        disabled={isSubmitting}
                                     />
                                 </div>
 
@@ -304,6 +301,15 @@ const Contact = () => {
                     </div>
                 </div>
             </div>
+            
+            {/* SubmitNotiBox for notifications */}
+            {notification.visible && (
+                <SubmitNotiBox 
+                    message={notification.message} 
+                    status={notification.status} 
+                    duration={4000}
+                />
+            )}
         </div>
     );
 };

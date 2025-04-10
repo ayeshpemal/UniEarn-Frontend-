@@ -3,14 +3,14 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
 import axios from "axios";
 import ReportPopup from "../ReportPopup/ReportPopup";
+import SubmitNotiBox from "../SubmitNotiBox/SubmitNotiBox";
 
-const DEFAULT_PROFILE_PICTURE = "/job-logo.png";
-
+const baseUrl = window._env_.BASE_URL;
 const JobDetails = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [job, setJob] = useState(null);
-  const [profilePictureUrl, setProfilePictureUrl] = useState(DEFAULT_PROFILE_PICTURE);
+  const [profilePictureUrl, setProfilePictureUrl] = useState();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showApplySection, setShowApplySection] = useState(false);
@@ -25,6 +25,11 @@ const JobDetails = () => {
   const [teamName, setTeamName] = useState("");
   const [applicationStatus, setApplicationStatus] = useState(null);
   const [showReportPopup, setShowReportPopup] = useState(false);
+  const [showTeamMembersPopup, setShowTeamMembersPopup] = useState(false);
+  const [teamMembers, setTeamMembers] = useState([]);
+  const [teamLeader, setTeamLeader] = useState(null);
+  const [showNotification, setShowNotification] = useState(null);
+  
   const pageSize = 10;
 
   useEffect(() => {
@@ -55,7 +60,7 @@ const JobDetails = () => {
       }
 
       const response = await axios.get(
-        `http://localhost:8100/api/v1/jobs/getjob/${jobId}`,
+        `${baseUrl}/api/v1/jobs/getjob/${jobId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -63,7 +68,7 @@ const JobDetails = () => {
         }
       );
 
-      console.log("Raw Job Response:", JSON.stringify(response.data, null, 2)); // Debug
+      //console.log("Raw Job Response:", JSON.stringify(response.data, null, 2)); // Debug
 
       if (response.data.code === 200) {
         const jobData = response.data.data;
@@ -88,7 +93,7 @@ const JobDetails = () => {
         if (jobData.jobStatus !== "PENDING" && userId) {
           try {
             const applicationResponse = await axios.get(
-              `http://localhost:8100/api/v1/application/has-applied?studentId=${userId}&jobId=${jobId}`,
+              `${baseUrl}/api/v1/application/has-applied?studentId=${userId}&jobId=${jobId}`,
               {
                 headers: {
                   Authorization: `Bearer ${token}`,
@@ -123,11 +128,11 @@ const JobDetails = () => {
 
         // Always fetch profile picture using employer.userId
         if (jobData.employer?.userId) {
-          console.log(`Fetching profile picture for userId: ${jobData.employer.userId}`);
-          fetchProfilePicture(jobData.employer.userId, token);
+          console.log(`Fetching profile picture for userId: ${jobData.employer}`);
+          fetchProfilePicture(jobData.employer, token);
         } else {
           console.warn("No employer.userId found in job data");
-          setProfilePictureUrl(DEFAULT_PROFILE_PICTURE);
+          setProfilePictureUrl(`https://ui-avatars.com/api/?name=${encodeURIComponent(user.companyName)}&background=random`);
         }
       } else {
         setError(response.data.message || "Failed to Fetch Job Details");
@@ -140,16 +145,16 @@ const JobDetails = () => {
     }
   };
 
-  const fetchProfilePicture = async (userId, token) => {
+  const fetchProfilePicture = async (user, token) => {
     try {
-      if (!userId) {
+      if (!user.userId) {
         console.warn("No userId provided for profile picture fetch");
-        setProfilePictureUrl(DEFAULT_PROFILE_PICTURE);
+        setProfilePictureUrl(`https://ui-avatars.com/api/?name=${encodeURIComponent(user.companyName)}&background=random`);
         return;
       }
 
       const response = await axios.get(
-        `http://localhost:8100/api/user/${userId}/profile-picture`,
+        `${baseUrl}/api/user/${user.userId}/profile-picture`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -157,17 +162,17 @@ const JobDetails = () => {
         }
       );
 
-      console.log(`Profile Picture Response for user ${userId}:`, response.data); // Debug
+      //console.log(`Profile Picture Response for user ${user.userId}:`, response.data); // Debug
 
       if (response.data.code === 200 && response.data.data) {
         setProfilePictureUrl(response.data.data); // Set S3 URL
       } else {
         console.warn("Invalid profile picture response:", response.data);
-        setProfilePictureUrl(DEFAULT_PROFILE_PICTURE);
+        setProfilePictureUrl(`https://ui-avatars.com/api/?name=${encodeURIComponent(user.companyName)}&background=random`);
       }
     } catch (err) {
       console.error("Error Fetching Profile Picture:", err);
-      setProfilePictureUrl(DEFAULT_PROFILE_PICTURE);
+      setProfilePictureUrl(`https://ui-avatars.com/api/?name=${encodeURIComponent(user.companyName)}&background=random`);
     }
   };
 
@@ -183,7 +188,7 @@ const JobDetails = () => {
       const userId = decodedToken.user_id;
 
       const userResponse = await axios.get(
-        `http://localhost:8100/api/user/get-user-by-id/${userId}`,
+        `${baseUrl}/api/user/get-user-by-id/${userId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -202,7 +207,7 @@ const JobDetails = () => {
       if (jobId) {
         try {
           const applicationResponse = await axios.get(
-            `http://localhost:8100/api/v1/application/has-applied?studentId=${userId}&jobId=${jobId}`,
+            `${baseUrl}/api/v1/application/has-applied?studentId=${userId}&jobId=${jobId}`,
             {
               headers: {
                 Authorization: `Bearer ${token}`,
@@ -236,7 +241,7 @@ const JobDetails = () => {
       const userId = decodedToken.user_id;
 
       const response = await axios.get(
-        `http://localhost:8100/follows/${userId}/followingstudents?page=${currentPage}&size=${pageSize}`,
+        `${baseUrl}/follows/${userId}/followingstudents?page=${currentPage}&size=${pageSize}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -285,7 +290,7 @@ const JobDetails = () => {
       return;
     }
     if (!appliedUsers.some(user => user.userId === student.userId)) {
-      setAppliedUsers([...appliedUsers, { ...student, displayName: student.userName }]);
+      setAppliedUsers([...appliedUsers, { ...student, displayName: student.displayName }]);
     }
   };
 
@@ -294,7 +299,7 @@ const JobDetails = () => {
     const jobId = searchParams.get("jobId");
     try {
       const response = await axios.get(
-        `http://localhost:8100/api/v1/application/has-applied?studentId=${userId}&jobId=${jobId}`,
+        `${baseUrl}/api/v1/application/has-applied?studentId=${userId}&jobId=${jobId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -321,6 +326,16 @@ const JobDetails = () => {
       return;
     }
 
+    // Show notification when not enough team members are added
+    if (job.requiredWorkers > 1 && appliedUsers.length < job.requiredWorkers) {
+      setShowNotification({
+        message: `Please add ${job.requiredWorkers - appliedUsers.length} more team member${job.requiredWorkers - appliedUsers.length > 1 ? 's' : ''} to apply.`,
+        status: "error",
+        duration: 5000
+      });
+      return;
+    }
+
     let hasApplied = false;
     if (job.requiredWorkers === 1) {
       hasApplied = await checkApplicationStatus(currentUser.userId);
@@ -341,7 +356,7 @@ const JobDetails = () => {
       if (job.requiredWorkers === 1 && appliedUsers.length === 1) {
         const studentId = currentUser.userId;
         const response = await axios.post(
-          `http://localhost:8100/api/v1/application/apply/student?studentId=${studentId}&jobId=${jobId}`,
+          `${baseUrl}/api/v1/application/apply/student?studentId=${studentId}&jobId=${jobId}`,
           {},
           {
             headers: {
@@ -353,6 +368,7 @@ const JobDetails = () => {
         if (response.data.code === 201) {
           setSuccessMessage({ header: "Application Success", message: "Job application success!" });
           setApplicationStatus({ hasApplied: true, application: { status: "PENDING", applicationId: response.data.data.applicationId, jobId, studentId } });
+          setShowApplySection(false);
         } else {
           setErrorMessage({ header: "Application Error", message: response.data.message || "Failed to apply for the job." });
         }
@@ -363,7 +379,7 @@ const JobDetails = () => {
         }
 
         const createTeamResponse = await axios.post(
-          `http://localhost:8100/api/teams/create`,
+          `${baseUrl}/api/teams/create`,
           {
             teamName: teamName.trim(),
             leader: currentUser.userId,
@@ -385,7 +401,7 @@ const JobDetails = () => {
         for (const member of appliedUsers) {
           if (member.userId !== currentUser.userId) {
             const addMemberResponse = await axios.post(
-              `http://localhost:8100/api/teams/${teamId}/add-member/${member.userId}`,
+              `${baseUrl}/api/teams/${teamId}/add-member/${member.userId}`,
               {},
               {
                 headers: {
@@ -402,7 +418,7 @@ const JobDetails = () => {
         }
 
         const applyTeamResponse = await axios.post(
-          `http://localhost:8100/api/v1/application/apply/team?teamId=${teamId}&jobId=${jobId}`,
+          `${baseUrl}/api/v1/application/apply/team?teamId=${teamId}&jobId=${jobId}`,
           {},
           {
             headers: {
@@ -414,6 +430,7 @@ const JobDetails = () => {
         if (applyTeamResponse.data.code === 201) {
           setSuccessMessage({ header: "Application Success", message: "Job application success!" });
           setApplicationStatus({ hasApplied: true, application: { status: "PENDING", teamId, applicationId: applyTeamResponse.data.data.applicationId }, isTeamLeader: true });
+          setShowApplySection(false);
         } else {
           setErrorMessage({ header: "Application Error", message: applyTeamResponse.data.message || "Failed to apply as a team." });
         }
@@ -436,7 +453,7 @@ const JobDetails = () => {
 
     try {
       const response = await axios.put(
-        `http://localhost:8100/api/student/applications/confirm?applicationId=${applicationId}&studentId=${currentUser.userId}`,
+        `${baseUrl}/api/student/applications/confirm?applicationId=${applicationId}&studentId=${currentUser.userId}`,
         {},
         {
           headers: {
@@ -468,7 +485,7 @@ const JobDetails = () => {
 
     try {
       const response = await axios.put(
-        `http://localhost:8100/api/teams/${currentUser.userId}/confirm/${teamId}`,
+        `${baseUrl}/api/teams/${currentUser.userId}/confirm/${teamId}`,
         {},
         {
           headers: {
@@ -488,6 +505,37 @@ const JobDetails = () => {
       setErrorMessage({ header: "Group Confirmation Error", message: "Error confirming group: " + err.message });
     }
   };
+
+  // Add this function to handle fetching and showing team members
+  const handleShowTeamMembers = async (teamId) => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        setErrorMessage({ header: "Authentication Error", message: "No authentication token found." });
+        return;
+      }
+
+      const response = await axios.get(
+        `${baseUrl}/api/teams/${teamId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (response.data.code === 200) {
+        setTeamMembers(response.data.data.members);
+        setTeamLeader(response.data.data.leader);
+        setTeamName(response.data.data.teamName);
+        setShowTeamMembersPopup(true);
+      } else {
+        setErrorMessage({ header: "Team Error", message: response.data.message || "Failed to fetch team members." });
+      }
+    } catch (err) {
+      setErrorMessage({ header: "Team Error", message: "Error fetching team members: " + err.message });
+    }
+  } ;
 
   const closePopup = () => {
     setShowPopup(false);
@@ -558,6 +606,15 @@ const JobDetails = () => {
               Applied
             </button>
             <button
+              onClick={() => handleShowTeamMembers(applicationStatus.application.teamId)}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition duration-200 w-full sm:w-auto flex items-center justify-center"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+              </svg>
+              Team Members
+            </button>
+            <button
               onClick={handleConfirmGroup}
               className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-medium transition duration-200 w-full sm:w-auto flex items-center justify-center"
             >
@@ -569,7 +626,37 @@ const JobDetails = () => {
           </div>
         );
       }
-      if (status === "PENDING" || (status === "INACTIVE" && applicationStatus.memberStatus)) {
+      if (status === "INACTIVE" && applicationStatus.memberStatus) {
+        return (
+          <div className="flex flex-col sm:flex-row gap-3 w-full">
+            <button
+              className="bg-yellow-500 text-white px-6 py-3 rounded-lg font-medium opacity-90 w-full sm:w-auto cursor-not-allowed flex items-center justify-center"
+              disabled
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <p>Applied - Pending</p>
+            </button>
+            <button
+              onClick={() => handleShowTeamMembers(applicationStatus.application.teamId)}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition duration-200 w-full sm:w-auto flex items-center justify-center"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+              </svg>
+              Team Members
+            </button>
+            <div className="flex items-center mt-2 sm:mt-0">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" style={{ color: 'red' }}>
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <p className="text-red-600">Other members should confirm</p>
+            </div>
+          </div>
+        );
+      }
+      if (status === "PENDING") {
         return (
           <button
             className="bg-yellow-500 text-white px-6 py-3 rounded-lg font-medium opacity-90 w-full sm:w-auto cursor-not-allowed flex items-center justify-center"
@@ -578,7 +665,7 @@ const JobDetails = () => {
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            Applied - Pending
+            Application Pending
           </button>
         );
       }
@@ -630,6 +717,28 @@ const JobDetails = () => {
               Confirm Job
             </button>
           </div>
+        );
+      }
+      if (status === "ACCEPTED" && !applicationStatus.isTeamLeader) {
+        return (
+          <div>
+            <button
+            className="bg-yellow-500 text-white px-6 py-3 rounded-lg font-medium opacity-90 w-full sm:w-auto cursor-not-allowed flex items-center justify-center"
+            disabled
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              ACCEPTED
+            </button>
+            <div className="flex items-center mt-2">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" style={{ color: 'red' }}>
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <p className="text-red-600">Waiting for team leader confirmation</p>
+            </div>
+          </div>
+          
         );
       }
     } else {
@@ -887,11 +996,24 @@ const JobDetails = () => {
                 </>
               )}
               <button
-                onClick={handleApply}
-                className="bg-blue-600 text-white px-4 py-2 rounded-lg"
-                disabled={job.requiredWorkers !== appliedUsers.length}
+                onClick={() => {
+                  if (job.requiredWorkers > 1 && appliedUsers.length < job.requiredWorkers) {
+                    setShowNotification({
+                      message: `Please add ${job.requiredWorkers - appliedUsers.length} more team member${job.requiredWorkers - appliedUsers.length > 1 ? 's' : ''} to apply.`,
+                      status: "error",
+                      duration: 5000
+                    });
+                  } else {
+                    handleApply();
+                  }
+                }}
+                className={`${job.requiredWorkers === appliedUsers.length 
+                  ? "bg-blue-600 hover:bg-blue-700" 
+                  : "bg-blue-500"} text-white px-4 py-2 rounded-lg transition-colors`}
               >
-                Apply
+                {job.requiredWorkers > 1 && appliedUsers.length < job.requiredWorkers
+                  ? `Add ${job.requiredWorkers - appliedUsers.length} more member${job.requiredWorkers - appliedUsers.length > 1 ? 's' : ''}`
+                  : "Apply"}
               </button>
             </div>
           )}
@@ -917,7 +1039,7 @@ const JobDetails = () => {
                     key={student.userId}
                     className="flex justify-between items-center py-2 border-b"
                   >
-                    <span>{student.userName}</span>
+                    <span>{student.displayName}</span>
                     <button
                       onClick={() => handleAddStudent(student)}
                       className="bg-blue-500 text-white px-3 py-1 rounded-lg"
@@ -1004,6 +1126,64 @@ const JobDetails = () => {
         reportedUserId={job?.employer?.userId}
         currentUserId={currentUser?.userId}
       />
+      {/* Team Members Popup */}
+      {showTeamMembersPopup && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg max-w-md w-full">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-bold">Team: {teamName}</h3>
+              <button
+                onClick={() => setShowTeamMembersPopup(false)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="mb-4">
+              <h4 className="font-semibold mb-2">Team Leader</h4>
+              <div className="py-2 px-3 bg-blue-50 rounded-lg mb-4">
+                <div className="flex items-center">
+                  <div className="h-8 w-8 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold mr-3">
+                    {teamLeader?.userName?.charAt(0) || "?"}
+                  </div>
+                  <span>{teamLeader?.displayName || "Unknown"}</span>
+                </div>
+              </div>
+              
+              <h4 className="font-semibold mb-2">Team Members</h4>
+              {teamMembers.length > 0 ? (
+                <div className="space-y-2">
+                  {teamMembers.map((member) => (
+                    <div key={member.userId} className="py-2 px-3 bg-gray-50 rounded-lg">
+                      <div className="flex items-center" onClick={() => navigate(`/profile?userId=${member.userId}`)}>
+                        <div className="h-8 w-8 bg-gray-500 rounded-full flex items-center justify-center text-white font-bold mr-3">
+                          {member.userName.charAt(0)}
+                        </div>
+                        <span className="cursor-pointer hover:underline">{member.displayName}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-gray-500">No team members found.</p>
+              )}
+            </div>
+            <button
+              onClick={() => setShowTeamMembersPopup(false)}
+              className="w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition duration-200"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
+      {showNotification && (
+        <SubmitNotiBox 
+          message={showNotification.message}
+          status={showNotification.status}
+          duration={showNotification.duration || 3000}
+        />
+      )}
     </div>
   );
 };

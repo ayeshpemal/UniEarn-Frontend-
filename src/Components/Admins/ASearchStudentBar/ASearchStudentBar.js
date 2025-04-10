@@ -3,10 +3,11 @@ import { Search } from "lucide-react";
 import React, { useState, useEffect } from "react";
 import { jwtDecode } from "jwt-decode";
 
-const searchStudents = async (searchTerm, userId) => {
+const baseUrl = window._env_.BASE_URL;
+const searchStudents = async (searchTerm, userId, page = 0) => {
   try {
     const response = await axios.get(
-      `http://localhost:8100/api/student/search?query=${encodeURIComponent(searchTerm)}&page=0`,
+      `${baseUrl}/api/student/search?query=${encodeURIComponent(searchTerm)}&page=${page}`,
       {
         headers: {
           "Content-Type": "application/json",
@@ -27,7 +28,7 @@ const searchStudents = async (searchTerm, userId) => {
   }
 };
 
-const StudentSearchBar = ({ onSearchResults }) => {
+const StudentSearchBar = ({ onSearchResults, onSearchTermChange }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [currentUserId, setCurrentUserId] = useState(null);
 
@@ -52,12 +53,17 @@ const StudentSearchBar = ({ onSearchResults }) => {
     }
   }, []);
 
-  const handleSearch = async () => {
+  const handleSearch = async (page = 0) => {
     if (searchTerm.trim() && currentUserId) {
-      console.log("Searching for student:", searchTerm, "with userId:", currentUserId);
-      const results = await searchStudents(searchTerm, currentUserId);
+      console.log("Searching for student:", searchTerm, "with userId:", currentUserId, "page:", page);
+      const results = await searchStudents(searchTerm, currentUserId, page);
       if (results && onSearchResults) {
-        onSearchResults(results); // Pass results to parent component
+        // Pass both the results and the current search term to parent
+        onSearchResults(results, searchTerm);
+        // Store the current search term for pagination
+        if (onSearchTermChange) {
+          onSearchTermChange(searchTerm);
+        }
       }
     } else if (!currentUserId) {
       alert("Please log in to search for students.");
@@ -85,7 +91,7 @@ const StudentSearchBar = ({ onSearchResults }) => {
       </div>
       <button
         className="bg-blue-600 text-white px-5 py-2 text-sm rounded-full hover:bg-blue-700 transition-colors duration-200 ml-2 sm:ml-4 whitespace-nowrap"
-        onClick={handleSearch}
+        onClick={() => handleSearch(0)}
         disabled={!searchTerm.trim() || !currentUserId} // Disable if no search term or userId
       >
         Search

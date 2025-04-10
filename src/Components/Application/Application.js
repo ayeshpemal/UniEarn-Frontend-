@@ -3,6 +3,7 @@ import GroupTeam from "./GroupTeam";
 import Student from "./Student";
 import axios from "axios";
 
+const baseUrl = window._env_.BASE_URL;
 const Application = () => {
   // Mock job data
   const [mockJob] = useState({
@@ -29,7 +30,7 @@ const Application = () => {
     const fetchData = async () => {
       try {
         // Fetch group applications
-        const groupResponse = await axios.get("http://localhost:8100/api/v1/application/pending-group/job/8");
+        const groupResponse = await axios.get(`${baseUrl}/api/v1/application/pending-group/job/8`);
         const transformedGroups = groupResponse.data.map(group => ({
           applicationId: group.applicationId,  
           groupId: group.groupId,
@@ -45,7 +46,7 @@ const Application = () => {
         setGroups(transformedGroups);
 
         // Fetch student applications
-        const studentResponse = await axios.get("http://localhost:8100/api/v1/application/pending-student/job/8");
+        const studentResponse = await axios.get(`${baseUrl}/api/v1/application/pending-student/job/8`);
         const transformedStudents = studentResponse.data.map(student => ({
           applicationId: student.applicationId,  
           studentId: student.id,
@@ -137,7 +138,7 @@ const Application = () => {
   const updateApplicationStatus = async (applicationId, newStatus) => {
     try {
       const response = await axios.put(
-        `http://localhost:8100/api/v1/application/${applicationId}/status`,
+        `${baseUrl}/api/v1/application/${applicationId}/status`,
         null, 
         {
           params: { newStatus },

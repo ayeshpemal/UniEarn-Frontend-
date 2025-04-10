@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 
+const baseUrl = window._env_.BASE_URL;
 const ReportPopup = ({ isOpen, onClose, reportedUserId, currentUserId }) => {
   const [reportType, setReportType] = useState("");
   const [feedback, setFeedback] = useState("");
@@ -59,7 +60,7 @@ const ReportPopup = ({ isOpen, onClose, reportedUserId, currentUserId }) => {
     try {
       const token = localStorage.getItem("token");
       const response = await axios.post(
-        "http://localhost:8100/api/v1/report/submit",
+        `${baseUrl}/api/v1/report/submit`,
         {
           reporter: currentUserId,
           reportedUser: reportedUserId,

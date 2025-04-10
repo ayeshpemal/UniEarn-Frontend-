@@ -3,10 +3,11 @@ import { Search } from "lucide-react";
 import React, { useState, useEffect } from "react";
 import { jwtDecode } from "jwt-decode";
 
-const searchStudents = async (searchTerm, userId) => {
+const baseUrl = window._env_.BASE_URL;
+const searchStudents = async (searchTerm, userId, page = 0) => {
   try {
     const response = await axios.get(
-      `http://localhost:8100/api/student/search-with-follow-status?userId=${userId}&query=${encodeURIComponent(searchTerm)}&page=0`,
+      `${baseUrl}/api/student/search-with-follow-status?userId=${userId}&query=${encodeURIComponent(searchTerm)}&page=${page}`,
       {
         headers: {
           "Content-Type": "application/json",
@@ -27,9 +28,11 @@ const searchStudents = async (searchTerm, userId) => {
   }
 };
 
-const StudentSearchBar = ({ onSearchResults }) => {
+const StudentSearchBar = ({ onSearchResults, currentPage = 0 }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [currentUserId, setCurrentUserId] = useState(null);
+  const [lastSearchTerm, setLastSearchTerm] = useState("");
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
 
   // Extract userId from JWT token on mount
   useEffect(() => {
@@ -52,20 +55,49 @@ const StudentSearchBar = ({ onSearchResults }) => {
     }
   }, []);
 
+  // Fetch initial results when userId is set
+  useEffect(() => {
+    if (currentUserId && isInitialLoad) {
+      fetchInitialResults();
+      setIsInitialLoad(false);
+    }
+  }, [currentUserId]);
+
+  // Effect to handle pagination changes
+  useEffect(() => {
+    if (lastSearchTerm !== null && currentUserId) {
+      performSearch(lastSearchTerm, currentPage);
+    }
+  }, [currentPage, currentUserId]);
+
+  const fetchInitialResults = async () => {
+    console.log("Fetching initial student results with userId:", currentUserId);
+    const results = await searchStudents("", currentUserId, 0);
+    if (results && onSearchResults) {
+      setLastSearchTerm(""); // Set last search term to empty string
+      onSearchResults(results, ""); // Pass empty search term to parent
+    }
+  };
+
+  const performSearch = async (term, page) => {
+    console.log(`Searching for "${term}" on page ${page} with userId:`, currentUserId);
+    const results = await searchStudents(term, currentUserId, page);
+    if (results && onSearchResults) {
+      onSearchResults(results, term); // Pass results and search term to parent
+    }
+  };
+
   const handleSearch = async () => {
-    if (searchTerm.trim() && currentUserId) {
-      console.log("Searching for student:", searchTerm, "with userId:", currentUserId);
-      const results = await searchStudents(searchTerm, currentUserId);
-      if (results && onSearchResults) {
-        onSearchResults(results); // Pass results to parent component
-      }
-    } else if (!currentUserId) {
+    if (currentUserId) {
+      setLastSearchTerm(searchTerm);
+      performSearch(searchTerm, 0); // Reset to first page on new search
+    } else {
       alert("Please log in to search for students.");
     }
   };
 
   const handleKeyPress = (e) => {
-    if (e.key === "Enter" && searchTerm.trim() && currentUserId) {
+    if (e.key === "Enter" && currentUserId) {
       handleSearch();
     }
   };
@@ -86,7 +118,7 @@ const StudentSearchBar = ({ onSearchResults }) => {
       <button
         className="bg-blue-600 text-white px-5 py-2 text-sm rounded-full hover:bg-blue-700 transition-colors duration-200 ml-2 sm:ml-4 whitespace-nowrap"
         onClick={handleSearch}
-        disabled={!searchTerm.trim() || !currentUserId} // Disable if no search term or userId
+        disabled={!currentUserId} // Only disable if no userId
       >
         Search
       </button>

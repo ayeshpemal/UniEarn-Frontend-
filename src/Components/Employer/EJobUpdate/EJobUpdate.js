@@ -2,7 +2,9 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import { jwtDecode } from "jwt-decode";
 import { useLocation } from "react-router-dom";
+import SubmitNotiBox from "../../SubmitNotiBox/SubmitNotiBox"; // Add this import
 
+const baseUrl = window._env_.BASE_URL;
 const LOCATIONS = [
   "AMPARA", "ANURADHAPURA", "BADULLA", "BATTICALOA", "COLOMBO", "GALLE",
   "GAMPAHA", "HAMBANTOTA", "JAFFNA", "KALUTARA", "KANDY", "KEGALLE",
@@ -18,7 +20,7 @@ const JOB_CATEGORIES = [
   "WEB_DEVELOPER", "OTHER"
 ];
 
-const API_URL = "http://localhost:8100/api/v1/jobs/updatejob";
+const API_URL = `${baseUrl}/api/v1/jobs/updatejob`;
 
 export default function JobEditForm() {
   const location = useLocation();
@@ -44,6 +46,7 @@ export default function JobEditForm() {
   const [submittedData, setSubmittedData] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [notification, setNotification] = useState({ message: "", status: "" }); // Add notification state
 
   useEffect(() => {
     const fetchJobDetails = async () => {
@@ -54,7 +57,7 @@ export default function JobEditForm() {
         const decoded = jwtDecode(token);
         const employerId = decoded.user_id;
 
-        const response = await axios.get(`http://localhost:8100/api/v1/jobs/getjob/${jobId}`, {
+        const response = await axios.get(`${baseUrl}/api/v1/jobs/getjob/${jobId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -147,6 +150,7 @@ export default function JobEditForm() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setNotification({ message: "", status: "" }); // Clear previous notifications
 
     if (!validateForm()) {
       setIsSubmitting(false);
@@ -192,11 +196,23 @@ export default function JobEditForm() {
           "Authorization": `Bearer ${token}`,
         },
       });
+      
       setSubmittedData(response.data);
-      alert("Job updated successfully!");
+      
+      // Show success notification instead of using alert
+      setNotification({
+        message: "Job updated successfully!",
+        status: "success"
+      });
+      
     } catch (error) {
       console.error("API Error:", error);
-      setErrors({ ...errors, submit: error.response?.data?.message || "Failed to update job." });
+      
+      // Show error notification
+      setNotification({
+        message: error.response?.data?.message || "Failed to update job. Please try again.",
+        status: "error"
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -376,12 +392,15 @@ export default function JobEditForm() {
         {errors.submit && <p className="text-red-500 text-sm text-center">{errors.submit}</p>}
       </form>
 
-      {submittedData && (
-        <div className="mt-8 p-6 bg-gray-100 rounded-xl">
-          <h3 className="text-xl font-semibold mb-3 text-gray-800">Job Updated Successfully!</h3>
-          <pre className="text-sm bg-white p-4 rounded-lg overflow-auto max-h-96">
-            {JSON.stringify(submittedData, null, 2)}
-          </pre>
+      {/* Notification Box */}
+      {notification.message && (
+        <div className="fixed bottom-4 right-4">
+          <SubmitNotiBox 
+            message={notification.message} 
+            status={notification.status} 
+            duration={5000}
+            onClose={() => setNotification({ message: "", status: "" })}
+          />
         </div>
       )}
     </div>

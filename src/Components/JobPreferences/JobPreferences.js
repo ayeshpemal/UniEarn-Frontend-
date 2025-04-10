@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
+const baseUrl = window._env_.BASE_URL;
 const JOB_CATEGORIES = [
   "CASHIER", "SALESMEN", "RETAIL", "TUTORING", "CATERING", "EVENT_BASED",
   "FOOD_AND_BEVERAGE", "DELIVERY", "MASCOT_DANCER", "SUPERVISOR", "KITCHEN_HELPER",
@@ -49,21 +51,15 @@ const JobPreferences = () => {
     };
 
     try {
-      const response = await fetch(`http://localhost:8100/api/user/update/${userid}`, {
-        method: 'PUT',
+      await axios.put(`${baseUrl}/api/user/update/${userid}`, requestBody, {
         headers: {
           'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(requestBody),
+        }
       });
-
-      if (!response.ok) {
-        throw new Error('Failed to update preferences');
-      }
-
+      
       navigate('/sign-in');
     } catch (err) {
-      setError(err.message);
+      setError(err.response?.data?.message || err.message || 'Failed to update preferences');
     } finally {
       setLoading(false);
     }

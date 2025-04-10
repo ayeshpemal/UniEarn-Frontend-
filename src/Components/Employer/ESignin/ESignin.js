@@ -4,6 +4,7 @@ import {useNavigate} from "react-router-dom";
 import {GraduationCap} from "lucide-react";
 import axios from "axios";
 
+const baseUrl = window._env_.BASE_URL;
 const ESignin = () => {
 
     const navigate = useNavigate();
@@ -21,7 +22,7 @@ const ESignin = () => {
         e.preventDefault();
         try {
             const response = await axios.post(
-                "http://localhost:8100/api/user/login",
+                `${baseUrl}/api/user/login`,
                 formData,
                 {
                     headers: {

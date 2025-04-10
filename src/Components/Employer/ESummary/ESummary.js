@@ -7,6 +7,7 @@ import html2pdf from 'html2pdf.js';
 
 // Register ChartJS components
 ChartJS.register(ArcElement, Tooltip, Legend, BarElement, CategoryScale, LinearScale);
+const baseUrl = window._env_.BASE_URL;
 
 const ESummary = () => {
   const [summaryData, setSummaryData] = useState(null);
@@ -94,12 +95,7 @@ const ESummary = () => {
 
       try {
         const response = await axios.get(
-          `http://localhost:8100/api/employer/analysis/brief-summary/`,
-          {
-            employerId: employerId,
-            startDate: new Date(startDate).toISOString(),
-            endDate: new Date(endDate).toISOString()
-          },
+          `${baseUrl}/api/employer/analysis/brief-summary/${employerId}?startDate=${new Date(startDate).toISOString()}&endDate=${new Date(endDate).toISOString()}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -302,19 +298,31 @@ const ESummary = () => {
                     <p className="text-lg font-semibold text-gray-800">Total Jobs</p>
                     <p className="text-2xl text-gray-800">{summaryData.totalJobCount}</p>
                   </div>
-                  <div className="bg-white border border-gray-200 p-4 rounded-lg text-center shadow-sm">
+                  <div className="bg-white border border-gray-200 p-4 rounded-lg text-center shadow-sm relative group">
+                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-1 bg-gray-700 text-white text-xs sm:text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 w-[180px] sm:w-[220px] z-10 pointer-events-none text-center">
+                      Jobs that are live and can be seen by students.
+                    </div>
                     <p className="text-lg font-semibold text-orange-500">Pending</p>
                     <p className="text-2xl text-orange-500">{summaryData.pendingJobCount}</p>
                   </div>
-                  <div className="bg-white border border-gray-200 p-4 rounded-lg text-center shadow-sm">
+                  <div className="bg-white border border-gray-200 p-4 rounded-lg text-center shadow-sm relative group">
+                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-1 bg-gray-700 text-white text-xs sm:text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 w-[180px] sm:w-[220px] z-10 pointer-events-none text-center">
+                      Jobs that are currently ongoing at the present time.
+                    </div>
                     <p className="text-lg font-semibold text-blue-500">Ongoing</p>
                     <p className="text-2xl text-blue-500">{summaryData.ongoingJobCount}</p>
                   </div>
-                  <div className="bg-white border border-gray-200 p-4 rounded-lg text-center shadow-sm">
+                  <div className="bg-white border border-gray-200 p-4 rounded-lg text-center shadow-sm relative group">
+                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-1 bg-gray-700 text-white text-xs sm:text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 w-[180px] sm:w-[220px] z-10 pointer-events-none text-center">
+                      Jobs that have been completed and are finished.
+                    </div>
                     <p className="text-lg font-semibold text-green-500">Finished</p>
                     <p className="text-2xl text-green-500">{summaryData.finishedJobCount}</p>
                   </div>
-                  <div className="bg-white border border-gray-200 p-4 rounded-lg text-center shadow-sm">
+                  <div className="bg-white border border-gray-200 p-4 rounded-lg text-center shadow-sm relative group">
+                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-1 bg-gray-700 text-white text-xs sm:text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 w-[180px] sm:w-[220px] z-10 pointer-events-none text-center">
+                      Jobs that have been canceled by the company.
+                    </div>
                     <p className="text-lg font-semibold text-red-500">Canceled</p>
                     <p className="text-2xl text-red-500">{summaryData.canceledJobCount}</p>
                   </div>
@@ -395,7 +403,14 @@ const ESummary = () => {
                         <tbody className="bg-white divide-y divide-gray-200">
                           {summaryData.mostAppliedJobs.map((job) => (
                             <tr key={job.jobId}>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{job.jobTitle}</td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                <a 
+                                  href={`/e-job-details?jobId=${job.jobId}`} 
+                                  className="text-blue-600 hover:text-blue-800 hover:underline"
+                                >
+                                  {job.jobTitle}
+                                </a>
+                              </td>
                               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{job.applicationCount}</td>
                             </tr>
                           ))}
@@ -418,7 +433,14 @@ const ESummary = () => {
                         <tbody className="bg-white divide-y divide-gray-200">
                           {summaryData.leastAppliedJobs.map((job) => (
                             <tr key={job.jobId}>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{job.jobTitle}</td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                <a 
+                                  href={`/e-job-details?jobId=${job.jobId}`} 
+                                  className="text-blue-600 hover:text-blue-800 hover:underline"
+                                >
+                                  {job.jobTitle}
+                                </a>
+                              </td>
                               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{job.applicationCount}</td>
                             </tr>
                           ))}
